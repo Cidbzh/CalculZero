@@ -1,9 +1,9 @@
 <title>CalculZéro</title>
 <script>/* Thème + matière appliqués AVANT le premier rendu (anti-flash).
    Lit le choix sauvegardé (clé cz_theme) et pose l'attribut data-theme sur <html>,
-   lit la matière (clé cz_subject) et pose data-mat sur <html> (violet PC).
+   lit la matière (clé cz_subject) et pose data-mat sur <html> (violet PC / vert DE).
    Le gros script en bas ne fait que brancher les boutons. */
-(function(){var r=document.documentElement;try{var v=localStorage.getItem("cz_theme");var t=v?JSON.parse(v):"auto";if(t==="light"||t==="dark"){r.setAttribute("data-theme",t);}else{r.removeAttribute("data-theme");}}catch(e){}try{if(JSON.parse(localStorage.getItem("cz_subject"))==="pc"){r.setAttribute("data-mat","pc");}}catch(e){}})();</script>
+(function(){var r=document.documentElement;try{var v=localStorage.getItem("cz_theme");var t=v?JSON.parse(v):"auto";if(t==="light"||t==="dark"){r.setAttribute("data-theme",t);}else{r.removeAttribute("data-theme");}}catch(e){}try{var m=JSON.parse(localStorage.getItem("cz_subject"));if(m==="pc"){r.setAttribute("data-mat","pc");}else if(m==="de"){r.setAttribute("data-mat","de");}}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
@@ -92,6 +92,33 @@
   --accent-soft:rgba(167,139,250,.15);
   --pen:#A78BFA;
   --glow:rgba(167,139,250,.06);
+}
+/* ---- Allemand : accent VERT (attribut data-mat="de" sur <html>, posé par
+   l'anti-flash et par setMatiere). Mêmes 3 niveaux que le violet PC → le vert
+   gagne dans tous les cas ; la bascule s'anime via
+   .theming (cf. bas de fichier, désactivée sous prefers-reduced-motion). */
+:root[data-mat="de"]{
+  --accent:#047857;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#D1FAE5;
+  --pen:#047857;
+  --glow:rgba(4,120,87,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root[data-mat="de"]:not([data-theme="light"]){
+    --accent:#34D399;
+    --accent-ink:#0B1220;
+    --accent-soft:rgba(52,211,153,.15);
+    --pen:#34D399;
+    --glow:rgba(52,211,153,.06);
+  }
+}
+:root[data-theme="dark"][data-mat="de"]{
+  --accent:#34D399;
+  --accent-ink:#0B1220;
+  --accent-soft:rgba(52,211,153,.15);
+  --pen:#34D399;
+  --glow:rgba(52,211,153,.06);
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -413,6 +440,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc(.95s
       <div class="seg" role="group" aria-label="Matière">
         <button type="button" class="seg-btn on" data-mat="maths">Maths</button>
         <button type="button" class="seg-btn" data-mat="pc">Physique-Chimie</button>
+        <button type="button" class="seg-btn" data-mat="de">Allemand</button>
       </div>
     </div>
 
@@ -434,7 +462,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc(.95s
       <p class="note">Astuce : <b>Passer</b> (ou la touche Échap) met la question de côté — elle revient juste après la question suivante. Si tu la passes 2 fois, on t'aide avec la méthode.</p>
     </section>
 
-    <section class="panel" aria-labelledby="hSprint" data-rv style="--d:1.02s">
+    <section id="secSprint" class="panel" aria-labelledby="hSprint" data-rv style="--d:1.02s">
       <h2 id="hSprint">Sprint 60 s</h2>
       <p class="muted" style="margin:0 0 14px">Tous les thèmes mélangés, réponses rapides, sans temps mort. Le chrono ne s'arrête pas entre deux questions.</p>
       <div class="row space-between wrap-row">
@@ -1926,7 +1954,7 @@ const SUBJECTS_PC=[
  {id:"ondes",name:"Ondes & lumière",sym:"λ",gens:G_ONDES},
  {id:"elec",name:"Électricité",sym:"P",gens:G_ELECTRICITE},
 ];
-/* ---------- REGISTRE DE (allemand A2) — contenu seul, non branché (à câbler ensuite) ---------- */
+/* ---------- REGISTRE DE (allemand A2) — branché via setMatiere/activeSubjects ---------- */
 const SUBJECTS_DE=[
  {id:"vocab",name:"Vocabulaire",sym:"W?",gens:G_VOCAB},
  {id:"conj",name:"Conjugaison",sym:"ich",gens:G_CONJ},
@@ -1935,10 +1963,11 @@ const SUBJECTS_DE=[
  {id:"phrasen",name:"Phrases utiles",sym:"Hallo",gens:G_PHRASEN},
  {id:"trad",name:"Mini-traductions",sym:"→DE",gens:G_TRAD},
 ];
-const activeSubjects=()=>state.matiere==="pc"?SUBJECTS_PC:SUBJECTS_MATH;
+const activeSubjects=()=>state.matiere==="de"?SUBJECTS_DE:state.matiere==="pc"?SUBJECTS_PC:SUBJECTS_MATH;
 const THEME_BY_ID={};
 for(const s of SUBJECTS_MATH)THEME_BY_ID[s.id]=s;
 for(const s of SUBJECTS_PC)THEME_BY_ID[s.id]=s;
+for(const s of SUBJECTS_DE)THEME_BY_ID[s.id]=s;
 /*GEN2C*/
 /* ================= GRAPH (mini-visuels SVG) =================
    Dessins pédagogiques en SVG inline — aucune dépendance, reste hors-ligne.
@@ -2434,10 +2463,10 @@ const store={
   get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 };
-/* ---- Matière : "maths" (défaut) ou "pc" — persistée sous cz_subject ---- */
+/* ---- Matière : "maths" (défaut), "pc" ou "de" — persistée sous cz_subject ---- */
 const SUBJECT_KEY="cz_subject";
-const state={matiere:(function(){try{const v=JSON.parse(localStorage.getItem(SUBJECT_KEY));return v==="pc"?"pc":"maths";}catch(e){return"maths";}})(),mode:null,level:"moyen",subject:"mix",q:null,sub:null,curLvl:null,streak:0,maxStreak:0,score:0,good:0,bad:0,n:0,timer:null,timeLeft:60,answered:false,skipQueue:[],skips:0};
-/* ---- Stats : deux emplacements (cz_stats maths / cz_stats_pc), même forme,
+const state={matiere:(function(){try{const v=JSON.parse(localStorage.getItem(SUBJECT_KEY));return v==="pc"?"pc":v==="de"?"de":"maths";}catch(e){return"maths";}})(),mode:null,level:"moyen",subject:"mix",q:null,sub:null,curLvl:null,streak:0,maxStreak:0,score:0,good:0,bad:0,n:0,timer:null,timeLeft:60,answered:false,skipQueue:[],skips:0};
+/* ---- Stats : trois emplacements (cz_stats maths / cz_stats_pc / cz_stats_de), même forme,
        Migration v2 commune — les anciens utilisateurs ne perdent rien ---- */
 function loadStats(key){
   const st=store.get(key,{ans:0,good:0,bestStreak:0,bestSprint:0,bySub:{}});
@@ -2447,7 +2476,7 @@ function loadStats(key){
   if(st.review===undefined)st.review=[];              /* [{s,l,q}] — liste à réviser (max 50) */
   return st;
 }
-const activeStatsKey=()=>state.matiere==="pc"?"cz_stats_pc":"cz_stats";
+const activeStatsKey=()=>state.matiere==="de"?"cz_stats_de":state.matiere==="pc"?"cz_stats_pc":"cz_stats";
 let stats=loadStats(activeStatsKey());
 const homeEl=$("#home"),playEl=$("#play"),qbox=$("#qbox");
 const save=()=>store.set(activeStatsKey(),stats);
@@ -2477,7 +2506,7 @@ function setMatiere(m){
   store.set(SUBJECT_KEY,m);
   stats=loadStats(activeStatsKey()); /* une seule variable échangée — tout passe déjà par stats */
   state.subject="mix";               /* réinitialise la tuile sélectionnée */
-  /* Violet PC : data-mat sur <html> → variables d'accent. La bascule est
+  /* Accent matière (violet PC / vert DE) : data-mat sur <html> → variables d'accent. La bascule est
      IMMÉDIATE, sans temps mort : le swap et la cascade démarrent au clic, la
      cascade masquant elle-même le changement de contenu (tous les [data-rv]
      repartent de l'opacité 0 dans la même frame). .theming couvre les éléments
@@ -2485,7 +2514,7 @@ function setMatiere(m){
      prefers-reduced-motion : idem, et la cascade est neutralisée par les
      règles CSS globales. */
   const r=document.documentElement;
-  if(m==="pc")r.setAttribute("data-mat","pc");else r.removeAttribute("data-mat");
+  if(m==="pc")r.setAttribute("data-mat","pc");else if(m==="de")r.setAttribute("data-mat","de");else r.removeAttribute("data-mat");
   r.classList.add("theming");
   clearTimeout(setMatiere._t);
   setMatiere._t=setTimeout(function(){r.classList.remove("theming");},520);
@@ -2509,7 +2538,11 @@ const MAT_DATA={
  pc:{eyebrow:"Première · spécialité physique-chimie",
    lede:"Deux minutes de calculs ciblés — Newton, énergie, champs, moles, stœchiométrie, ondes &amp; lumière, électricité — avec une correction détaillée (et des mini-visuels) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
    noteTop:"F = m·a — 2ᵉ loi de Newton",
-   noteBottom:"Eₖ + Eₚ = Eₘ — l'énergie mécanique ✎"}
+   noteBottom:"Eₖ + Eₚ = Eₘ — l'énergie mécanique ✎"},
+ de:{eyebrow:"Première · allemand A2",
+   lede:"Deux minutes de révision ciblée — vocabulaire, conjugaison, articles, nombres &amp; dates, phrases utiles, mini-traductions — avec une correction détaillée à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
+   noteTop:"der · die · das — trois articles, pas un de plus",
+   noteBottom:"Hallo! — saluer avant de commencer ✎"}
 };
 function renderHome(){
   const M=MAT_DATA[state.matiere];
@@ -2519,6 +2552,9 @@ function renderHome(){
   $("#noteBottom").innerHTML=M.noteBottom;
   document.querySelectorAll(".seg-btn[data-mat]").forEach(x=>x.classList.toggle("on",x.dataset.mat===state.matiere));
   $("#bestSprint").textContent="Record : "+(stats.bestSprint>0?stats.bestSprint+" pts":"—");
+  /* Sprint : entrée masquée en allemand (matière 100 % QCM) — la mécanique
+     moteur (startSprint/pickQ) reste telle quelle, seule l'entrée est cachée. */
+  $("#secSprint").hidden=state.matiere==="de";
   const acc=stats.ans?Math.round(100*stats.good/stats.ans):0;
   $("#statGrid").innerHTML=
     `<div class="stat"><div class="v">${stats.ans}</div><div class="k">questions répondues</div></div>`+
