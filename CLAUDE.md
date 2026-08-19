@@ -52,6 +52,7 @@ Le fichier est un fragment (démarre par `<title>`, pas de `<!DOCTYPE>`/`<html>`
   - L'occurrence `return{prompt:prompt,` (G_CINET) est verbatim du brief T7 — ne pas « simplifier » en `{prompt,` sans re-diff.
   - Le spec `soln` de G_MOLES #7 porte une clé `V` non lue par `vzSoln` (ne lit que `n`/`c`) — verbatim du brief, inoffensive pour le round-trip JSON.
   - `tol:0.011` volontaire sur G_FORCES — brief-mandated : accepte à la fois les méthodes g = 9,8 et g = 9,77. La même valeur apparaît aussi sur d'autres tables (G_COSMO, G_ENERGIE, G_CINET, G_ONDES, et même G_DERIV/G_LOGEXP en maths) : ne pas la « nettoyer ».
+  - Noms de chapitre en `var(--accent)` (et non `--ink`) — décidé 2026-08-19 : le quasi-noir était jugé difficilement lisible. Trois occurrences : `.subcard .nm` (tuiles), `.substatrow b` (stats « Par thème »), `.weaknm` (points faibles) — + elles sont dans la liste `.theming` (transition de couleur à la bascule). L'accent suit la matière (bleu maths / violet PC) et le thème (clair/sombre).
   - **Source du brief PC** (c'est le document visé par les notes « verbatim du brief » ci-dessus) : `docs/superpowers/specs/2026-08-19-physique-chimie-design.md` (7 thèmes validés section par section ; ondes/électricité ajoutés ensuite) + plan `docs/superpowers/plans/2026-08-19-physique-chimie.md`.
   - **Skills projet** (`.claude/skills/`) : `/debug-issue`, `/explore-codebase`, `/refactor-safely`, `/review-changes`.
 

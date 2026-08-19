@@ -196,8 +196,10 @@ h1 .wr>span{display:inline-block;transform:translateY(108%);animation:wrIn .9s v
 .subcard.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:var(--shadow)}
 .subcard .sym{font:600 24px/1 var(--f-display);color:var(--accent);transition:transform .2s var(--ease)}
 .subcard:hover .sym{transform:scale(1.1)}
-/* Nom de chapitre : police display grasse pour qu'il se lise comme un vrai titre */
-.subcard .nm{font:700 16px/1.3 var(--f-display)}
+/* Nom de chapitre : police display grasse pour qu'il se lise comme un vrai titre.
+   Couleur = accent de la matière (bleu maths / violet PC) : le quasi-noir (--ink)
+   était jugé difficilement lisible (2026-08-19). */
+.subcard .nm{font:700 16px/1.3 var(--f-display);color:var(--accent)}
 .subcard .pc{font:500 12.5px var(--f-mono);color:var(--muted)}
 /* Badge de portée (ex. « Terminale · hors bac 1re ») — posé par s.tag dans le registre */
 .subcard .subtag{
@@ -224,7 +226,7 @@ h1 .wr>span{display:inline-block;transform:translateY(108%);animation:wrIn .9s v
 /* v2 : points faibles / par thème / à réviser */
 .weakrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
 .weakrow:first-of-type{border-top:0}
-.weaknm{font:600 15.5px var(--f-body);color:var(--ink);flex:1;min-width:0}
+.weaknm{font:600 15.5px var(--f-body);color:var(--accent);flex:1;min-width:0}
 .weaknm small{display:block;font:500 12.5px var(--f-body);color:var(--muted)}
 .weakbar{width:96px;height:8px;border-radius:4px;background:var(--accent-soft);overflow:hidden;flex:none}
 .weakbar i{display:block;height:100%;border-radius:4px;background:var(--accent)}
@@ -232,7 +234,7 @@ h1 .wr>span{display:inline-block;transform:translateY(108%);animation:wrIn .9s v
 .substathead,.substatrow{display:grid;grid-template-columns:1fr 3.5rem 4.6rem 3.9rem;align-items:center;gap:8px;padding:9px 2px}
 .substathead{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .substatrow{border-top:1px solid var(--line);font:500 15px var(--f-body);color:var(--muted)}
-.substatrow b{font:700 15.5px var(--f-display);color:var(--ink)}
+.substatrow b{font:700 15.5px var(--f-display);color:var(--accent)}
 .revcta{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent)}
 .revcta p b{color:var(--ink)}
 .playhead{margin:22px 0 14px}
@@ -331,8 +333,9 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc(.95s
     transition:background-color .45s var(--ease),border-color .45s var(--ease),color .45s var(--ease);
   }
   /* Les éléments dont la COULEUR (pas le fond) lit var(--accent) : eyebrow,
-     mot en italique du titre — ajoutés pour la bascule de matière (violet PC). */
-  html.theming :is(.eyebrow,h1 em){transition:color .45s var(--ease)}
+     mot en italique du titre, noms de chapitre — ajoutés pour la bascule
+     de matière (violet PC) et les changements de thème. */
+  html.theming :is(.eyebrow,h1 em,.subcard .nm,.substatrow b,.weaknm){transition:color .45s var(--ease)}
 }
 /* Confettis : pluie de papier colorée (révision finie / record sprint).
    Chaque pièce porte --drift (écart horizontal) et --rot (rotation totale). */
