@@ -80,6 +80,15 @@ the codebase.** The graph is faster, cheaper (fewer tokens), and gives
 you structural context (callers, dependents, test coverage) that file
 scanning cannot.
 
+### Protocole de session — OBLIGATOIRE (demandé par Cid, réitéré le 2026-08-19)
+
+À **chaque** nouvelle session, avant toute exploration ou modification du code :
+1. Le hook `SessionStart` affiche l'état du graphe (nodes/edges) : c'est le signal qu'il est prêt et à jour.
+2. **Le premier outil d'exploration est TOUJOURS un outil du graphe** : `get_minimal_context_tool` (entrée, ~100 tokens), puis selon la tâche `semantic_search_nodes_tool` / `query_graph_tool` / `get_impact_radius_tool` — **avant** tout Grep/Glob/Read.
+3. Avant toute revue ou commit : `detect_changes_tool` + `get_review_context_tool`.
+4. Grep/Glob/Read = **repli uniquement**, et seulement si le graphe ne couvre pas la question — à *déclarer* dans la réponse (ex. les règles CSS de `index.html` ne sont pas des nœuds du graphe ; les fonctions JS, si).
+5. Serveur MCP time out → repli direct sur la lecture de `index.html` (1 seul fichier, ~2 600 lignes, coût faible) ; réessayer le graphe à la prochaine session.
+
 ⚠️ Le serveur (`.mcp.json` : `python -m code_review_graph serve`) peut échouer à se connecter (time out de 30 s observé). Dans ce cas, **lire `index.html` directement** : c'est un unique fichier d'environ 2 600 lignes, le coût est faible.
 
 ### When to use graph tools FIRST
