@@ -1,0 +1,15 @@
+{
+  "mcp": {
+    "code-review-graph": {
+      "type": "local",
+      "command": [
+        "C:\\Users\\acoul\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "-m",
+        "code_review_graph",
+        "serve",
+        "--repo",
+        "C:\\Users\\acoul\\Documents\\calculzero"
+      ]
+    }
+  }
+}

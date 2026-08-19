@@ -1,0 +1,2575 @@
+<title>CalculZéro</title>
+<script>/* Thème + matière appliqués AVANT le premier rendu (anti-flash).
+   Lit le choix sauvegardé (clé cz_theme) et pose l'attribut data-theme sur <html>,
+   lit la matière (clé cz_subject) et pose data-mat sur <html> (violet PC).
+   Le gros script en bas ne fait que brancher les boutons. */
+(function(){var r=document.documentElement;try{var v=localStorage.getItem("cz_theme");var t=v?JSON.parse(v):"auto";if(t==="light"||t==="dark"){r.setAttribute("data-theme",t);}else{r.removeAttribute("data-theme");}}catch(e){}try{if(JSON.parse(localStorage.getItem("cz_subject"))==="pc"){r.setAttribute("data-mat","pc");}}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6FB;
+  --surface:#FFFFFF;
+  --ink:#16233D;
+  --muted:#64748B;
+  --line:#E2E8F2;
+  --accent:#2563EB;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E8EFFE;
+  --good:#17A05E;
+  --good-soft:#E4F6EC;
+  --bad:#DC2626;
+  --bad-soft:#FDECEC;
+  --pen:#2563EB;
+  --glow:rgba(37,99,235,.05);
+  --shadow:0 5px 16px -10px rgba(30,50,90,.18);
+  --radius:12px;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --f-display:"STIX Two Text",Georgia,"Times New Roman",serif;
+  --f-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Spline Sans Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1526;
+    --surface:#16213A;
+    --ink:#E7EDF8;
+    --muted:#93A4C4;
+    --line:#2C3B5C;
+    --accent:#60A5FA;
+    --accent-ink:#0B1220;
+    --accent-soft:rgba(96,165,250,.15);
+    --good:#4ADE80;
+    --good-soft:rgba(74,222,128,.13);
+    --bad:#F87171;
+    --bad-soft:rgba(248,113,113,.13);
+    --pen:#60A5FA;
+    --glow:rgba(96,165,250,.06);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1526;
+  --surface:#16213A;
+  --ink:#E7EDF8;
+  --muted:#93A4C4;
+  --line:#2C3B5C;
+  --accent:#60A5FA;
+  --accent-ink:#0B1220;
+  --accent-soft:rgba(96,165,250,.15);
+  --good:#4ADE80;
+  --good-soft:rgba(74,222,128,.13);
+  --bad:#F87171;
+  --bad-soft:rgba(248,113,113,.13);
+  --pen:#60A5FA;
+  --glow:rgba(96,165,250,.06);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.55);
+}
+/* ---- Physique-chimie : accent VIOLET (attribut data-mat="pc" sur <html>,
+   posé par l'anti-flash et par setMatiere). Mêmes 3 niveaux que les thèmes
+   sombres → le violet gagne dans tous les cas ; la bascule s'anime via
+   .theming (cf. bas de fichier, désactivée sous prefers-reduced-motion). */
+:root[data-mat="pc"]{
+  --accent:#7C3AED;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#EDE6FD;
+  --pen:#7C3AED;
+  --glow:rgba(124,58,237,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root[data-mat="pc"]:not([data-theme="light"]){
+    --accent:#A78BFA;
+    --accent-ink:#0B1220;
+    --accent-soft:rgba(167,139,250,.15);
+    --pen:#A78BFA;
+    --glow:rgba(167,139,250,.06);
+  }
+}
+:root[data-theme="dark"][data-mat="pc"]{
+  --accent:#A78BFA;
+  --accent-ink:#0B1220;
+  --accent-soft:rgba(167,139,250,.15);
+  --pen:#A78BFA;
+  --glow:rgba(167,139,250,.06);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100vh;color:var(--ink);
+  font:400 16.5px/1.6 var(--f-body);
+  background:
+    radial-gradient(1200px 460px at 50% -160px,var(--glow),transparent 72%),
+    var(--bg);
+  background-attachment:fixed;
+}
+::selection{background:var(--accent-soft)}
+.wrap{max-width:1440px;margin:0 auto;padding:0 20px}
+.row{display:flex;align-items:center;gap:10px}
+.space-between{justify-content:space-between}
+.wrap-row{flex-wrap:wrap}
+.grow{flex:1}
+.topbar{
+  position:sticky;top:0;z-index:10;
+  background:var(--surface);border-bottom:1px solid var(--line);
+  animation:barIn .6s var(--ease) both;animation-delay:.05s;
+}
+.topbar{
+  background:color-mix(in srgb,var(--surface) 85%,transparent);
+  backdrop-filter:blur(10px) saturate(1.3);-webkit-backdrop-filter:blur(10px) saturate(1.3);
+}
+@keyframes barIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.topbar .wrap{padding-top:12px;padding-bottom:12px}
+.brand{font:700 21px var(--f-display);letter-spacing:.01em}
+.brand span{font-style:italic;color:var(--pen)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  font:500 13.5px var(--f-mono);color:var(--muted);
+  background:var(--accent-soft);border:1px solid var(--line);
+  border-radius:999px;padding:4px 10px;white-space:nowrap;
+}
+.chip b{color:var(--ink);font-weight:600}
+.eyebrow{
+  margin:36px 0 0;font:600 12px var(--f-body);
+  text-transform:uppercase;letter-spacing:.14em;color:var(--accent);
+}
+.eyebrow::before{
+  content:"";display:inline-block;width:20px;height:2px;border-radius:2px;
+  background:var(--pen);opacity:.6;margin-right:10px;vertical-align:3px;
+}
+h1{
+  margin:10px 0 12px;font:700 clamp(32px,5.6vw,46px)/1.1 var(--f-display);
+  text-wrap:balance;
+}
+h1 em{font-style:italic;color:var(--accent)}
+/* Révélation mot à mot du titre (masque de ligne) — tous les mots montent au même rythme */
+h1 .wr{display:inline-block;overflow:hidden;vertical-align:bottom}
+h1 .wr>span{display:inline-block;transform:translateY(108%);animation:wrIn .9s var(--ease) both;animation-delay:var(--d,0s)}
+@keyframes wrIn{to{transform:none}}
+.lede{margin:0 0 34px;max-width:58ch;color:var(--muted);font-size:17.5px}
+/* Formule « gribouillée en marge », comme un prof qui laisse une trace au coin de la page */
+.margin-note{
+  margin:30px 0 0;max-width:max-content;margin-left:auto;
+  font:italic 500 16.5px/1.4 var(--f-display);color:var(--muted);opacity:.95;
+  transform:rotate(-2deg);transform-origin:100% 0;
+}
+.margin-note.end{
+  margin:36px auto 12px;transform:rotate(1.6deg);transform-origin:100% 0;
+}
+.note{margin:12px 0 0;font-size:13px;color:var(--muted);padding-left:11px;border-left:2.5px solid var(--pen)}
+.panel{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:24px 26px;margin-bottom:20px;
+}
+.panel h2{margin:0 0 14px;font:600 20px var(--f-display)}
+/* Trait de stylo du prof sous le titre de section */
+.panel h2::after{
+  content:"";display:block;width:34px;height:3px;border-radius:2px;
+  background:var(--accent);margin-top:10px;
+}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.lbl{font:700 13px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.seg{display:inline-flex;background:var(--accent-soft);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+.seg-btn{
+  appearance:none;border:0;background:transparent;cursor:pointer;
+  font:600 14px var(--f-body);color:var(--muted);
+  border-radius:7px;padding:6px 13px;
+}
+.seg-btn.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px rgba(31,46,71,.14)}
+.theme-seg{display:inline-flex;background:var(--accent-soft);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.theme-btn{
+  appearance:none;border:0;background:transparent;cursor:pointer;
+  font:600 13px var(--f-body);color:var(--muted);border-radius:999px;padding:4px 12px;
+  transition:color .16s var(--ease),background .16s var(--ease),box-shadow .16s var(--ease);
+}
+.theme-btn.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px rgba(31,46,71,.14)}
+.subgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;margin:10px 0 16px}
+.subcard{
+  appearance:none;text-align:left;cursor:pointer;
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:12px;display:flex;flex-direction:column;gap:7px;
+  transition:border-color .16s var(--ease),transform .16s var(--ease),background .16s var(--ease),box-shadow .16s var(--ease);
+}
+.subcard:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+.subcard.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:var(--shadow)}
+.subcard .sym{font:600 24px/1 var(--f-display);color:var(--accent);transition:transform .2s var(--ease)}
+.subcard:hover .sym{transform:scale(1.1)}
+/* Nom de chapitre : police display grasse pour qu'il se lise comme un vrai titre */
+.subcard .nm{font:700 16px/1.3 var(--f-display)}
+.subcard .pc{font:500 12.5px var(--f-mono);color:var(--muted)}
+/* Badge de portée (ex. « Terminale · hors bac 1re ») — posé par s.tag dans le registre */
+.subcard .subtag{
+  align-self:flex-start;
+  font:600 10.5px/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 8px;white-space:nowrap;
+}
+.btn{
+  appearance:none;border:1px solid transparent;border-radius:10px;
+  padding:11px 20px;font:600 15.5px var(--f-body);cursor:pointer;
+  transition:transform .16s var(--ease),box-shadow .16s var(--ease),filter .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease);
+}
+.btn:active{transform:translateY(1px)}
+.btn.small{padding:7px 12px;font-size:14px}
+.btn-primary{background:var(--accent);color:var(--accent-ink);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(0,0,0,.14)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px -12px var(--accent),inset 0 1px 0 rgba(255,255,255,.34),inset 0 -1px 0 rgba(0,0,0,.14)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{transform:translateY(-1px);border-color:var(--accent);color:var(--accent)}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:15px 16px;background:var(--surface);transition:border-color .16s var(--ease),transform .16s var(--ease),box-shadow .16s var(--ease)}
+.stat:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat .v{font:600 24px var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.stat .k{font:500 12.5px var(--f-body);color:var(--muted);margin-top:2px}
+/* v2 : points faibles / par thème / à réviser */
+.weakrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.weakrow:first-of-type{border-top:0}
+.weaknm{font:600 15.5px var(--f-body);color:var(--ink);flex:1;min-width:0}
+.weaknm small{display:block;font:500 12.5px var(--f-body);color:var(--muted)}
+.weakbar{width:96px;height:8px;border-radius:4px;background:var(--accent-soft);overflow:hidden;flex:none}
+.weakbar i{display:block;height:100%;border-radius:4px;background:var(--accent)}
+.weakpct{font:700 15px var(--f-mono);width:46px;text-align:right;flex:none}
+.substathead,.substatrow{display:grid;grid-template-columns:1fr 3.5rem 4.6rem 3.9rem;align-items:center;gap:8px;padding:9px 2px}
+.substathead{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.substatrow{border-top:1px solid var(--line);font:500 15px var(--f-body);color:var(--muted)}
+.substatrow b{font:700 15.5px var(--f-display);color:var(--ink)}
+.revcta{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent)}
+.revcta p b{color:var(--ink)}
+.playhead{margin:22px 0 14px}
+.qcard{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:24px 24px 22px;animation:pop .3s var(--ease);
+}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.qeyebrow{font:700 13.5px var(--f-body);text-transform:uppercase;letter-spacing:.12em;color:var(--ink);opacity:.75;margin:0 0 12px}
+.prompt{margin:0 0 20px;font:400 clamp(21px,3.6vw,27px)/1.6 var(--f-display);text-wrap:pretty}
+.prompt .m{font-style:italic}
+/* Fraction empilée — numérateur au-dessus du dénominateur, barre de fraction entre les deux.
+   Utilisée dans les questions, les choix de QCM et les méthodes (tous contextes HTML). */
+.frac{
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  vertical-align:middle;text-align:center;
+  font-size:.74em;line-height:1.2;margin:0 .12em;white-space:nowrap;
+}
+.frac>span{padding:0 .2em}
+.frac>span:first-child{border-bottom:.12em solid currentColor;padding-bottom:.08em}
+.ans{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ans input{
+  font:500 17px var(--f-mono);color:var(--ink);
+  background:var(--surface);border:1.5px solid var(--line);border-radius:9px;
+  padding:11px 14px;width:min(250px,100%);
+}
+.ans input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.ans .hint{font:500 13px var(--f-body);color:var(--muted);width:100%}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}
+.opt{
+  appearance:none;cursor:pointer;text-align:left;
+  font:500 17px/1.45 var(--f-display);color:var(--ink);
+  background:var(--surface);border:1.5px solid var(--line);border-radius:10px;
+  padding:13px 15px;transition:border-color .12s ease,background .12s ease,transform .12s ease;
+}
+.opt:hover{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-1px)}
+.opt.right{border-color:var(--good);background:var(--good-soft);color:var(--ink)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.fb{margin:16px 0 0;font:600 16px var(--f-body)}
+.fb.ok{color:var(--good)}
+.fb.ko{color:var(--bad)}
+.explain{
+  margin-top:12px;padding:12px 15px;border-radius:9px;
+  border:1px solid var(--line);border-left:3px solid var(--muted);
+  background:var(--surface);font:400 15.5px/1.65 var(--f-body);
+}
+.explain.good{border-left-color:var(--good)}
+.explain.bad{border-left-color:var(--bad)}
+.explain .m{font-family:var(--f-display);font-style:italic}
+.explain h4{margin:0 0 4px;font:600 13px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.nextrow{margin-top:18px;display:flex;justify-content:flex-end}
+.timerbox{display:flex;align-items:center;gap:10px}
+.timer-ring{
+  width:52px;height:52px;border-radius:50%;
+  background:conic-gradient(var(--accent) calc(var(--p,1)*1turn),var(--line) 0);
+  display:grid;place-items:center;
+}
+.timer-ring .in{
+  width:40px;height:40px;border-radius:50%;background:var(--surface);
+  display:grid;place-items:center;font:600 15px var(--f-mono);
+}
+.result{text-align:center;padding:10px 6px}
+.result .big{font:700 56px/1 var(--f-display);color:var(--accent);letter-spacing:-.02em}
+.result h3{margin:10px 0 4px;font:600 20px var(--f-display)}
+.result .rec{display:inline-block;margin:12px 0;padding:7px 14px;border-radius:999px;background:var(--good-soft);color:var(--good);font:600 14px var(--f-body);animation:pop .4s ease .5s backwards}
+.shake{animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+/* ===== Révélation d'arrivée — cascade douce de haut en bas, d'une traite =====
+   100 % CSS : les éléments sont VISIBLES par défaut et l'animation se joue une
+   seule fois au chargement. Même si le JS ne s'exécute pas (ou meurt en route),
+   rien ne peut rester bloqué invisible. */
+html.boot [data-rv]{animation:rvIn .85s var(--ease) both;animation-delay:var(--d,0s)}
+@keyframes rvIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+/* Les tuiles de thèmes défilent à leur tour pendant le premier chargement */
+html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc(.95s + var(--cd,0ms))}
+/* Transition douce entre l'accueil et l'écran d'exercice */
+#home.screen-in,#play.screen-in{animation:screenIn .4s var(--ease) both}
+@keyframes screenIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* Chrono sprint : alerte quand il reste moins de 10 s */
+.chip.urgent{background:var(--bad-soft);color:var(--bad);animation:urgPulse 1.1s ease-in-out infinite}
+.chip.urgent b{color:var(--bad)}
+@keyframes urgPulse{50%{opacity:.55}}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  [data-rv]{opacity:1!important;transform:none!important}
+  h1 .wr>span{transform:none!important;opacity:1!important}
+}
+/* Thème : transition douce des couleurs pendant la bascule.
+   Classe .theming posée ~500 ms sur <html> au changement de thème.
+   Spécificité html.theming > .btn/.subcard/… → écrase les transitions
+   habituelles (hover) uniquement pendant cette courte fenêtre. */
+@media (prefers-reduced-motion: no-preference){
+  html.theming :is(.panel,.subcard,.btn,.chip,.stat,.seg,.seg-btn,.theme-btn,.opt,.ans input,.explain,.qcard,.weakbar,.substatrow,.substathead,.prompt,.qeyebrow,.weaknm,.fb,.lede,.note,.brand,.margin-note){
+    transition:background-color .45s var(--ease),border-color .45s var(--ease),color .45s var(--ease);
+  }
+  /* Les éléments dont la COULEUR (pas le fond) lit var(--accent) : eyebrow,
+     mot en italique du titre — ajoutés pour la bascule de matière (violet PC). */
+  html.theming :is(.eyebrow,h1 em){transition:color .45s var(--ease)}
+}
+/* Confettis : pluie de papier colorée (révision finie / record sprint).
+   Chaque pièce porte --drift (écart horizontal) et --rot (rotation totale). */
+.confetti-host{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
+.confetti-host i{position:absolute;top:-24px;border-radius:2px;will-change:transform,opacity}
+@keyframes confFall{
+  from{transform:translate(0,0) rotate(0);opacity:1}
+  to{transform:translate(var(--drift,0px),105vh) rotate(var(--rot,540deg));opacity:.05}
+}
+/* Pulse du chip « score » quand la réponse est juste. */
+@keyframes chipPulse{0%{transform:scale(1)}35%{transform:scale(1.22)}100%{transform:scale(1)}}
+.chip.pulse{animation:chipPulse .5s var(--ease)}
+/* ===== Mini-visuels SVG (pédagogie) =====
+   Deux phases : "q" = image neutre SANS nombres (n'indique jamais la réponse),
+   "c" = image complète avec les éléments de la réponse (tangente, racines,
+   triangle, flèches) — affichée uniquement dans la correction. */
+.viz{margin:2px 0 16px;text-align:center}
+.viz-ans{margin:8px 0 12px}
+.viz svg{width:min(400px,100%);height:auto;display:block;margin:0 auto}
+.vz-grid{stroke:var(--line);stroke-width:1}
+.vz-axis{stroke:var(--muted);stroke-width:1.4;opacity:.75}
+.vz-curve{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.vz-pt{fill:var(--ink);stroke:var(--surface);stroke-width:2}
+.vz-ans{stroke:var(--good);stroke-width:2.6;stroke-linecap:round}
+.vz-ans-bad{stroke:var(--bad);stroke-width:2.6;stroke-linecap:round}
+.vz-anspt{fill:var(--good);stroke:var(--surface);stroke-width:2}
+.vz-leg{stroke:var(--muted);stroke-width:1.6;stroke-dasharray:4 4;opacity:.7}
+.vz-circ{fill:none;stroke:var(--muted);stroke-width:1.6}
+.vz-ray{stroke:var(--ink);stroke-width:2;stroke-linecap:round}
+.vz-lbl{font:500 11.5px var(--f-mono);fill:var(--muted)}
+.vz-lbl-ans{font:700 12.5px var(--f-mono);fill:var(--good)}
+/* La courbe se trace doucement à l'apparition (pathLength="1" sur le path).
+   Hors "prefers-reduced-motion" : aucune dasharray → courbe visible d'emblée. */
+@media (prefers-reduced-motion: no-preference){
+  .viz .vz-curve{stroke-dasharray:1;stroke-dashoffset:1;animation:vzDraw .9s var(--ease) .12s forwards}
+}
+@keyframes vzDraw{to{stroke-dashoffset:0}}
+</style>
+<noscript><style>[data-rv]{opacity:1;transform:none}h1 .wr>span{transform:none;opacity:1}</style></noscript>
+
+<header class="topbar">
+  <div class="wrap row space-between">
+    <div class="brand">Calcul<span>Zéro</span></div>
+    <div class="row" style="gap:12px">
+      <div class="theme-seg" role="group" aria-label="Thème">
+        <button type="button" class="theme-btn" data-theme-pick="auto" title="Suivre le système">Auto</button>
+        <button type="button" class="theme-btn" data-theme-pick="light" title="Thème clair">Clair</button>
+        <button type="button" class="theme-btn" data-theme-pick="dark" title="Thème sombre">Sombre</button>
+      </div>
+      <div class="chips" id="topStats" hidden>
+        <span class="chip">score <b id="tScore">0</b></span>
+        <span class="chip">série <b id="tStreak">0</b></span>
+        <span class="chip" id="tPassChip" hidden>↷ <b id="tPass">0</b> passées</span>
+        <span class="chip" id="tTimerChip" hidden>⏱ <b id="tTimer">60</b> s</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="home">
+    <p class="margin-note" aria-hidden="true" data-rv style="--d:.15s" id="noteTop">e<sup>iπ</sup> + 1 = 0</p>
+    <p class="eyebrow" data-rv style="--d:.24s" id="heroEyebrow">Première · spécialité maths</p>
+    <h1>
+      <span class="wr"><span style="--d:.34s">Le</span></span>
+      <span class="wr"><span style="--d:.42s">calcul</span></span>
+      <span class="wr"><span style="--d:.50s">sans</span></span>
+      <span class="wr"><span style="--d:.58s">erreur,</span></span>
+      <span class="wr"><span style="--d:.66s"><em>chaque jour.</em></span></span>
+    </h1>
+    <p class="lede" data-rv style="--d:.78s" id="heroLede">Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.</p>
+
+    <div class="row space-between wrap-row" data-rv style="--d:.88s;margin-bottom:22px">
+      <span class="lbl">Matière</span>
+      <div class="seg" role="group" aria-label="Matière">
+        <button type="button" class="seg-btn on" data-mat="maths">Maths</button>
+        <button type="button" class="seg-btn" data-mat="pc">Physique-Chimie</button>
+      </div>
+    </div>
+
+    <section class="panel" aria-labelledby="hFree" data-rv style="--d:.9s">
+      <h2 id="hFree">Entraînement libre</h2>
+      <div class="row space-between wrap-row" style="margin-bottom:14px">
+        <span class="lbl">Niveau</span>
+        <div class="seg" role="group" aria-label="Niveau">
+          <button class="seg-btn" data-lvl="facile">Facile</button>
+          <button class="seg-btn on" data-lvl="moyen">Moyen</button>
+          <button class="seg-btn" data-lvl="difficile">Difficile</button>
+        </div>
+      </div>
+      <p class="lbl" style="margin:0 0 4px">Thème</p>
+      <div class="subgrid" id="subGrid"></div>
+      <div class="row">
+        <button class="btn btn-primary" id="btnFree">Commencer l'entraînement</button>
+      </div>
+      <p class="note">Astuce : <b>Passer</b> (ou la touche Échap) met la question de côté — elle revient juste après la question suivante. Si tu la passes 2 fois, on t'aide avec la méthode.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="hSprint" data-rv style="--d:1.02s">
+      <h2 id="hSprint">Sprint 60 s</h2>
+      <p class="muted" style="margin:0 0 14px">Tous les thèmes mélangés, réponses rapides, sans temps mort. Le chrono ne s'arrête pas entre deux questions.</p>
+      <div class="row space-between wrap-row">
+        <button class="btn btn-primary" id="btnSprint">Lancer le sprint</button>
+        <span class="muted mono" id="bestSprint" style="font-size:13.5px">Record : —</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="hStats" data-rv style="--d:1.14s">
+      <h2 id="hStats">Mes statistiques</h2>
+      <div class="statgrid" id="statGrid"></div>
+    </section>
+
+    <div id="statsExtra"></div>
+
+    <p class="margin-note end" aria-hidden="true" data-rv style="--d:1.26s" id="noteBottom">Δ = b² − 4ac — à connaître par cœur ✎</p>
+  </section>
+
+  <section id="play" hidden>
+    <div class="row playhead wrap-row">
+      <button class="btn btn-ghost small" id="btnBack">← Quitter</button>
+      <span class="chip" id="chipSub"></span>
+      <span class="chip" id="chipLvl"></span>
+      <span class="grow"></span>
+      <span class="mono muted" id="qCount" style="font-size:13px"></span>
+    </div>
+    <div id="qbox"></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ================= UTILS ================= */
+const $=s=>document.querySelector(s);
+const Ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;      /* entier aléatoire [a,b] */
+const pick=a=>a[Ri(0,a.length-1)];
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;};
+const fr=(n,d)=>{if(d<0){n=-n;d=-d;}const g=gcd(n,d);return{n:n/g,d:d/g};};
+/* ---------- Affichage des fractions : empilées (numérateur / dénominateur + barre) ---------- */
+const fracHTML=(nu,de)=>`<span class="frac"><span>${nu}</span><span>${de}</span></span>`;
+const FR=(n,d)=>{if(d<0){n=-n;d=-d;}return n<0?"−"+fracHTML(-n,d):fracHTML(n,d);};  /* fraction telle qu'écrite (non simplifiée) */
+const F=(n,d)=>{const f=fr(n,d);if(f.d===1)return f.n<0?"−"+(-f.n):String(f.n);return FR(f.n,f.d);}; /* fraction simplifiée */
+const fs=(n,d)=>F(n,d);   /* affichage d'une réponse fraction (fraction empilée) */
+const fa=(n,d)=>fr(n,d);   /* réponse "fraction" : {n,d} simplifiée */
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Ri(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+/* ================= GENERATORS ================= */
+/* ---------- Dérivées ---------- */
+const G_DERIV=[
+ {lvl:"facile",make(){
+   const a=Ri(2,9),b=pick([-6,-5,-4,-3,-2,2,3,4,5,6]),c=Ri(-5,5),k=Ri(1,5);
+   const bs=b<0?"− "+(-b):"+ "+b, cs=c<0?"− "+(-c):"+ "+c;
+   return{prompt:`Soit f(x) = ${a}x² ${bs}x ${cs}. Calcule f′(${k}).`,
+     type:"number",answer:2*a*k+b,
+     viz:{kind:"tan",f:"quad",a:a,b:b,c:c,k:k,m:2*a*k+b},
+     explain:`La dérivée de f(x) = ${a}x² + ${b}x + ${c} est f′(x) = ${2*a}x + ${b}.<br>Donc f′(${k}) = ${2*a} × ${k} + (${b}) = <b>${2*a*k+b}</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const a=pick([1,2,3,4,5,6,8,9]),k=pick([2,3,4]);
+   return{prompt:`Soit f(x) = ${a}/x. Calcule f′(${k}).`,
+     type:"frac",answer:fa(-a,k*k),
+     viz:{kind:"tan",f:"rec",a:a,k:k,m:-a/(k*k)},
+     explain:`Règle : (a/x)′ = −a/x².<br>Donc f′(${k}) = ${FR(-a,k*k)} = <b>${F(-a,k*k)}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const a=Ri(1,4),b=pick([-9,-6,-4,-3,3,4,6,9]),k=Ri(1,4);
+   return{prompt:`Soit f(x) = ${a}x³ + ${b}x. Calcule f′(${k}).`,
+     type:"number",answer:3*a*k*k+b,
+     viz:{kind:"tan",f:"cub",a:a,b:b,k:k,m:3*a*k*k+b},
+     explain:`f′(x) = ${3*a}x² + ${b}.<br>Donc f′(${k}) = ${3*a} × ${k*k} + (${b}) = <b>${3*a*k*k+b}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const a=Ri(1,4),b=Ri(-9,9),k=Ri(1,2);
+   const ans=a*Math.exp(k)+b;
+   return{prompt:`Soit f(x) = ${a}·eˣ + ${b}x. Calcule f′(${k}), arrondi au centième.`,
+     type:"number",answer:Math.round(ans*100)/100,tol:0.011,
+     viz:{kind:"tan",f:"exp",a:a,b:b,k:k,m:a*Math.exp(k)+b},
+     explain:`f′(x) = ${a}·eˣ + ${b} (la dérivée de eˣ est eˣ).<br>f′(${k}) = ${a} × ${Math.exp(k).toFixed(4)} + (${b}) ≈ <b>${Math.round(ans*100)/100}</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const a=pick([2,3,4,5,6]),b=Ri(-5,5),k=pick([2,3,4]);
+   return{prompt:`Soit f(x) = ${a}·ln(x) + ${b}x. Calcule f′(${k}).`,
+     type:"frac",answer:fr(a+b*k,k),
+     viz:{kind:"tan",f:"ln",a:a,b:b,k:k,m:a/k+b},
+     explain:`f′(x) = ${a}/x + ${b}.<br>f′(${k}) = ${FR(a,k)} + ${b} = ${FR(a+b*k,k)} = <b>${F(a+b*k,k)}</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const a=Ri(2,5),b=Ri(-6,6),k=Ri(1,3);
+   const ans=2*a*(a*k+b);
+   return{prompt:`Soit f(x) = (${a}x + ${b})². Calcule f′(${k}).`,
+     type:"number",answer:ans,
+     viz:{kind:"tan",f:"sq",a:a,b:b,k:k,m:2*a*(a*k+b)},
+     explain:`Règle de la chaîne : la dérivée de (ax+b)² est 2(ax+b) × ${a}.<br>Donc f′(${k}) = ${2*a} × (${a}×${k} + ${b}) = ${2*a} × ${a*k+b} = <b>${ans}</b>.`};
+ }},
+];
+
+/* ---------- Suites ---------- */
+const G_SUITES=[
+ {lvl:"facile",make(){
+   const u0=Ri(-5,10),r=pick([-4,-3,-2,-1,1,2,3,4]),n=Ri(2,8);
+   return{prompt:`Soit (uₙ) arithmétique de raison ${r} avec u₀ = ${u0}. Calcule u${n}.`,
+     type:"number",answer:u0+n*r,
+     explain:`uₙ = u₀ + n·r = ${u0} + ${n} × (${r}) = <b>${u0+n*r}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const u0=pick([1,2,3,-1,-2]),q=pick([-3,-2,2,3]),n=Ri(2,5);
+   return{prompt:`Soit (uₙ) géométrique de raison ${q} avec u₀ = ${u0}. Calcule u${n}.`,
+     type:"number",answer:u0*Math.pow(q,n),
+     explain:`uₙ = u₀ × qⁿ = ${u0} × ${q}^${n} = <b>${u0*Math.pow(q,n)}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const u0=Ri(-6,6),r=pick([-3,-2,2,3]),n=Ri(3,7);
+   const S=n*(2*u0+(n-1)*r)/2;
+   const ans=Number.isInteger(S)?fa(S,1):fa(2*S,2);
+   return{prompt:`Soit (uₙ) arithmétique de raison ${r}, u₀ = ${u0}. Calcule S = u₀ + u₁ + … + u${n-1} (somme des ${n} premiers termes).`,
+     type:"frac",answer:ans,
+     explain:`S = n/2 × (2u₀ + (n−1)r) = ${FR(n,2)} × (${2*u0} + ${(n-1)}×${r}) = <b>${Number.isInteger(S)?S:F(2*S,2)}</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const u0=pick([1,2,-1,-2]),q=pick([2,3,-2]),n=Ri(3,4);
+   const num=u0*(1-Math.pow(q,n)),den=1-q;
+   return{prompt:`Soit (uₙ) géométrique de raison ${q}, u₀ = ${u0}. Calcule S = u₀ + u₁ + … + u${n-1}.`,
+     type:"frac",answer:fr(num,den),
+     explain:`S = u₀ × (1 − qⁿ)/(1 − q) = ${u0} × (1 − ${Math.pow(q,n)})/(1 − ${q}) = <b>${F(num,den)}</b>.`};
+ }},
+];
+
+/* ---------- Log & exp ---------- */
+const G_LOGEXP=[
+ {lvl:"facile",make(){
+   const a=Ri(2,15);
+   return{prompt:`Simplifie : e^{ln(${a})}.`,
+     type:"number",answer:a,
+     explain:`e et ln sont réciproques : e^{ln(x)} = x pour x > 0.<br>Donc e^{ln(${a})} = <b>${a}</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const a=Ri(-3,5);
+   return{prompt:`Simplifie : ln(e^{${a<0?"−"+(-a):a}}).`,
+     type:"number",answer:a,
+     explain:`ln(eˣ) = x, car le ln « annule » l'exp.<br>Donc ln(e^${a}) = <b>${a}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const a=Ri(1,6),b=Ri(1,6);
+   return{prompt:`Simplifie : ln(e^{${a}} × e^{${b}}).`,
+     type:"number",answer:a+b,
+     explain:`ln(eᵃ × eᵇ) = ln(eᵃ) + ln(eᵇ) = a + b.<br>Donc = ${a} + ${b} = <b>${a+b}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const a=Ri(2,15),ans=Math.round(Math.log(a)*10000)/10000;
+   return{prompt:`Résous : eˣ = ${a}. (x ≈ ? , au centième)`,
+     type:"number",answer:Math.round(Math.log(a)*100)/100,tol:0.011,
+     explain:`Appliquons ln des deux côtés : x = ln(${a}) ≈ <b>${Math.round(Math.log(a)*100)/100}</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const a=Ri(2,7),b=pick([-3,-2,-1,1,2,3]);
+   const ans=Math.round(Math.exp(a-b)*100)/100;
+   return{prompt:`Résous : ln(x) + ${b} = ${a}. (x ≈ ? , au centième)`,
+     type:"number",answer:ans,tol:0.011,
+     explain:`ln(x) = ${a} − ${b} = ${a-b}, donc x = e^${a-b} ≈ <b>${ans}</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const a=Ri(3,12);
+   return{prompt:`Résous : e^{2x} = ${a}².`,
+     type:"number",answer:Math.round(Math.log(a)*100)/100,tol:0.011,
+     explain:`e^{2x} = (eˣ)² = ${a}², donc eˣ = ${a} (car eˣ > 0 et ${a} > 0).<br>x = ln(${a}) ≈ <b>${Math.round(Math.log(a)*100)/100}</b>.`};
+ }},
+];
+
+/* ---------- Équations du 2e degré ---------- */
+const G_EQ2=[
+ {lvl:"facile",make(){
+   const r1=Ri(-6,6),r2=pick(shuf(Array.from({length:13},(_,i)=>i-6)).filter(x=>x!==r1));
+   const b=-(r1+r2),c=r1*r2,D=Math.pow(r1-r2,2);
+   const bs=b<0?"− "+(-b):"+ "+b;
+   return{prompt:`Calcule le discriminant Δ de : x² ${bs}x ${c<0?"− "+(-c):"+ "+c} = 0.`,
+     type:"number",answer:D,
+     viz:{kind:"par",a:1,b:b,c:c,r1:r1,r2:r2},
+     explain:`Δ = b² − 4ac = (${b})² − 4 × ${c} = ${b*b} − ${4*c} = <b>${D}</b>.<br>(Δ > 0 : deux solutions, x = ${r1} et x = ${r2}.)`};
+ }},
+ {lvl:"moyen",make(){
+   let r1=Ri(-6,6),r2;do{r2=Ri(-6,6);}while(r2===r1);
+   const a=pick([1,2,3]),b=-a*(r1+r2),c=a*r1*r2;
+   return{prompt:`Résous : ${a>1?a+" ":""}x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c} = 0. Donne la plus petite solution.`,
+     type:"number",answer:Math.min(r1,r2),
+     viz:{kind:"par",a:a,b:b,c:c,r1:r1,r2:r2},
+     explain:`Δ = ${b*b-4*a*c}, √Δ = ${Math.abs(r1-r2)*a}… en pratique : Δ = a²(r₁−r₂)², √Δ = ${Math.abs(r1-r2)*a}.<br>x = (${b>0?"−":"+"} ${Math.abs(b)} ± ${Math.abs(r1-r2)*a})/(${2*a}) → solutions ${r1} et ${r2}.<br>La plus petite est <b>${Math.min(r1,r2)}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   let r1,r2;do{r1=Ri(-5,5);r2=Ri(-5,5);}while(r1===r2||r1===-r2||r1===0||r2===0);
+   const b=-(r1+r2),c=r1*r2;
+   const opts=shuf([
+     `(x ${r1>0?"− "+r1:"+ "+(-r1)}) (x ${r2>0?"− "+r2:"+ "+(-r2)})`,
+     `(x ${r1>0?"− "+r1:"+ "+(-r1)}) (x + ${r2})`,
+     `(x + ${r1}) (x ${r2>0?"− "+r2:"+ "+(-r2)})`,
+     `(x + ${r1}) (x + ${r2})`
+   ]);
+   const right=opts.indexOf(`(x ${r1>0?"− "+r1:"+ "+(-r1)}) (x ${r2>0?"− "+r2:"+ "+(-r2)})`);
+   return{prompt:`Factorise : x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c}.`,
+     type:"choice",options:opts,correct:right,
+     viz:{kind:"par",a:1,b:b,c:c,r1:r1,r2:r2},
+     explain:`Racines x = ${r1} et x = ${r2}, a = 1, donc la forme factorisée est (x − ${r1})(x − ${r2}).`};
+ }},
+ {lvl:"difficile",make(){
+   let r1=Ri(-5,5),r2;do{r2=Ri(-5,5);}while(r2===r1);
+   const a=pick([2,3,4]),b=-a*(r1+r2),c=a*r1*r2;
+   return{prompt:`Résous : ${a}x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c} = 0. Donne la plus grande solution.`,
+     type:"number",answer:Math.max(r1,r2),
+     viz:{kind:"par",a:a,b:b,c:c,r1:r1,r2:r2},
+     explain:`Δ = ${b*b-4*a*c} > 0, √Δ = ${Math.abs(r1-r2)*a}.<br>x = (${b>0?"−":"+"} ${Math.abs(b)} ± ${Math.abs(r1-r2)*a}) / ${2*a} → x = ${r1} ou x = ${r2}.<br>La plus grande est <b>${Math.max(r1,r2)}</b>.`};
+ }},
+];
+/* ---------- Trigonométrie ---------- */
+/* Valeurs exactes affichées en fractions empilées (1/2 → ½ verticalement, √2/2, √3/2) */
+const TRIGV={"0":"0","1":"1","1/2":F(1,2),"√2/2":fracHTML("√2","2"),"√3/2":fracHTML("√3","2")};
+const ANGRAD={"0":0,"π/6":Math.PI/6,"π/4":Math.PI/4,"π/3":Math.PI/3,"π/2":Math.PI/2}; /* pour le cercle trigonométrique (viz) */
+const G_TRIG=[
+ {lvl:"facile",make(){
+   const defs=[
+     {t:"0",f:"sin",v:"0"},{t:"0",f:"cos",v:"1"},
+     {t:"π/2",f:"sin",v:"1"},{t:"π/2",f:"cos",v:"0"},
+     {t:"π/6",f:"sin",v:"1/2"},{t:"π/3",f:"cos",v:"1/2"},
+     {t:"π/4",f:"sin",v:"√2/2"},{t:"π/4",f:"cos",v:"√2/2"},
+     {t:"π/3",f:"sin",v:"√3/2"},{t:"π/6",f:"cos",v:"√3/2"}
+   ];
+   const d=pick(defs);
+   const pool=shuf(["0","1","1/2","√2/2","√3/2"].filter(x=>x!==d.v));
+   const opts=shuf([d.v,pool[0],pool[1]]),right=opts.indexOf(d.v);
+   return{prompt:`Calcule : ${d.f}(${d.t}).`,
+     type:"choice",options:opts.map(v=>TRIGV[v]),correct:right,
+     viz:{kind:"unit",ang:ANGRAD[d.t],angLabel:d.t,leg:d.f,valLabel:d.v},
+     explain:`Valeur exacte à connaître : ${d.f}(${d.t}) = <b>${TRIGV[d.v]}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const trip=pick([[3,4],[4,3],[5,12],[12,5]]);
+   const sinN=trip[0],cosN=trip[1];
+   return{prompt:`Soit x dans [0 ; π/2] avec sin(x) = ${F(sinN,5)}. Calcule cos(x).`,
+     type:"frac",answer:fa(cosN,5),
+     viz:{kind:"unit",ang:Math.asin(sinN/5),angLabel:"x",leg:"cos",valLabel:F(cosN,5)},
+     explain:`sin²x + cos²x = 1 → cos²x = 1 − ${FR(2*sinN*sinN,25)} = ${FR(25-sinN*sinN,25)}.<br>Comme x ∈ [0 ; π/2], cos(x) > 0 : cos(x) = ${fracHTML("√"+(25-sinN*sinN),"5")} = <b>${F(cosN,5)}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const combos=[[0,"π/2"],["π/2",0]];
+   const c=pick(combos),a=c[0],b=c[1];
+   return{prompt:`Calcule : cos(${a} + ${b}).`,
+     type:"number",answer:0,
+     explain:`cos(a+b) = cos a cos b − sin a sin b = cos(${a})cos(${b}) − sin(${a})sin(${b}) = <b>0</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const trip=pick([[3,4],[4,3]]);
+   const sinN=trip[0],cosN=trip[1];
+   const num=25-2*sinN*sinN;
+   return{prompt:`Soit x dans [0 ; π/2] avec sin(x) = ${F(sinN,5)}. Calcule cos(2x).`,
+     type:"frac",answer:fa(num,25),
+     viz:{kind:"unit",ang:Math.asin(sinN/5),angLabel:"x",leg:"cos",valLabel:F(cosN,5)},
+     explain:`Formule de l'angle double : cos(2x) = 1 − 2sin²x = 1 − ${FR(2*sinN*sinN,25)} = <b>${F(num,25)}</b>.`};
+ }},
+];
+
+/* ---------- Probabilités ---------- */
+const G_PROBA=[
+ {lvl:"facile",make(){
+   const s=pick([2,5,7,12]);
+   const n={2:1,5:4,7:6,12:1}[s];
+   return{prompt:`On lance deux dés équilibrés à 6 faces. Quelle est la probabilité d'obtenir un total de ${s} ?`,
+     type:"frac",answer:fa(n,36),
+     explain:`36 issues équiprobables. Paires donnant ${s} : ${n} possibilités.<br>P = <b>${F(n,36)}</b>.`};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:`On lance deux pièces équilibrées. Quelle est la probabilité d'obtenir exactement une face ?`,
+     type:"frac",answer:fa(1,2),
+     explain:`4 issues : FF, FP, PF, PP. « Exactement une face » : FP et PF → 2 issues sur 4.<br>P = ${FR(2,4)} = <b>${F(1,2)}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const r=pick([2,3,4]),b=pick([2,3,4]);
+   const num=r*r,den=(r+b)*(r+b);
+   return{prompt:`Une urne contient ${r} boules rouges et ${b} bleues. On tire une boule, on la remet, puis on en retire une. Quelle est la probabilité de tirer deux boules rouges ?`,
+     type:"frac",answer:fr(num,den),
+     explain:`Tirage avec remise → indépendance.<br>P = ${FR(r,r+b)} × ${FR(r,r+b)} = <b>${F(num,den)}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const c1=Ri(3,6),c2=Ri(4,8);
+   return{prompt:`Un menu comporte ${c1} entrées et ${c2} plats. Combien de menus (1 entrée + 1 plat) peut-on composer ?`,
+     type:"number",answer:c1*c2,
+     explain:`Règle du produit : chaque entrée se combine avec chaque plat.<br>${c1} × ${c2} = <b>${c1*c2}</b> menus.`};
+ }},
+ {lvl:"difficile",make(){
+   /* arbre : A (p) / A' (1-p), puis de A → B (q) ; P(A|B) = pq / (pq + (1-p)q2) */
+   const pN=pick([1,2,3]),pD=pick([3,4,5]),qN=pick([1,2]),qD=pick([2,3,4]);
+   const q2N=pick([1,2]);
+   const num=pN*qN;
+   const den=pN*qN+(pD-pN)*q2N;
+   return{prompt:`P(A) = ${FR(pN,pD)}, P(B|A) = ${FR(qN,qD)} et P(B|A′) = ${FR(q2N,qD)}. Calcule P(A|B).`,
+     type:"frac",answer:fr(num,den),
+     explain:`P(A∩B) = ${FR(pN,pD)} × ${FR(qN,qD)} = ${FR(pN*qN,pD*qD)}.<br>P(B) = ${FR(pN*qN,pD*qD)} + ${FR((pD-pN)*q2N,pD*qD)}.<br>P(A|B) = P(A∩B) ÷ P(B) = <b>${F(num,den)}</b>.`};
+ }},
+];
+
+/* ---------- Vecteurs & produit scalaire ---------- */
+const G_VECT=[
+ {lvl:"facile",make(){
+   const u=[Ri(-4,4),Ri(-4,4)],v=[Ri(-4,4),Ri(-4,4)];
+   const dot=u[0]*v[0]+u[1]*v[1];
+   return{prompt:`Soit u(${u[0]} ; ${u[1]}) et v(${v[0]} ; ${v[1]}). Calcule u·v (produit scalaire).`,
+     type:"number",answer:dot,
+     explain:`u·v = x₁x₂ + y₁y₂ = ${u[0]}×${v[0]} + ${u[1]}×${v[1]} = ${u[0]*v[0]} + ${u[1]*v[1]} = <b>${dot}</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const A=[Ri(-5,5),Ri(-5,5)],dx=pick([-4,-3,-2,2,3,4]),dy=pick([-4,-3,-2,2,3,4]);
+   const B=[A[0]+dx,A[1]+dy];
+   return{prompt:`Soit A(${A[0]} ; ${A[1]}) et B(${B[0]} ; ${B[1]}). Quelle est la composante x du vecteur AB ?`,
+     type:"number",answer:dx,
+     explain:`AB = (x_B − x_A ; y_B − y_A) = (${B[0]} − ${A[0]} ; ${B[1]} − ${A[1]}) = (${dx} ; ${dy}).<br>La composante x est <b>${dx}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const trip=pick([[3,4],[4,3],[6,8],[8,6],[5,12],[12,5]]);
+   const A=[Ri(-5,5),Ri(-5,5)],B=[A[0]+trip[0],A[1]+trip[1]];
+   return{prompt:`Soit A(${A[0]} ; ${A[1]}) et B(${B[0]} ; ${B[1]}). Calcule la longueur AB.`,
+     type:"number",answer:Math.hypot(trip[0],trip[1]),
+     explain:`AB = (x_B − x_A ; y_B − y_A) = (${trip[0]} ; ${trip[1]}).<br>AB = √(${trip[0]}² + ${trip[1]}²) = √${trip[0]*trip[0]+trip[1]*trip[1]} = <b>${Math.hypot(trip[0],trip[1])}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const base=[pick([1,2,3]),pick([1,2,3])],k=pick([-3,-2,2,3]);
+   const u=base,v=[k*base[0],k*base[1]];
+   return{prompt:`Les vecteurs u(${u[0]} ; ${u[1]}) et v(${v[0]} ; ${v[1]}) sont-ils colinéaires ?`,
+     type:"choice",options:["Oui, ils sont colinéaires","Non, ils ne sont pas colinéaires"],correct:0,
+     explain:`v = ${k} × u (chaque composante est multipliée par ${k}), donc <b>oui, ils sont colinéaires</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const u=[Ri(-5,5),Ri(-5,5)],v=[Ri(-5,5),Ri(-5,5)];
+   const det=Math.abs(u[0]*v[1]-u[1]*v[0]);
+   return{prompt:`Soit u(${u[0]} ; ${u[1]}) et v(${v[0]} ; ${v[1]}). Calcule l'aire du triangle formé par les origines de ces vecteurs (aire = |det(u,v)|/2).`,
+     type:"frac",answer:fa(det,2),
+     explain:`det(u,v) = x₁y₂ − y₁x₂ = ${u[0]}×${v[1]} − ${u[1]}×${v[0]} = ${u[0]*v[1]-u[1]*v[0]}.<br>Aire = ${FR(det,2)} = <b>${F(det,2)}</b>.`};
+ }},
+];
+
+/* ---------- Droites & fonctions affines ---------- */
+const G_AFF=[
+ {lvl:"facile",make(){
+   const dx=pick([1,2,3,4]),dy=pick([-6,-4,-3,-2,2,3,4,6]);
+   const A=[Ri(-4,4),Ri(-4,4)],B=[A[0]+dx,A[1]+dy];
+   return{prompt:`Calcule le coefficient directeur de la droite passant par A(${A[0]} ; ${A[1]}) et B(${B[0]} ; ${B[1]}).`,
+     type:"frac",answer:fr(dy,dx),
+     explain:`a = (y_B − y_A)/(x_B − x_A) = ${FR(dy,dx)} = <b>${F(dy,dx)}</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const a=Ri(-6,6)||2,b=Ri(-8,8),k=Ri(1,5);
+   const bs=b<0?"− "+(-b):"+ "+b;
+   return{prompt:`Soit f(x) = ${a}x ${bs}. Calcule f(${k}).`,
+     type:"number",answer:a*k+b,
+     explain:`f(${k}) = ${a} × ${k} + (${b}) = <b>${a*k+b}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const dx=pick([2,3,4]),dy=pick([1,2,3]);
+   const A=[Ri(-4,4),Ri(-4,4)],B=[A[0]+dx,A[1]+dy];
+   const aN=dy,aD=dx,b0=A[1]-A[0]*dy/dx;
+   return{prompt:`La droite (D) passe par A(${A[0]} ; ${A[1]}) et B(${B[0]} ; ${B[1]}). Déterminer l'ordonnée à l'origine b de sa forme y = ax + b.`,
+     type:"frac",answer:fr(A[1]*dx-dy*A[0],dx),
+     explain:`a = ${FR(dy,dx)} = ${F(dy,dx)}.<br>b = y_A − a·x_A = ${A[1]} − ${F(dy,dx)} × ${A[0]} = <b>${F(A[1]*dx-dy*A[0],dx)}</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const m=pick([-2,-1,1,2]),b=Ri(-5,5),C=[Ri(-4,4),Ri(-4,4)];
+   const b2=C[1]-m*C[0];
+   return{prompt:`La droite (d) a pour équation y = ${m}x ${b<0?"− "+(-b):"+ "+b}. La droite (d′) passe par C(${C[0]} ; ${C[1]}) et est parallèle à (d). Calcule l'ordonnée à l'origine de (d′).`,
+     type:"number",answer:b2,
+     explain:`Parallèles → même coefficient directeur m = ${m}.<br>b′ = y_C − m·x_C = ${C[1]} − ${m}×${C[0]} = <b>${b2}</b>.`};
+ }},
+];
+
+/* ---------- Limites ---------- */
+const G_LIM=[
+ {lvl:"facile",make(){
+   return{prompt:"Calcule la limite de eˣ quand x tend vers +∞.",
+     type:"choice",options:["+∞","−∞","0","La limite ne existe pas"],correct:0,
+     explain:"Quand x → +∞, eˣ croît sans limite : eˣ → <b>+∞</b>."};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:"Calcule la limite de ln(x) quand x tend vers 0 par la droite (x → 0⁺).",
+     type:"choice",options:["−∞","+∞","0","La limite ne existe pas"],correct:0,
+     explain:"Quand x → 0⁺, ln(x) descend sans limite : ln(x) → <b>−∞</b>."};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:"Calcule la limite de 1/x quand x tend vers +∞.",
+     type:"number",answer:0,
+     explain:"1/x devient de plus en plus petit : 1/x → <b>0</b>."};
+ }},
+ {lvl:"moyen",make(){
+   const a=Ri(2,5),c=Ri(2,4),b=Ri(-9,9),d=Ri(-9,9);
+   const bs=b<0?"− "+(-b):"+ "+b,ds=d<0?"− "+(-d):"+ "+d;
+   return{prompt:`Calcule la limite de (${a}x ${bs}) / (${c}x ${ds}) quand x tend vers +∞.`,
+     type:"frac",answer:fa(a,c),
+     explain:`Divisons numérateur et dénominateur par x (x → +∞, donc 1/x → 0) :<br>= (${a} + ${b}/x) / (${c} + ${d}/x) → ${FR(a,c)} = <b>${F(a,c)}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   return{prompt:"Calcule la limite de sin(x)/x quand x tend vers 0.",
+     type:"number",answer:1,
+     explain:"Limite remarquable : sin(x)/x → <b>1</b> quand x → 0."};
+ }},
+ {lvl:"moyen",make(){
+   return{prompt:"Calcule la limite de ln(x)/x quand x tend vers +∞.",
+     type:"number",answer:0,
+     explain:"Comparaison des croissances : x « gagne » beaucoup plus vite que ln(x).<br>Donc ln(x)/x → <b>0</b>."};
+ }},
+ {lvl:"difficile",make(){
+   return{prompt:"Calcule la limite de x·ln(x) quand x tend vers 0 par la droite (x → 0⁺).",
+     type:"number",answer:0,
+     explain:"Forme indéterminée 0 × (−∞). Écrivons x·ln(x) = ln(x) / (1/x) : forme (−∞)/(+∞).<br>La puissance « gagne » sur le ln : x·ln(x) → <b>0</b>."};
+ }},
+ {lvl:"difficile",make(){
+   return{prompt:"Calcule la limite de eˣ quand x tend vers −∞.",
+     type:"number",answer:0,
+     explain:"eˣ = 1/e^{−x} et −x → +∞ quand x → −∞.<br>Donc eˣ → <b>0</b>."};
+ }}
+];
+
+/* ---------- Étude de variations ----------
+   Règles de génération : sommet toujours à abscisse ENTIERE (b = −2ah),
+   extremums toujours à valeurs entières — la correction reste lisible. */
+const G_VAR=[
+ {lvl:"facile",make(){
+   const a=pick([-6,-4,-3,-2,2,3,4,6]),b=Ri(-9,9),inc=a>0;
+   return{prompt:`Soit f(x) = ${a}x ${b<0?"− "+(-b):"+ "+b}. Est-elle croissante ou décroissante sur ℝ ?`,
+     type:"choice",options:["Croissante sur ℝ","Décroissante sur ℝ"],correct:inc?0:1,
+     viz:{kind:"var",f:"lin",a:a,b:b,arrows:[[ -8,8,inc?1:-1]],ex:[]},
+     explain:`f est affine de coefficient a = ${a} ${a>0?"> 0":"< 0"}.<br>Donc f est <b>${inc?"croissante":"décroissante"}</b> sur ℝ.`};
+ }},
+ {lvl:"facile",make(){
+   const a=pick([2,3,4,-2,-3]),b=Ri(-6,6),c=Ri(-6,6);
+   const h=-b/(2*a),fh=a*h*h+b*h+c;
+   return{prompt:`Soit f(x) = ${a<0?"− ":""}${Math.abs(a)>1?Math.abs(a)+" ":""}x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c}. Combien d'extremums locaux f possède-t-elle ?`,
+     type:"number",answer:1,
+     viz:{kind:"var",f:"quad",a:a,b:b,c:c,
+       arrows:a>0?[[-8,h,-1],[h,8,1]]:[[-8,h,1],[h,8,-1]],
+       ex:[[h,fh,a>0?"min":"max"]]},
+     explain:`f est une parabole de coefficient a ${a>0?"> 0":"< 0"} : elle a un seul sommet.<br>Donc f possède <b>1 extremum local</b> (${a>0?"un minimum":"un maximum"} en x = ${h}).`};
+ }},
+ {lvl:"moyen",make(){
+   const a=pick([2,3,-2,-3]),h=pick([-3,-2,-1,1,2,3]);
+   const b=-2*a*h,c=Ri(-6,6),fh=a*h*h+b*h+c;
+   return{prompt:`Soit f(x) = ${a<0?"− ":""}${Math.abs(a)>1?Math.abs(a)+" ":""}x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c}. Sur quel intervalle f est-elle décroissante ?`,
+     type:"choice",
+     options:[`(−∞ ; ${h}]`,`[${h} ; +∞)`,`Sur tout ℝ`],
+     correct:a>0?0:1,
+     viz:{kind:"var",f:"quad",a:a,b:b,c:c,
+       arrows:a>0?[[-8,h,-1],[h,8,1]]:[[-8,h,1],[h,8,-1]],
+       ex:[[h,fh,a>0?"min":"max"]]},
+     explain:`f′(x) = ${2*a}x ${b<0?"− "+(-b):"+ "+b}. Le signe de f′ change en x = ${h} (sommet).<br>Donc f est <b>décroissante sur ${a>0?"(−∞ ; "+h+"]":"["+h+" ; +∞)"}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const a=pick([1,2,3]);
+   return{prompt:`Soit f(x) = ${a>1?a+" ":""}eˣ ${a>1?"− "+a:"− 1"}. Sur quel intervalle f est-elle décroissante ?`,
+     type:"choice",options:["(−∞ ; 0]","[0 ; +∞)","Sur tout ℝ"],correct:0,
+     viz:{kind:"var",f:"expx",a:a,b:-a,arrows:[[-8,0,-1],[0,8,1]],ex:[[0,0,"min"]]},
+    explain:`f′(x) = ${a}·eˣ − ${a}, donc f′(x) a le signe de (eˣ − 1) car ${a} > 0.<br>eˣ − 1 < 0 ⇔ x < 0 : f est <b>décroissante sur (−∞ ; 0]</b> (le minimum est en x = 0).`};
+ }},
+ {lvl:"moyen",make(){
+   const a=pick([1,2,3]);
+   return{prompt:`Soit f(x) = ${a>1?a+" ":""}eˣ ${a>1?"− "+a:"− 1"}. Quel est le minimum de f ?`,
+     type:"number",answer:0,
+     viz:{kind:"var",f:"expx",a:a,b:-a,arrows:[[-8,0,-1],[0,8,1]],ex:[[0,0,"min"]]},
+     explain:`Le minimum est atteint en x = 0 (c'est là que f′ = 0).<br>f(0) = ${a}·e⁰ − ${a} = ${a} − ${a} = <b>0</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   return{prompt:"Soit f(x) = x³ − 3x. Quelle est l'abscisse du maximum de f ?",
+     type:"number",answer:-1,
+     viz:{kind:"var",f:"x3m",b:-3,arrows:[[-8,-1,1],[-1,1,-1],[1,8,1]],ex:[[-1,2,"max"],[1,-2,"min"]]},
+     explain:"f′(x) = 3x² − 3 = 3(x − 1)(x + 1).<br>Table des signes : f′ est positive sur (−∞ ; −1], négative sur [−1 ; 1], positive sur [1 ; +∞).<br>Maximum en x = <b>−1</b> (f(−1) = 2), minimum en x = 1 (f(1) = −2)."};
+ }},
+ {lvl:"difficile",make(){
+   return{prompt:"Soit f(x) = ln(x) − x. Quelle est l'abscisse du maximum de f ?",
+     type:"number",answer:1,
+     viz:{kind:"var",f:"lnmx",arrows:[[0.2,1,1],[1,6,-1]],ex:[[1,-1,"max"]]},
+     explain:"f′(x) = 1/x − 1 = (1 − x)/x.<br>Sur ]0 ; 1[ : f′ > 0 (f croît) ; sur ]1 ; +∞[ : f′ < 0 (f décroît).<br>Maximum en x = <b>1</b> (f(1) = −1)."};
+ }}
+];
+
+/* ---------- REGISTRE DES THÈMES (deux matières, un seul moteur) ---------- */
+const SUBJECTS_MATH=[
+ {id:"deriv",name:"Dérivées",sym:"∂",gens:G_DERIV},
+ {id:"suites",name:"Suites",sym:"uₙ",gens:G_SUITES},
+ {id:"logexp",name:"Log & exp",sym:"eˣ",gens:G_LOGEXP},
+ {id:"equa2",name:"2e degré",sym:"Δ",gens:G_EQ2},
+ {id:"trig",name:"Trigonométrie",sym:"sin",gens:G_TRIG},
+ {id:"proba",name:"Probabilités",sym:"P",gens:G_PROBA},
+ {id:"vect",name:"Vecteurs",sym:"·",gens:G_VECT},
+ {id:"affine",name:"Droites & affines",sym:"y=ax+b",gens:G_AFF},
+ {id:"lim",name:"Limites",sym:"→",gens:G_LIM},
+ {id:"var",name:"Variations",sym:"↗",gens:G_VAR},
+];
+/* ---------- Grandeurs cosmiques (PC) ----------
+   Notation scientifique et ordres de grandeur — 1 calcul dominant
+   tenable en 60 s, constantes toujours dans le prompt. */
+const G_COSMO=[
+ {lvl:"facile",make(){
+   const m=pick([1.5,2,3.2,3.84,4.2,6.4]),e=pick([4,5,6]);
+   const ms=String(m).replace(".",","),ans=Math.round(m*Math.pow(10,e+3));
+   return{prompt:`Une distance spatiale vaut ${ms} × 10^${e} km. Convertis-la en mètres et écris le résultat en chiffres.`,
+     type:"number",answer:ans,tol:0.011,
+     explain:`1 km = 10³ m, donc l'exposant augmente de 3 : ${ms} × 10^${e} km = ${ms} × 10^${e+3} m = <b>${ans}</b> m.`};
+ }},
+ {lvl:"facile",make(){
+   const r1=pick([4000,6400,8000,16000]),k=pick([5,8,10,16,20,25]);
+   const r2=r1*k;
+   return{prompt:`Le rayon de la planète A vaut ${r1} km, celui de la planète B vaut ${r2} km. Combien de fois A est-elle plus petite que B ?`,
+     type:"number",answer:k,
+     viz:{kind:"scale",r1:r1,r2:r2,lab1:"A",lab2:"B"},
+     explain:`Ratio = ${r2} / ${r1} = <b>${k}</b> : le rayon de B est ${k} fois plus grand.`};
+ }},
+ {lvl:"moyen",make(){
+   const N=pick([2,3,4,5,8]);
+   const ans=Math.round(N*9.46*Math.pow(10,15));
+   return{prompt:`Une année-lumière vaut 9,46 × 10¹⁵ m. Quelle distance la lumière parcourt-elle en ${N} ans ? (en m)`,
+     type:"number",answer:ans,tol:0.011,
+     explain:`d = N × (9,46 × 10¹⁵ m) = ${N} × 9,46 × 10¹⁵ = <b>${ans}</b> m.`};
+ }},
+ {lvl:"moyen",make(){
+   const t=pick([2,3,4,5]);
+   const d=t*3*Math.pow(10,8);
+   return{prompt:`La lumière voyage à c = 3 × 10⁸ m/s. En combien de temps parcourt-elle une distance de ${d} m ? (en s)`,
+     type:"number",answer:t,
+     explain:`t = d/c = ${d} / (3 × 10⁸) = <b>${t} s</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const a=pick([4,5,6]),b=pick([7,8,9,10]);
+   const k=3*(b-a);
+   return{prompt:`Deux sphères ont pour rayons r₁ = 10^${a} m et r₂ = 10^${b} m. Le rapport V₂/V₁ de leurs volumes vaut 10^k. Donne k.`,
+     type:"number",answer:k,
+     explain:`V = (4/3)πr³, donc V₂/V₁ = (r₂/r₁)³ = (10^${b} / 10^${a})³ = 10^${3*(b-a)}.<br>k = 3 × (${b} − ${a}) = <b>${k}</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const p=pick([0.2,0.25,0.4,0.5,1,2,4]);
+   const d=Math.round(1/p*100)/100;
+   return{prompt:`Une étoile présente une parallaxe de ${String(p).replace(".",",")}″ (secondes d'angle). À quelle distance se trouve-t-elle ? (en parsecs, d = 1/p)`,
+     type:"number",answer:d,
+     viz:{kind:"scale",r1:1,r2:d,lab1:"1 pc",lab2:d+" pc"},
+     explain:`d = 1/p = 1/${String(p).replace(".",",")} = <b>${String(d).replace(".",",")} pc</b>. (1 pc ≈ 3,26 années-lumière.)`};
+ }}
+];
+/* ---------- PC (newton) : mécanique & Newton ---------- */
+const G_NEWTON=[
+ {lvl:"facile",make(){
+   const m=pick([2,4,5,10]),F=m*pick([2,3,4,5,6,8,10]);
+   return{prompt:`Une force résultante de ${F} N s'exerce sur un objet de masse ${m} kg. Quelle est l'accélération ? (en m/s²)`,
+     type:"number",answer:F/m,
+     explain:`2ᵉ loi de Newton : a = F/m = ${F} / ${m} = <b>${F/m} m/s²</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const t=pick([1,2,3,4,5,6]),g=10,v=g*t;
+   return{prompt:`Un objet est lâché sans vitesse initiale. On néglige les frottements et on prend g = ${g} m/s². Quelle est sa vitesse après ${t} s ? (en m/s)`,
+     type:"number",answer:v,
+     explain:`Chute libre : v = g·t = ${g} × ${t} = <b>${v} m/s</b>.`};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:`Une voiture roule à vitesse constante en ligne droite. Que peut-on affirmer sur la somme des forces qui s'exercent sur elle ?`,
+     type:"choice",
+     options:["La somme des forces est nulle (ΣF = 0)","La somme des forces est dirigée vers l'avant","La somme des forces est dirigée vers l'arrière","La voiture ne subit aucune force"],
+     correct:0,
+     explain:`1ʳᵉ loi de Newton : vitesse constante → mouvement rectiligne uniforme → la résultante des forces est nulle, <b>ΣF = 0</b>. (Les forces qui s'exercent s'annulent deux à deux.)`};
+ }},
+ {lvl:"moyen",make(){
+   const t=pick([1,2,3,4]),g=10,h=5*t*t;
+   return{prompt:`Un objet est lâché sans vitesse initiale depuis le haut d'un bâtiment. On prend g = ${g} m/s². Quelle distance a-t-il parcourue après ${t} s ? (en m)`,
+     type:"number",answer:h,
+     explain:`Chute libre : h = ½·g·t² = ½ × ${g} × ${t}² = ½ × ${g} × ${t*t} = <b>${h} m</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const m=pick([2,4,5,10]),g=10,P=m*g,T=P+m*pick([2,3,4]),a=(T-P)/m;
+   return{prompt:`Un ascenseur de masse ${m} kg est tiré vers le haut par un câble d'intensité T = ${T} N. Son poids vaut P = ${P} N. Quelle est son accélération ? (en m/s²)`,
+     type:"number",answer:a,
+     viz:{kind:"force",P:P,T:T},
+     explain:`Résultante : ΣF = T − P = ${T} − ${P} = ${T-P} N.<br>2ᵉ loi : a = ΣF/m = ${T-P}/${m} = <b>${a} m/s²</b> (vers le haut).`};
+ }},
+ {lvl:"moyen",make(){
+   const t=pick([1,2,3]),g=10,h=5*t*t,v0=pick([2,3,4]);
+   return{prompt:`Un objet est lancé horizontalement depuis une hauteur de ${h} m. On néglige les frottements et on prend g = ${g} m/s². Combien de temps met-il à toucher le sol ? (en s)`,
+     type:"number",answer:t,
+     viz:{kind:"proj",h:h,v0:v0,g:g},
+     explain:`Chute verticale : h = ½·g·t² donc t = √(2h/g) = √(${2*h}/${g}) = √(${2*h/g}) = <b>${t} s</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const t=pick([2,3,4]),g=10,h=5*t*t,v0=pick([2,3,4,5]),x=v0*t;
+   return{prompt:`Un objet est lancé horizontalement à la vitesse de ${v0} m/s depuis une hauteur de ${h} m. On néglige les frottements et on prend g = ${g} m/s². Quelle est la portée (distance horizontale) ? (en m)`,
+     type:"number",answer:x,
+     viz:{kind:"proj",h:h,v0:v0,g:g},
+     explain:`Temps de vol : t = √(2h/g) = √(${2*h}/${g}) = ${t} s.<br>Portée : x = v₀·t = ${v0} × ${t} = <b>${x} m</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   return{prompt:`Un livre posé sur une table subit le poids P de la Terre, dirigé vers le bas. Quelle est la force de réaction au poids du livre (3ᵉ loi de Newton) ?`,
+     type:"choice",
+     options:["La force du livre sur la Terre (égale et opposée à P)","La force de la table sur le livre (la normale N)","La force du livre sur la table (la pression)","Il n'y a pas de force de réaction"],
+     correct:0,
+     explain:`3ᵉ loi : la force de réaction à « la Terre tire le livre vers le bas (P) » est « <b>le livre tire la Terre vers le haut</b> », de même intensité et de sens opposé. (La normale N équilibre le poids — c'est la 1ʳᵉ loi, pas la réaction du poids.)`};
+ }}
+];
+/* ---------- PC (forces) : forces & champs ---------- */
+const G_FORCES=[
+ {lvl:"facile",make(){
+   const m=pick([10,20,50,100]),g=9.8,P=Math.round(m*g*100)/100;
+   return{prompt:`La masse d'un objet vaut ${m} kg. Sachant que g = ${String(g).replace(".",",")} N/kg, quel est son poids ? (en N)`,
+     type:"number",answer:P,tol:0.011,
+     viz:{kind:"force",P:P,T:0},
+     explain:`P = m·g = ${m} × ${String(g).replace(".",",")} = <b>${String(P).replace(".",",")} N</b>.`};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:`Le poids d'un objet est une force de champ. Qu'est-ce que cela signifie ?`,
+     type:"choice",
+     options:["C'est une interaction à distance : la Terre attire l'objet sans être en contact avec lui","C'est une force de contact exercée par le support (comme la normale)","C'est une poussée d'Archimède exercée par l'air","C'est une force qui ne s'exerce que si l'objet repose au sol"],
+     correct:0,
+     explain:`Le poids P est la force d'attraction gravitationnelle exercée par la Terre sur l'objet : c'est une <b>force de champ (action à distance)</b>. Elle s'exerce même en l'air (en chute libre) et sans aucun contact. Les forces de contact (normale, frottement) sont d'une autre nature.`};
+ }},
+ {lvl:"moyen",make(){
+   const ans=Math.round(6.67*6/Math.pow(6.4,2)*10*100)/100; /* ×10 : exposants 10⁻¹¹⁺²⁴⁻¹² */
+   return{prompt:`Sur la surface de la Terre, on donne : G = 6,67 × 10⁻¹¹ N·m²/kg², la masse M = 6 × 10²⁴ kg et la distance d = 6,4 × 10⁶ m. Calcule l'intensité du champ de pesanteur g = G·M/d² (en N/kg).`,
+     type:"number",answer:ans,tol:0.011,
+     explain:`g = G·M/d² = (6,67 × 10⁻¹¹ × 6 × 10²⁴) / (6,4 × 10⁶)² = 4,002 × 10¹⁴ / 4,096 × 10¹³ ≈ <b>${String(ans).replace(".",",")} N/kg</b> (soit ≈ 9,8 N/kg).`};
+ }},
+ {lvl:"moyen",make(){
+   const m=pick([100,200,500]);
+   const F=Math.round(6.67e-11*6e24*m/Math.pow(6.4e6,2));
+   return{prompt:`La Terre (masse M = 6 × 10²⁴ kg) attire un objet de masse m = ${m} kg situé à sa surface (distance au centre d = 6,4 × 10⁶ m). Avec G = 6,67 × 10⁻¹¹ N·m²/kg², calcule l'intensité F de la force d'attraction (en N).`,
+     type:"number",answer:F,tol:0.011,
+     explain:`F = G·M·m/d² = 6,67 × 10⁻¹¹ × 6 × 10²⁴ × ${m} / (6,4 × 10⁶)² = ${m} × 9,77 ≈ <b>${F} N</b>. (C'est le poids de l'objet : F = m·g avec g ≈ 9,77 N/kg.)`};
+ }},
+ {lvl:"moyen",make(){
+   const p=pick([[2,5],[4,5],[2,1],[5,2],[5,4],[8,5],[10,1],[10,3],[2,3],[4,1],[4,2],[10,6]]);
+   const q=p[0],Em=p[1],F=q*Em;
+   return{prompt:`Une particule porte la charge q = ${q} × 10⁻⁶ C. Elle est placée dans un champ électrique uniforme d'intensité E = ${Em} × 10⁶ N/C. Quelle est l'intensité F de la force électrique qui s'exerce sur elle ? (en N)`,
+     type:"number",answer:F,tol:0.011,
+     explain:`F = q·E = ${q} × 10⁻⁶ × ${Em} × 10⁶ = ${q} × ${Em} = <b>${F} N</b>. (Les puissances de 10 s'annulent : 10⁻⁶ × 10⁶ = 1.)`};
+ }},
+ {lvl:"difficile",make(){
+   const m=pick([200,400,800]),k=pick([1,2]),r=6.4e6*k;
+   const rs=String(6.4*k).replace(".",","),F=Math.round(6.67e-11*6e24*m/(r*r));
+   return{prompt:`Un satellite de masse m = ${m} kg évolue sur une orbite circulaire à la distance r = ${rs} × 10⁶ m du centre de la Terre (M = 6 × 10²⁴ kg). Avec G = 6,67 × 10⁻¹¹ N·m²/kg², calcule l'intensité F de la force gravitationnelle entre la Terre et le satellite (en N).`,
+     type:"number",answer:F,tol:0.011,
+     viz:{kind:"force",P:F,T:0},
+     explain:`F = G·M·m/r² = 6,67 × 10⁻¹¹ × 6 × 10²⁴ × ${m} / (${rs} × 10⁶)² ≈ <b>${F} N</b>. (À cette distance, c'est le poids du satellite : c'est lui qui le maintient en orbite.)`};
+ }},
+ {lvl:"difficile",make(){
+   return{prompt:`Une charge négative est placée dans un champ électrique uniforme qui pointe vers la droite. Dans quel sens s'exerce la force électrique F = q·E sur cette charge ?`,
+     type:"choice",
+     options:["Vers la gauche : q étant négative, F est de sens opposé à E","Vers la droite : F est toujours dans le sens du champ E","Vers le bas : F est perpendiculaire au champ","Aucune force ne s'exerce, le champ ne fait qu'orienter la charge"],
+     correct:0,
+     explain:`F = q·E : si q > 0, F a le <b>même sens</b> que E ; si q < 0, F est <b>opposé à E</b>. Ici la charge est négative et E pointe vers la droite → la force est dirigée vers la gauche.`};
+ }},
+ {lvl:"facile",make(){
+   const p=pick([[10,2],[10,3],[5,3]]),q=p[0],r=p[1];
+   const F=9*q*q/(r*r)*0.001;
+   return{prompt:`Deux petites charges identiques q₁ = q₂ = ${q} µC (= ${q} × 10⁻⁶ C) sont distantes de r = ${r} m. Avec F = k·q₁q₂/r² et k = 9 × 10⁹ N·m²/C², quelle est l'intensité F ? (en N)`,
+     type:"number",answer:F,tol:0.011,
+     viz:{kind:"charges",attr:false},
+     explain:`F = k·q²/r² = (9 × 10⁹) × (${q} × 10⁻⁶)² / ${r}² = ${String(9*q*q/1000).replace(".",",")}/${r*r} = <b>${String(F).replace(".",",")} N</b>. (Même loi en 1/r² que la gravitation !)`};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:`Deux charges s'attirent avec une force F. Si on double la distance entre elles, la force devient…`,
+     type:"choice",
+     options:["F/4 : la force est proportionnelle à 1/r²","F/2 : la force est proportionnelle à 1/r","2F : la force est proportionnelle à r","4F : la force est proportionnelle à r²"],
+     correct:0,
+     explain:`F = k·q₁q₂/r² : r → 2r ⇒ F → F/2² = <b>F/4</b>. Loi en inverse du carré — exactement la même structure que la gravitation F = G·M·m/d².`};
+ }},
+ {lvl:"moyen",make(){
+   return{prompt:`Deux charges q₁ = 6 µC et q₂ = 4 µC sont distantes de r = 2 m. Avec F = k·q₁q₂/r² et k = 9 × 10⁹ N·m²/C², quelle est l'intensité F ? (en N)`,
+     type:"number",answer:0.054,tol:0.011,
+     viz:{kind:"charges",attr:false},
+     explain:`F = k·q₁q₂/r² = (9 × 10⁹) × (6 × 10⁻⁶) × (4 × 10⁻⁶) / 4 = 0,216/4 = <b>0,054 N</b>. (Les puissances de 10 : 10⁹ × 10⁻⁶ × 10⁻⁶ = 10⁻³.)`};
+ }},
+ {lvl:"moyen",make(){
+   return{prompt:`Deux charges q₁ = +3 µC et q₂ = −3 µC sont proches l'une de l'autre. La force électrique qui s'exerce entre elles est…`,
+     type:"choice",
+     options:["attractive : des charges de signes opposés s'attirent","répulsive : des charges de signes opposés se repoussent","nulle : les charges s'annulent mutuellement","imprévisible sans connaître la distance"],
+     correct:0,
+     viz:{kind:"charges",attr:true},
+     explain:`Charges de <b>signes opposés</b> → <b>attraction</b> ; même signe → répulsion. La distance ne change que l'intensité, jamais le sens.`};
+ }}
+];
+/* ---------- PC (energie) : conversions et bilans d'énergie ---------- */
+const G_ENERGIE=[
+ {lvl:"facile",make(){
+   const m=pick([2,4,8,10]),v=pick([2,3,5,10]),ek=m*v*v/2;
+   return{prompt:`Un objet de masse ${m} kg se déplace à ${v} m/s. Quelle est son énergie cinétique ? (en J)`,
+     type:"number",answer:ek,
+     viz:{kind:"bars",ek:ek,ep:0,em:ek},
+     explain:`E꜀ = ½·m·v² = ½ × ${m} × ${v}² = <b>${ek} J</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const m=pick([1,2,5,10]),h=pick([2,3,5,10]),ep=m*10*h;
+   return{prompt:`Un objet de masse ${m} kg se trouve à ${h} m du sol. En prenant g = 10 m/s², quelle est son énergie de pesanteur ? (en J)`,
+     type:"number",answer:ep,
+     viz:{kind:"bars",ek:0,ep:ep,em:ep},
+     explain:`Eₚ = m·g·h = ${m} × 10 × ${h} = <b>${ep} J</b>.`};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:`Lors d'une chute sans frottements, quelle énergie augmente ?`,
+     type:"choice",
+     options:["L'énergie cinétique : la vitesse augmente","L'énergie de pesanteur : la hauteur augmente","L'énergie mécanique totale : elle augmente pendant la chute","Aucune : toutes les énergies restent constantes"],
+     correct:0,
+     explain:`La hauteur diminue → Eₚ diminue ; la vitesse augmente → <b>E꜀ augmente</b>. L'énergie mécanique Eₘ = E꜀ + Eₚ reste constante : c'est une conversion d'Eₚ en E꜀, pas une création d'énergie.`};
+ }},
+ {lvl:"moyen",make(){
+   const k=pick([2,4,8,12]),x=pick([1,2,3,4]),e=k*x*x/2;
+   return{prompt:`Un ressort de constante de raideur k = ${k} N/m est comprimé de ${x} m. Quelle est l'énergie élastique emmagasinée ? (en J)`,
+     type:"number",answer:e,
+     explain:`E = ½·k·x² = ½ × ${k} × ${x}² = <b>${e} J</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const v=pick([10,20,30]),h=v*v/20;
+   return{prompt:`Un objet tombe sans frottement d'une hauteur de ${h} m. En prenant g = 10 m/s², quelle est sa vitesse juste avant l'impact ? (en m/s)`,
+     type:"number",answer:v,
+     explain:`Conversion Eₚ → E꜀ : m·g·h = ½·m·v² donc v = √(2·g·h) = √(2 × 10 × ${h}) = √(${20*h}) = <b>${v} m/s</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const m=pick([2,4,8,10]),v=pick([2,3,4,5]),ek=m*v*v/2;
+   return{prompt:`Un objet de masse ${m} kg possède une énergie cinétique de ${ek} J. Quelle est sa vitesse ? (en m/s)`,
+     type:"number",answer:v,
+     explain:`E꜀ = ½·m·v² donc v = √(2·E꜀/m) = √(${2*ek}/${m}) = √(${2*ek/m}) = <b>${v} m/s</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const Em=pick([200,400,800,1000]),d=pick([2,4,5]),Ediss=Em/d,ek=Em-Ediss;
+   return{prompt:`Un skieur part d'un sommet avec une énergie mécanique de ${Em} J. Les frottements dissipent ${Ediss} J d'énergie. Quelle est son énergie cinétique en bas de la piste ? (en J)`,
+     type:"number",answer:ek,
+     viz:{kind:"bars",ek:ek,ep:0,em:Em},
+     explain:`Bilan avec dissipation : E꜀ finale = Eₘ − E_dissipée = ${Em} − ${Ediss} = <b>${ek} J</b>. (L'énergie « perdue » est convertie en chaleur : l'énergie totale du système skieur + piste reste conservée.)`};
+ }},
+ {lvl:"difficile",make(){
+   const k=pick([200,800]),m=100,x=pick([2,3,4]);
+   const v=Math.round(x*Math.sqrt(k/m)*100)/100;
+   return{prompt:`Un ressort de raideur k = ${k} N/m, comprimé de ${x} m, projette un bloc de ${m} kg sans frottement. Quelle est la vitesse du bloc au moment du lâcher ? (en m/s)`,
+     type:"number",answer:v,tol:0.011,
+     explain:`E = ½·k·x² = ½·m·v² donc v = x·√(k/m) = ${x} × √(${k}/${m}) = ${x} × √(${k/m}) ≈ <b>${String(v).replace(".",",")} m/s</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const F=pick([2,5,10]),d=pick([2,3,5]),W=F*d;
+   return{prompt:`Une force constante F = ${F} N déplace un objet de d = ${d} m, dans sa direction. Quel est le travail W = F·d ? (en J)`,
+     type:"number",answer:W,
+     viz:{kind:"work"},
+     explain:`W = F·d = ${F} × ${d} = <b>${W} J</b>. Force dans le sens du déplacement (α = 0°) → travail <b>moteur</b>, positif.`};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:`Une force perpendiculaire au déplacement (comme la pesanteur d'un objet qui glisse horizontalement) effectue…`,
+     type:"choice",
+     options:["un travail nul : W = F·d·cos 90° = 0","le travail maximal : W = F·d","un travail négatif : W = −F·d","un travail qui ne dépend pas de l'angle"],
+     correct:0,
+     explain:`W = F·d·cos α : si α = 90° alors cos 90° = <b>0</b> → W = 0. Une force perpendiculaire ne modifie ni la vitesse ni l'énergie cinétique.`};
+ }},
+ {lvl:"moyen",make(){
+   const f=pick([2,3]),d=pick([4,5]);
+   return{prompt:`Une force de frottement d'intensité f = ${f} N s'oppose au déplacement d = ${d} m d'un objet. Quel est le travail de cette force de frottement ? (en J)`,
+     type:"number",answer:-f*d,
+     viz:{kind:"work"},
+     explain:`La force est <b>opposée</b> au déplacement (α = 180°, cos 180° = −1) : W = −f·d = −${f} × ${d} = <b>−${f*d} J</b>. Travail <b>réistant</b> : il ralentit l'objet (l'énergie cinétique diminue, l'énergie est dissipée en chaleur).`};
+ }},
+ {lvl:"moyen",make(){
+   const p=pick([[2,1,3],[4,2,3]]),m=p[0],v0=p[1],v=p[2];
+   const dE=m*(v*v-v0*v0)/2;
+   return{prompt:`Un objet de masse m = ${m} kg passe de ${v0} m/s à ${v} m/s sous l'action de la résultante des forces. Avec le théorème de l'énergie cinétique ΣW = ΔEc, quel est le travail total des forces ? (en J)`,
+     type:"number",answer:dE,
+     viz:{kind:"work"},
+     explain:`ΔEc = ½·m·(v² − v₀²) = ½ × ${m} × (${v}² − ${v0}²) = ½ × ${m} × ${v*v-v0*v0} = <b>${dE} J</b> ⇒ ΣW = +${dE} J (travail positif : l'objet accélère).`};
+ }},
+ {lvl:"difficile",make(){
+   return{prompt:`Un objet de 1 kg, freiné uniquement par le frottement, ralentit de 4 m/s à 2 m/s sur une distance d = 3 m. Avec ΣW = ΔEc et W_frot = −f·d, quelle est l'intensité f du frottement ? (en N)`,
+     type:"number",answer:2,
+     viz:{kind:"work"},
+     explain:`ΔEc = ½ × 1 × (2² − 4²) = ½ × (4 − 16) = −6 J ⇒ W_frot = −6 J. Or W_frot = −f·d = −3f, donc −3f = −6 ⇒ f = <b>2 N</b>.`};
+ }}
+];
+/* ---------- PC (moles) : quantités de matière ---------- */
+const G_MOLES=[
+ {lvl:"facile",make(){
+   const M=pick([16,28,32,44,58,64,80]),n=pick([0.5,1,2,3,4]),m=n*M;
+   return{prompt:`Quelle quantité de matière (en mol) contient ${m} g de substance, sachant que M = ${M} g/mol ?`,
+     type:"number",answer:n,
+     viz:{kind:"soln",n:n},
+     explain:`n = m/M = ${m}/${M} = <b>${String(n).replace(".",",")} mol</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const M=pick([16,28,32,44,58,64,80]),n=pick([0.5,1,2,3,4]),m=n*M,ns=String(n).replace(".",",");
+   return{prompt:`Quelle masse (en g) faut-il prélever pour disposer de ${ns} mol d'une substance de masse molaire M = ${M} g/mol ?`,
+     type:"number",answer:m,
+     viz:{kind:"soln",n:n},
+     explain:`m = n·M = ${ns} × ${M} = <b>${m} g</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const n=pick([0.5,1,2,3,4]),V=pick([0.5,1,2]),c=n/V,ns=String(n).replace(".",","),vs=String(V).replace(".",",");
+   return{prompt:`On dissout ${ns} mol de soluté et on obtient un volume de solution de ${vs} L. Quelle est la concentration molaire de la solution ? (en mol/L)`,
+     type:"number",answer:c,
+     viz:{kind:"soln",n:n,c:c},
+     explain:`c = n/V = ${ns}/${vs} = <b>${String(c).replace(".",",")} mol/L</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const c=pick([1,2,4]),V=pick([10,20,50,100,250]),n=c*V/1000;
+   return{prompt:`On prélève ${V} mL d'une solution de concentration c = ${c} mol/L. Quelle quantité de matière de soluté (en mol) contient ce prélèvement ?`,
+     type:"number",answer:n,
+     viz:{kind:"soln",n:n,c:c},
+     explain:`V = ${V} mL = ${String(V/1000).replace(".",",")} L, donc n = c·V = ${c} × ${String(V/1000).replace(".",",")} = <b>${String(n).replace(".",",")} mol</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const n=pick([0.5,1,2,3,4]),ns=String(n).replace(".",",");
+   const lab={0.5:"3 × 10²³",1:"6 × 10²³",2:"1,2 × 10²⁴",3:"1,8 × 10²⁴",4:"2,4 × 10²⁴"}[n];
+   const sci={0.5:"3e23",1:"6e23",2:"1,2e24",3:"1,8e24",4:"2,4e24"}[n];
+   return{prompt:`Combien d'entités (atomes ou molécules) contient ${ns} mol d'une espèce ? (Nₐ = 6 × 10²³ /mol)`,
+     type:"number",answer:n*6e23,tol:0.011,
+     explain:`N = n·Nₐ = ${ns} × 6 × 10²³ = <b>${lab}</b> entités.<br>(Tu peux répondre en notation scientifique : « ${sci} ».)`};
+ }},
+ {lvl:"difficile",make(){
+   const p=pick([[4,2,200],[2,1,500],[8,4,500],[4,1,200],[8,2,1000],[2,1,200],[8,4,250],[4,2,500]]);
+   const c1=p[0],c2=p[1],V2=p[2],V1=Math.round(c2*V2/c1),n=c2*V2/1000;
+   return{prompt:`On veut préparer ${V2} mL de solution à c₂ = ${c2} mol/L en diluant une solution mère à c₁ = ${c1} mol/L. Quel volume de solution mère faut-il prélever ? (en mL)`,
+     type:"number",answer:V1,
+     viz:{kind:"soln",n:n,c:c2},
+     explain:`À la dilution, la quantité de matière n est conservée : c₁·V₁ = c₂·V₂.<br>V₁ = c₂·V₂/c₁ = ${c2} × ${V2} / ${c1} = <b>${V1} mL</b> de solution mère (on complète ensuite avec du solvant jusqu'à ${V2} mL).`};
+ }},
+ {lvl:"difficile",make(){
+   const n=pick([0.5,1,2,2.5,4,5]),V=n*24,ns=String(n).replace(".",",");
+   return{prompt:`Dans les conditions où le volume molaire des gaz vaut 24 L/mol, quel volume (en L) occupe ${ns} mol de gaz ?`,
+     type:"number",answer:V,
+     viz:{kind:"soln",n:n,V:V},
+     explain:`V = n·Vₘ = ${ns} × 24 = <b>${V} L</b>.`};
+ }}
+];
+/* ---------- PC (stoich) : stœchiométrie & état final ---------- */
+const G_STOICH=[
+ {lvl:"facile",make(){
+   const b=pick([2,3]),t=pick([0.5,1,1.5,2]),nB=b*t; /* proportions stœchiométriques */
+   const ts=String(t).replace(".",","),nb=String(nB).replace(".",",");
+   return{prompt:`Réaction : A + ${b}B → C. Pour faire réagir complètement n(A) = ${ts} mol d'A, quelle quantité de B (en mol) est nécessaire ?`,
+     type:"number",answer:nB,
+     viz:{kind:"stoich",a:1,b:b,c:1,nA:t,nB:nB},
+     explain:`Les coefficients fixent le ratio molaire : pour 1 mol de A, il faut ${b} mol de B.<br>n(B) = ${b} × n(A) = ${b} × ${ts} = <b>${nb} mol</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const b=pick([2,3]),t=pick([0.5,1,1.5,2]),ex=pick([1,2,3]);
+   const ts=String(t).replace(".",",");
+   if(pick([0,1])===0){
+     const nA=t,nB=b*t+ex,nb=String(nB).replace(".",",");
+     return{prompt:`Réaction : A + ${b}B → C. On mélange n(A) = ${ts} mol et n(B) = ${nb} mol. Quel est le réactif limitant ?`,
+       type:"choice",options:["A","B","Aucun (proportions stœchiométriques)"],correct:0,
+       explain:`n(A)/1 = ${ts} < n(B)/${b} = ${nb}/${b} : le rapport le plus petit est celui de A, qui s'épuise en premier.<br>Le réactif limitant est <b>A</b>.`};
+   }
+   const nA=b*t+ex,nB=t,ns=String(nA).replace(".",",");
+   return{prompt:`Réaction : A + ${b}B → C. On mélange n(A) = ${ns} mol et n(B) = ${ts} mol. Quel est le réactif limitant ?`,
+     type:"choice",options:["B","A","Aucun (proportions stœchiométriques)"],correct:0,
+     explain:`n(B)/${b} = ${ts}/${b} < n(A)/1 = ${ns} : le rapport le plus petit est celui de B, qui s'épuise en premier.<br>Le réactif limitant est <b>B</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const b=pick([2,3]),t=pick([0.5,1,1.5,2]),ex=pick([1,2,3]);
+   const nA=t,nB=b*t+ex; /* A est limitant (B en excès strict) */
+   const ts=String(nA).replace(".",","),nb=String(nB).replace(".",",");
+   return{prompt:`Réaction : A + ${b}B → 2C. On mélange n(A) = ${ts} mol et n(B) = ${nb} mol. Quelle quantité de produit C (en mol) est obtenue à l'état final ?`,
+     type:"frac",answer:fa(2*t,1),
+     viz:{kind:"stoich",a:1,b:b,c:2,nA:nA,nB:nB,limitant:"A"},
+     explain:`A est limitant : n(A)/1 = ${ts} < n(B)/${b} = ${nb}/${b}.<br>Donc τ = ${F(t,1)} mol et n(C) = 2 × τ = 2 × ${F(t,1)} = <b>${F(2*t,1)} mol</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const b=pick([2,3]),t=pick([0.5,1,1.5,2]);
+   const nA=t,nB=b*t+pick([1,2,3]); /* B en excès strict */
+   return{prompt:`Réaction : A + ${b}B → C. On mélange n(A) = ${String(nA).replace(".",",")} mol et n(B) = ${nB} mol. Quel est l'avancement maximal τ ? (en mol)`,
+     type:"frac",answer:fa(t,1),
+     viz:{kind:"stoich",a:1,b:b,c:1,nA:nA,nB:nB,limitant:"A"},
+     explain:`A est limitant : n(A)/1 = ${String(nA).replace(".",",")} < n(B)/${b} = ${nB}/${b}.<br>Donc τ = <b>${F(t,1)} mol</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const b=pick([2,3]),t=pick([0.5,1,1.5,2]),ex=pick([1,2,3]);
+   const nA=t,nB=b*t+ex; /* A est limitant : B reste en quantité égale à l'excès */
+   const ts=String(nA).replace(".",","),nb=String(nB).replace(".",","),bc=String(b*t).replace(".",",");
+   return{prompt:`Réaction : A + ${b}B → C. On mélange n(A) = ${ts} mol et n(B) = ${nb} mol. Quelle quantité de B (en mol) reste-t-il à l'état final ?`,
+     type:"frac",answer:fa(ex,1),
+     viz:{kind:"stoich",a:1,b:b,c:1,nA:nA,nB:nB,limitant:"A"},
+     explain:`A est limitant (n(A)/1 = ${ts} < n(B)/${b} = ${nb}/${b}) : τ = ${F(t,1)} mol.<br>B consommé : ${b} × τ = ${b} × ${ts} = ${bc} mol.<br>Il reste n(B) = ${nb} − ${bc} = <b>${ex} mol</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const b=pick([2,3]),t=pick([0.5,1,1.5,2]),ex=pick([1,2,3]);
+   const nA=t,nB=b*t+ex; /* A est limitant : état final (0 ; ex) */
+   const ts=String(t).replace(".",","),nb=String(nB).replace(".",","),bc=String(b*t).replace(".",",");
+   const cpl=(x,y)=>`(${x} mol ; ${y} mol)`;
+   return{prompt:`Réaction : A + ${b}B → C. On mélange n(A) = ${ts} mol et n(B) = ${nb} mol. Quel couple (n(A), n(B)) correspond à l'état final ?`,
+     type:"choice",
+     options:[cpl(0,ex),cpl(0,nb),cpl(ts,nb),cpl(ts,ex)],
+     correct:0,
+     explain:`A est limitant (n(A)/1 = ${ts} < n(B)/${b} = ${nb}/${b}) : il disparaît entièrement.<br>B consommé : ${b} × τ = ${b} × ${ts} = ${bc} mol → il reste ${nb} − ${bc} = ${ex} mol.<br>État final : <b>${cpl(0,ex)}</b>.`};
+ }}
+];
+/* ---------- PC (cinet) : cinétique — vitesse moyenne, t(95 %), catalyseur ---------- */
+const G_CINET=[
+ {lvl:"facile",make(){
+   const v=pick([1,2,3,5]),dt=pick([2,5,10]),n2=pick([1,2,3,5,10,20]);
+   const n1=n2+v*dt; /* vitesse moyenne depuis t = 0 : v = |Δn|/Δt, valeurs propres */
+   return{prompt:`Au début de la réaction, n(A) = ${n1} mmol. Au bout de ${dt} min, n(A) = ${n2} mmol. Quelle est la vitesse moyenne de la réaction ? (en mmol/min)`,
+     type:"number",answer:v,
+     viz:{kind:"kin",n0:n1,t95:dt},
+     explain:`v = |Δn|/Δt = |${n2} − ${n1}|/${dt} = ${v*dt}/${dt} = <b>${v} mmol/min</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const n0=pick([2,4,5,8,10,20]),ans=Math.round(n0*0.05*100)/100;
+   return{prompt:`À l'initiale, n(A) = ${n0} mmol. Quelle est la quantité de matière n(A) à t(95 %) ? (en mmol)`,
+     type:"number",answer:ans,
+     explain:`À t(95 %), 95 % a réagi : il reste 5 % → n = 0,05 × ${n0} = <b>${String(ans).replace(".",",")} mmol</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const n0=pick([2,4,5,8,10,20]),th=Math.round(n0*0.05*1000)/1000,t=pick([1,2,3,5,8,10]);
+   const tf=String(th).replace(".",",");
+   if(pick([0,1])===0){
+     return{prompt:`n(A) = ${n0} mmol à l'initiale ; n(A) = ${tf} mmol au bout de ${t} min. La durée de la réaction, t(95 %), est-elle atteinte ?`,
+       type:"choice",
+       options:["Oui, t(95 %) est atteint","Non, t(95 %) n'est pas atteint"],
+       correct:0,
+       explain:`À t(95 %), il reste 5 % de A : 0,05 × ${n0} = ${tf} mmol.<br>Or n(A) = ${tf} mmol, exactement 5 % de n₀ : <b>oui</b>, t(95 %) est atteint.`};
+   }
+   const nt=pick([0.5,1,2,4,5,10].filter(x=>x>th&&x<n0));
+   const nf=String(nt).replace(".",",");
+   return{prompt:`n(A) = ${n0} mmol à l'initiale ; n(A) = ${nf} mmol au bout de ${t} min. La durée de la réaction, t(95 %), est-elle atteinte ?`,
+     type:"choice",
+     options:["Non, t(95 %) n'est pas atteint","Oui, t(95 %) est atteint"],
+     correct:0,
+     explain:`À t(95 %), il resterait 5 % de A : 0,05 × ${n0} = ${tf} mmol.<br>Or n(A) = ${nf} mmol > ${tf} mmol : <b>non</b>, t(95 %) n'est pas encore atteint.`};
+ }},
+ {lvl:"moyen",make(){
+   const prompt=pick(["On ajoute un catalyseur dans un mélange réactionnel. Quelle est sa conséquence ?",
+                      "Un catalyseur est ajouté à un système réactionnel. Quel est son effet ?"]);
+   return{prompt:prompt,
+     type:"choice",
+     options:["Il accélère la réaction sans modifier l'état final","Il modifie l'état final sans changer la vitesse","Il ralentit la réaction sans modifier l'état final"],
+     correct:0,
+     explain:`Un catalyseur abaisse l'énergie d'activation : la réaction est <b>plus rapide</b>, mais les quantités de matière à l'état final restent <b>inchangées</b> (le réactif limitant est toujours épuisé).`};
+ }},
+ {lvl:"moyen",make(){
+   const v=pick([1,2,3,5]),t1=pick([1,2,3,5]),dt=pick([2,5,10]),n2=pick([1,2,3,5,10,20]);
+   const t2=t1+dt,n1=n2+v*dt; /* vitesse moyenne sur [t1 ; t2] : v = |Δn|/Δt, valeurs propres */
+   return{prompt:`Suivi d'une réaction : n(A) = ${n1} mmol à t = ${t1} min et n(A) = ${n2} mmol à t = ${t2} min. Quelle est la vitesse moyenne de la réaction sur l'intervalle [${t1} min ; ${t2} min] ? (en mmol/min)`,
+     type:"number",answer:v,
+     viz:{kind:"kin",n0:n1,t95:dt},
+     explain:`v = |Δn|/Δt = |${n2} − ${n1}|/(${t2} − ${t1}) = ${v*dt}/${dt} = <b>${v} mmol/min</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const n0=pick([2,4,5,8,10,20]),th=Math.round(n0*0.05*1000)/1000;
+   const ta=pick([1,2,3]),tb=2*ta,tf=String(th).replace(".",",");
+   const na=pick([0.5,1,2,4,5,8,10,15,20].filter(x=>x>th&&x<n0));
+   const nf=String(na).replace(".",",");
+   return{prompt:`Suivi d'une réaction (n₀ = ${n0} mmol) : t = 0 → n = ${n0} mmol ; t = ${ta} min → n = ${nf} mmol ; t = ${tb} min → n = ${tf} mmol. Quelle est la durée de la réaction, t(95 %) ? (en min)`,
+     type:"number",answer:tb,
+     viz:{kind:"kin",n0:n0,t95:tb},
+     explain:`À t(95 %), il reste 5 % de A : 0,05 × ${n0} = ${tf} mmol.<br>Or la mesure donne n = ${tf} mmol pour t = ${tb} min → <b>t(95 %) = ${tb} min</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const k=pick([0.5,1,2,3]),c=pick([0.2,0.5,1,2]),v=Math.round(k*c*1000)/1000;
+   const ks=String(k).replace(".",","),cs=String(c).replace(".",","),vs=String(v).replace(".",",");
+   return{prompt:`Cinétique du 1ᵉʳ ordre : v = k·c, avec k = ${ks} min⁻¹. Pour une concentration c = ${cs} mol/L, quelle est la vitesse v ? (en mol/L/min)`,
+     type:"number",answer:v,tol:0.011,
+     explain:`v = k × c = ${ks} × ${cs} = <b>${vs} mol/L/min</b>.`};
+ }}
+];
+/* ---------- Ondes & lumière (PC) ----------
+   Rayonnement, matière et information : relation c = λ·ν, temps de vol
+   d'un signal lumineux, conjugaison d'une lentille mince (convention du
+   bac : 1/OM′ − 1/OM = 1/OF′), énergie du photon. Constantes toujours
+   dans le prompt. */
+const G_ONDES=[
+ {lvl:"facile",make(){
+   const l=pick([400,500,600]),coef=3000/l;
+   const cs=String(coef).replace(".",",");
+   return{prompt:`Une lumière de longueur d'onde λ = ${l} nm (= ${String(l/1000).replace(".",",")} × 10⁻⁶ m) a une fréquence ν = c/λ, avec c = 3 × 10⁸ m/s. Quelle est ν ? (en Hz)`,
+     type:"number",answer:coef*Math.pow(10,14),tol:0.011,
+     viz:{kind:"onde",n:2},
+     explain:`ν = c/λ = (3 × 10⁸)/(${l} × 10⁻⁹) = (3 × 10¹⁷)/${l} = <b>${cs} × 10¹⁴ Hz</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const nu=pick([1.5,2,3]),nf=String(nu).replace(".",","),lf=String(3/nu).replace(".",",");
+   return{prompt:`Un signal lumineux a une fréquence ν = ${nf} × 10¹⁴ Hz. Quelle est sa longueur d'onde λ = c/ν ? (en m, c = 3 × 10⁸ m/s)`,
+     type:"number",answer:(3/nu)*Math.pow(10,-6),tol:0.011,
+     viz:{kind:"onde",n:3},
+     explain:`λ = c/ν = (3 × 10⁸)/(${nf} × 10¹⁴) = (3/${nf}) × 10⁻⁶ = <b>${lf} × 10⁻⁶ m</b>.`};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:`La Lune est à d = 3,84 × 10⁸ m de la Terre. La lumière voyage à c = 3 × 10⁸ m/s. Quel est le temps que met la lumière de la Lune à nous parvenir ? (en s)`,
+     type:"number",answer:1.28,tol:0.011,
+     viz:{kind:"onde",n:2},
+     explain:`t = d/c = (3,84 × 10⁸)/(3 × 10⁸) = <b>1,28 s</b> : la photo que l'on fait de la Lune la montre telle qu'elle était il y a 1,28 s.`};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:`Le Soleil est à d = 1,5 × 10¹¹ m de la Terre. La lumière voyage à c = 3 × 10⁸ m/s. Combien de temps met-elle pour nous parvenir ? (en s)`,
+     type:"number",answer:500,
+     viz:{kind:"onde",n:4},
+     explain:`t = d/c = (1,5 × 10¹¹)/(3 × 10⁸) = 0,5 × 10³ = <b>500 s</b> (≈ 8 min 20 s) : la lumière du Soleil « date » d'environ 8 minutes.`};
+ }},
+ {lvl:"facile",make(){
+   return{prompt:`Une onde électromagnétique (lumière, radio, micro-ondes…) est une onde…`,
+     type:"choice",
+     options:["transverse, qui se propage dans le vide comme dans un milieu","longitudinale, qui a besoin d'un milieu matériel pour se propager","mécanique, analogue au son"],
+     correct:0,
+     explain:`Les ondes électromagnétiques sont des ondes <b>transverses</b> (les champs oscillent perpendiculairement à la direction de propagation) et, contrairement au son, elles se propagent <b>dans le vide</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const p=pick([[10,20],[10,30],[10,15],[15,30]]),f=p[0],u=p[1];
+   const v=f*u/(u-f);
+   return{prompt:`Lentille mince convergente, foyer image OF′ = +${f} cm. Un objet est placé à OM = −${u} cm. Avec 1/OM′ − 1/OM = 1/OF′, quelle est OM′ ? (en cm)`,
+     type:"number",answer:v,tol:0.011,
+     viz:{kind:"lentille",f:f,u:u},
+     explain:`1/OM′ = 1/OF′ + 1/OM = 1/${f} + 1/(−${u}) = 1/${f} − 1/${u} = 1/${v} → OM′ = <b>+${v} cm</b> (l'image est formée de l'autre côté de la lentille).`};
+ }},
+ {lvl:"moyen",make(){
+   const p=pick([[10,30],[10,15]]),f=p[0],u=p[1];
+   const v=f*u/(u-f),g=v/u,gs=String(g).replace(".",",");
+   return{prompt:`Lentille mince convergente : OF′ = +${f} cm, objet à OM = −${u} cm, image à OM′ = +${v} cm. Le grandissement vaut γ = −OM′/OM. Calcule γ.`,
+     type:"number",answer:g,tol:0.011,
+     viz:{kind:"lentille",f:f,u:u},
+     explain:`γ = −OM′/OM = −${v}/(−${u}) = <b>${gs}</b> : l'image est ${g<1?"réduite":"agrandie"} (${String(g<1?1/g:g).replace(".",",")} fois ${g<1?"plus petite":"plus grande"} que l'objet).`};
+ }},
+ {lvl:"moyen",make(){
+   return{prompt:`Dans le vide, toutes les ondes électromagnétiques (radio, visible, rayons X…) partagent la même…`,
+     type:"choice",
+     options:["vitesse c = 3 × 10⁸ m/s","longueur d'onde","fréquence"],
+     correct:0,
+     explain:`Dans le vide, toutes les ondes électromagnétiques se propagent à la même vitesse <b>c = 3 × 10⁸ m/s</b>. Ce qui les distingue, c'est leur <b>fréquence</b> (et donc leur longueur d'onde λ = c/ν).`};
+ }},
+ {lvl:"difficile",make(){
+   const E=6.62*6*Math.pow(10,-20);
+   return{prompt:`Un photon de lumière verte a λ = 500 nm, donc ν = c/λ = 6,0 × 10¹⁴ Hz. Avec E = h·ν et h = 6,62 × 10⁻³⁴ J·s, quelle est son énergie ? (en J)`,
+     type:"number",answer:E,tol:0.011,
+     explain:`E = h·ν = (6,62 × 10⁻³⁴) × (6,0 × 10¹⁴) = 39,72 × 10⁻²⁰ = <b>3,97 × 10⁻¹⁹ J</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const E=6.62*2*Math.pow(10,-19);
+   return{prompt:`Un photon ultraviolet a une fréquence ν = 2,0 × 10¹⁵ Hz. Avec E = h·ν et h = 6,62 × 10⁻³⁴ J·s, quelle est son énergie ? (en J)`,
+     type:"number",answer:E,tol:0.011,
+     explain:`E = h·ν = (6,62 × 10⁻³⁴) × (2,0 × 10¹⁵) = 13,24 × 10⁻¹⁹ = <b>1,32 × 10⁻¹⁸ J</b>.`};
+ }}
+];
+/* ---------- Électricité (PC) ----------
+   Énergie électrique : P = U·I, I = q/Δt, E = P·t, effet Joule
+   P = R·I², rendement η. Constantes toujours dans le prompt. */
+const G_ELECTRICITE=[
+ {lvl:"facile",make(){
+   const U=pick([4,6,12,24]),I=pick([0.5,1,2,3]);
+   const P=U*I,Is=String(I).replace(".",","),Ps=String(P).replace(".",",");
+   return{prompt:`Un récepteur est alimenté sous U = ${U} V et un courant I = ${Is} A le traverse. Quelle est la puissance P = U·I reçue ? (en W)`,
+     type:"number",answer:P,tol:0.011,
+     viz:{kind:"circuit"},
+     explain:`P = U × I = ${U} × ${Is} = <b>${Ps} W</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const p=pick([[2,2],[4,2],[6,3],[4,5],[10,5]]),q=p[0],t=p[1];
+   const I=q/t,Is=String(I).replace(".",",");
+   return{prompt:`Pendant Δt = ${t} s, une charge q = ${q} C traverse une section du conducteur. Quel est le courant I = q/Δt ? (en A)`,
+     type:"number",answer:I,tol:0.011,
+     viz:{kind:"circuit"},
+     explain:`I = q/Δt = ${q}/${t} = <b>${Is} A</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const P=pick([10,20,50]),t=pick([30,60,120]);
+   const E=P*t;
+   return{prompt:`Une résistance chauffante de puissance P = ${P} W fonctionne pendant t = ${t} s. Quelle est l'énergie E = P·t consommée ? (en J)`,
+     type:"number",answer:E,
+     viz:{kind:"circuit"},
+     explain:`E = P × t = ${P} × ${t} = <b>${E} J</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const R=pick([2,4,5,10]),I=pick([1,2,3]);
+   const P=R*I*I;
+   return{prompt:`Un courant I = ${I} A traverse une résistance R = ${R} Ω. Quelle est la puissance dissipée par effet Joule, P = R·I² ? (en W)`,
+     type:"number",answer:P,
+     viz:{kind:"circuit"},
+     explain:`P = R·I² = ${R} × ${I}² = ${R} × ${I*I} = <b>${P} W</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const R=pick([2,4]),I=pick([1,2]),t=pick([30,60,120]);
+   const E=R*I*I*t;
+   return{prompt:`L'effet Joule chauffe un conducteur : un fil de R = ${R} Ω est parcouru par un courant I = ${I} A pendant t = ${t} s. Quelle énergie E_J = R·I²·t est-elle dissipée ? (en J)`,
+     type:"number",answer:E,
+     viz:{kind:"circuit"},
+     explain:`E_J = R·I²·t = ${R} × ${I}² × ${t} = ${R*I*I} × ${t} = <b>${E} J</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const p=pick([[100,80],[200,150],[50,20],[100,25]]),Pin=p[0],Pu=p[1];
+   const eta=Math.round(100*Pu/Pin);
+   return{prompt:`Un moteur reçoit une puissance P_in = ${Pin} W et en restitute P_utile = ${Pu} W. Quel est son rendement η = P_utile/P_in ? (en %)`,
+     type:"number",answer:eta,
+     viz:{kind:"circuit"},
+     explain:`η = P_utile/P_in = ${Pu}/${Pin} = ${String(Pu/Pin).replace(".",",")}, soit <b>${eta} %</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   return{prompt:`Quelle est la bonne relation entre l'unité de puissance et l'unité d'énergie ?`,
+     type:"choice",
+     options:["1 W = 1 J/s","1 W = 1 J·s","1 J = 1 W/s"],
+     correct:0,
+     explain:`La puissance est une énergie par unité de temps : 1 W = <b>1 J/s</b>. C'est pourquoi E = P·t, et pas E = P/t.`};
+ }},
+ {lvl:"difficile",make(){
+   const R=pick([2,4]),U=pick([12,24]);
+   const I=U/R,P=U*I;
+   return{prompt:`Une résistance R = ${R} Ω est alimentée sous U = ${U} V. Avec I = U/R et P = U·I, quelle est la puissance P ? (en W)`,
+     type:"number",answer:P,
+     viz:{kind:"circuit"},
+     explain:`I = U/R = ${U}/${R} = ${I} A → P = U·I = ${U} × ${I} = <b>${P} W</b>.`};
+ }}
+];
+/* ---------- REGISTRE PC + helpers matière ---------- */
+const SUBJECTS_PC=[
+ {id:"cosmo",name:"Grandeurs cosmiques",sym:"10ⁿ",gens:G_COSMO},
+ {id:"newton",name:"Mécanique & Newton",sym:"F=ma",gens:G_NEWTON},
+ {id:"forces",name:"Forces & champs",sym:"G",gens:G_FORCES},
+ {id:"energie",name:"Énergie",sym:"E",gens:G_ENERGIE},
+ {id:"moles",name:"Quantités de matière",sym:"n",gens:G_MOLES},
+ {id:"stoich",name:"Stœchiométrie & état final",sym:"τ",gens:G_STOICH},
+ {id:"cinet",name:"Cinétique",sym:"v",tag:"Terminale · hors bac 1re",gens:G_CINET},
+ {id:"ondes",name:"Ondes & lumière",sym:"λ",gens:G_ONDES},
+ {id:"elec",name:"Électricité",sym:"P",gens:G_ELECTRICITE},
+];
+const activeSubjects=()=>state.matiere==="pc"?SUBJECTS_PC:SUBJECTS_MATH;
+const THEME_BY_ID={};
+for(const s of SUBJECTS_MATH)THEME_BY_ID[s.id]=s;
+for(const s of SUBJECTS_PC)THEME_BY_ID[s.id]=s;
+/*GEN2C*/
+/* ================= GRAPH (mini-visuels SVG) =================
+   Dessins pédagogiques en SVG inline — aucune dépendance, reste hors-ligne.
+   Règle d'or : les specs sont 100 % JSON-sérialisables (nombres, chaînes,
+   tableaux) car une question peut être stockée en localStorage (liste à
+   réviser) et rejouée après un rechargement. On stocke donc les
+   COEFFICIENTS (a, b, c, k…), jamais de fonctions : vzF() reconstruit f.
+   Deux phases :
+   - "q" : image NEUTRE (courbe, axes, cercle) sans aucun nombre —
+           elle n'indique JAMAIS la réponse ;
+   - "c" : image complète avec les éléments de la réponse (tangente,
+           racines, triangle sin/cos, flèches de variation) —
+           affichée uniquement dans la correction.
+   Spécialement : le type "var" NE S'AFFICHE PAS en phase "q" :
+   la courbe elle-même montre où f monte/descend. */
+const VZ={W:360,H:210,L:40,R:346,T:18,B:186};
+function vzF(kind,a,b,c){
+  switch(kind){
+    case"quad":return x=>a*x*x+b*x+(c||0);
+    case"rec": return x=>a/x;
+    case"cub": return x=>a*x*x*x+b*x;
+    case"exp": return x=>a*Math.exp(x)+b*x;
+    case"ln":  return x=>x>0?a*Math.log(x)+b*x:NaN;
+    case"sq":  return x=>(a*x+b)*(a*x+b);
+    case"lin": return x=>a*x+b;
+    case"expx":return x=>a*Math.exp(x)+b*x;
+    case"x3m": return x=>x*x*x+(b||0)*x;
+    case"lnmx":return x=>x>0?Math.log(x)-x:NaN;
+  }
+  return null;
+}
+function vzScale(x0,x1,y0,y1){
+  return{
+    sx:x=>VZ.L+(x-x0)/(x1-x0)*(VZ.R-VZ.L),
+    sy:y=>VZ.B-(y-y0)/(y1-y0)*(VZ.B-VZ.T)
+  };
+}
+/* Tracé d'une courbe : découpe le path quand la valeur explose
+   (asymptotes, domaines restreints) — pas de trait vertical parasite. */
+function vzCurve(f,x0,x1,n,X,Y,y0,y1){
+  const R=(y1-y0)*6,c=(y0+y1)/2;
+  let d="",pen=false;
+  for(let i=0;i<=n;i++){
+    const x=x0+(x1-x0)*i/n;
+    let y;try{y=f(x);}catch(e){y=NaN;}
+    if(!isFinite(y)||Math.abs(y-c)>R){pen=false;continue;}
+    d+=(pen?"L":"M")+X(x).toFixed(1)+" "+Y(y).toFixed(1)+" ";
+    pen=true;
+  }
+  return d.trim();
+}
+function vzRange(f,x0,x1,extra){
+  let y0=Infinity,y1=-Infinity;
+  for(let i=0;i<=40;i++){
+    const x=x0+(x1-x0)*i/40;
+    const vals=extra?[extra(x)]:[];
+    vals.push(f(x));
+    for(const v of vals){if(isFinite(v)&&Math.abs(v)<1e4){if(v<y0)y0=v;if(v>y1)y1=v;}}
+  }
+  if(!isFinite(y0)||y1-y0<2){const c2=isFinite(y0)?(y0+y1)/2:0;y0=c2-2;y1=c2+2;}
+  const pad=(y1-y0)*0.18+0.4;y0-=pad;y1+=pad;
+  return{y0,y1};
+}
+/* Grille discrète + axes (si 0 est dans la plage) — volontairement SANS
+   graduations numérotées : en phase "q" on ne peut rien lire d'exact. */
+function vzAxes(x0,x1,y0,y1,X,Y){
+  let s="";
+  const span=x1-x0;
+  const step=span>16?5:span>8?2:1;
+  for(let gx=Math.ceil(x0/step)*step;gx<=x1+1e-9;gx+=step){
+    if(Math.abs(gx)<1e-9)continue;
+    s+=`<line x1="${X(gx).toFixed(1)}" y1="${VZ.T}" x2="${X(gx).toFixed(1)}" y2="${VZ.B}" class="vz-grid"/>`;
+  }
+  if(y0<0&&y1>0)s+=`<line x1="${VZ.L}" y1="${Y(0).toFixed(1)}" x2="${VZ.R}" y2="${Y(0).toFixed(1)}" class="vz-axis"/>`;
+  if(x0<0&&x1>0)s+=`<line x1="${X(0).toFixed(1)}" y1="${VZ.T}" x2="${X(0).toFixed(1)}" y2="${VZ.B}" class="vz-axis"/>`;
+  return s;
+}
+const vzClip=id=>`<clipPath id="${id}"><rect x="${VZ.L}" y="${VZ.T}" width="${VZ.R-VZ.L}" height="${VZ.B-VZ.T}"/></clipPath>`;
+const vzWrap=(inner,label)=>`<svg class="vz" viewBox="0 0 ${VZ.W} ${VZ.H}" role="img" aria-label="${label}">`+inner+`</svg>`;
+/* ---------- Dérivées : courbe + point k + (en correction) tangente ---------- */
+function vzTan(spec,phase){
+  const f=vzF(spec.f,spec.a,spec.b,spec.c);
+  if(!f)return"";
+  const k=spec.k,m=spec.m,fk=f(k);
+  let x0=k-4.5;
+  if(spec.f==="ln")x0=Math.max(0.15,k-4.5);
+  let x1=k+4.5;
+  if(spec.f==="exp"){x1=k+2.4;x0=Math.max(-3,k-3);}
+  const g=x=>fk+m*(x-k); /* tangente : y = f(k) + f′(k)(x−k) */
+  const {y0,y1}=vzRange(f,x0,x1,g);
+  const {sx:X,sy:Y}=vzScale(x0,x1,y0,y1);
+  const id="vzclip-"+phase;
+  let s=vzAxes(x0,x1,y0,y1,X,Y);
+  s+=`<g clip-path="url(#${id})"><path d="${vzCurve(f,x0,x1,80,X,Y,y0,y1)}" class="vz-curve" pathLength="1"/></g>`;
+  s+=`<circle cx="${X(k).toFixed(1)}" cy="${Y(fk).toFixed(1)}" r="4.5" class="vz-pt"/>`;
+  if(phase==="c"){
+    s+=`<g clip-path="url(#${id})"><line x1="${X(x0).toFixed(1)}" y1="${Y(g(x0)).toFixed(1)}" x2="${X(x1).toFixed(1)}" y2="${Y(g(x1)).toFixed(1)}" class="vz-ans"/></g>`;
+    const ty=Math.max(VZ.T+14,Math.min(VZ.B-10,Y(g(x1))));
+    s+=`<text x="${VZ.R-4}" y="${ty.toFixed(1)}" text-anchor="end" class="vz-lbl-ans">tangente</text>`;
+  }
+  return vzWrap(vzClip(id)+s,"Courbe de f et point d'abscisse "+k+(phase==="c"?" avec la tangente":""));
+}
+/* ---------- 2e degré : parabole + (en correction) racines marquées ---------- */
+function vzPar(spec,phase){
+  const f=vzF("quad",spec.a,spec.b,spec.c);
+  const lo=Math.min(spec.r1,spec.r2),hi=Math.max(spec.r1,spec.r2);
+  const x0=lo-3,x1=hi+3;
+  let{y0,y1}=vzRange(f,x0,x1);
+  if(y1<-0.5)y1=2;
+  if(y0>0.5)y0=-2;
+  const {sx:X,sy:Y}=vzScale(x0,x1,y0,y1);
+  const id="vzclip-"+phase;
+  let s=vzAxes(x0,x1,y0,y1,X,Y);
+  s+=`<g clip-path="url(#${id})"><path d="${vzCurve(f,x0,x1,80,X,Y,y0,y1)}" class="vz-curve" pathLength="1"/></g>`;
+  if(phase==="c"){
+    for(const r of[spec.r1,spec.r2]){
+      s+=`<circle cx="${X(r).toFixed(1)}" cy="${Y(0).toFixed(1)}" r="4.5" class="vz-anspt"/>`;
+      s+=`<text x="${X(r).toFixed(1)}" y="${(Y(0)+19).toFixed(1)}" text-anchor="middle" class="vz-lbl-ans">${r}</text>`;
+    }
+  }
+  return vzWrap(vzClip(id)+s,"Parabole"+(phase==="c"?" avec les deux racines marquées":""));
+}
+/* ---------- Trigo : cercle unité + angle + (en correction) triangle ---------- */
+function vzUnit(spec,phase){
+  const cx=180,cy=110,r=80,A=spec.ang||0;
+  const px=cx+r*Math.cos(A),py=cy-r*Math.sin(A);
+  let s=`<circle cx="${cx}" cy="${cy}" r="${r}" class="vz-circ"/>`;
+  s+=`<line x1="${cx-r-10}" y1="${cy}" x2="${cx+r+10}" y2="${cy}" class="vz-axis"/>`;
+  s+=`<line x1="${cx}" y1="${cy-r-10}" x2="${cx}" y2="${cy+r+10}" class="vz-axis"/>`;
+  s+=`<line x1="${cx}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" class="vz-ray"/>`;
+  const cosA=Math.cos(A),sinA=Math.sin(A);
+  if(A>0.02){
+    const ar=26,ax=cx+ar*cosA,ay=cy-ar*sinA;
+    s+=`<path d="M ${(cx+ar)} ${cy} A ${ar} ${ar} 0 0 0 ${ax.toFixed(1)} ${ay.toFixed(1)}" fill="none" class="vz-ans" opacity="0.55"/>`;
+    s+=`<text x="${(cx+44*Math.cos(A/2)).toFixed(1)}" y="${(cy-44*Math.sin(A/2)+4).toFixed(1)}" text-anchor="middle" class="vz-lbl">${spec.angLabel}</text>`;
+  }
+  if(phase==="c"){
+    if(Math.abs(cosA)>0.01&&Math.abs(sinA)>0.01){
+      s+=`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${px.toFixed(1)}" y2="${cy}" class="vz-leg"/>`;
+      s+=`<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${cx}" y2="${py.toFixed(1)}" class="vz-leg"/>`;
+      if(spec.leg==="sin"){
+        s+=`<line x1="${px.toFixed(1)}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" class="vz-ans"/>`;
+        s+=`<text x="${(px+9).toFixed(1)}" y="${((cy+py)/2+4).toFixed(1)}" class="vz-lbl-ans">${spec.valLabel}</text>`;
+      }else{
+        s+=`<line x1="${cx}" y1="${py.toFixed(1)}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" class="vz-ans"/>`;
+        s+=`<text x="${((cx+px)/2).toFixed(1)}" y="${(py-9).toFixed(1)}" text-anchor="middle" class="vz-lbl-ans">${spec.valLabel}</text>`;
+      }
+    }else{
+      /* angle dégénéré (0 ou π/2) : valeur exacte près du point */
+      s+=`<text x="${(px+(cosA>0?10:-10)).toFixed(1)}" y="${(py-10).toFixed(1)}" text-anchor="${cosA>0?"start":"end"}" class="vz-lbl-ans">${spec.valLabel}</text>`;
+    }
+    s+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4.5" class="vz-anspt"/>`;
+  }
+  return vzWrap(s,"Cercle trigonométrique — angle "+spec.angLabel);
+}
+/* ---------- Variations : courbe + flèches de sens + extremums ----------
+   (uniquement en phase correction — jamais en question) */
+function vzVar(spec){
+  const f=vzF(spec.f,spec.a,spec.b,spec.c);
+  if(!f)return"";
+  const AR=spec.arrows||[[-7,7,1]];
+  let x0=Math.max(-7,Math.min.apply(null,AR.map(a=>a[0])));
+  let x1=Math.min(7,Math.max.apply(null,AR.map(a=>a[1])));
+  if(spec.f==="lnmx"){x0=Math.max(x0,0.2);x1=Math.min(x1,6);}
+  if(spec.f==="expx"){x0=-4;x1=3.5;}
+  if(spec.f==="x3m"){x0=-3.2;x1=3.2;}
+  const{y0,y1}=vzRange(f,x0,x1);
+  const{sx:X,sy:Y}=vzScale(x0,x1,y0,y1);
+  const id="vzclip-c";
+  let s=vzAxes(x0,x1,y0,y1,X,Y);
+  s+=`<g clip-path="url(#${id})"><path d="${vzCurve(f,x0,x1,90,X,Y,y0,y1)}" class="vz-curve" pathLength="1"/></g>`;
+  for(const it of AR){
+    const a0=it[0],a1=it[1],dir=it[2];
+    const c=(a0+a1)/2;
+    if(c<x0||c>x1)continue;
+    const yv=f(c);
+    if(!isFinite(yv))continue;
+    let ay=dir>0?Y(yv)-30:Y(yv)+30;
+    ay=Math.max(VZ.T+14,Math.min(VZ.B-14,ay));
+    const cx=X(c).toFixed(1);
+    if(dir>0){
+      s+=`<line x1="${cx}" y1="${(ay+16).toFixed(1)}" x2="${cx}" y2="${(ay+2).toFixed(1)}" class="vz-ans"/>`;
+      s+=`<path d="M ${cx} ${(ay-8).toFixed(1)} L ${(X(c)-6).toFixed(1)} ${(ay+4).toFixed(1)} L ${(X(c)+6).toFixed(1)} ${(ay+4).toFixed(1)} Z" fill="var(--good)"/>`;
+    }else{
+      s+=`<line x1="${cx}" y1="${(ay-16).toFixed(1)}" x2="${cx}" y2="${(ay-2).toFixed(1)}" class="vz-ans-bad"/>`;
+      s+=`<path d="M ${cx} ${(ay+8).toFixed(1)} L ${(X(c)-6).toFixed(1)} ${(ay-4).toFixed(1)} L ${(X(c)+6).toFixed(1)} ${(ay-4).toFixed(1)} Z" fill="var(--bad)"/>`;
+    }
+  }
+  for(const it of(spec.ex||[])){
+    const exx=it[0],eyy=it[1],et=it[2];
+    if(exx<x0||exx>x1)continue;
+    s+=`<circle cx="${X(exx).toFixed(1)}" cy="${Y(eyy).toFixed(1)}" r="4.5" class="vz-pt"/>`;
+    const ly=et==="max"?Y(eyy)-16:Y(eyy)+24;
+    s+=`<text x="${X(exx).toFixed(1)}" y="${Math.max(VZ.T+10,Math.min(VZ.B-6,ly)).toFixed(1)}" text-anchor="middle" class="vz-lbl-ans">${et}</text>`;
+  }
+  return vzWrap(vzClip(id)+s,"Étude de variations — courbe de f avec les sens de variation");
+}
+/* ---------- PC (cosmo) : règle log des grandeurs — marqueurs en correction ---------- */
+function vzRatio(spec,phase){
+  const r1=Math.max(1,spec.r1||1),r2=Math.max(1,spec.r2||1);
+  const p0=Math.floor(Math.log10(Math.min(r1,r2)))-1;
+  const p1=Math.ceil(Math.log10(Math.max(r1,r2)))+1;
+  const pos=r=>50+(Math.log10(r)-p0)/(p1-p0)*(310-50);
+  let s=`<line x1="50" y1="110" x2="310" y2="110" class="vz-axis"/>`;
+  for(let p=p0;p<=p1;p++){
+    const x=pos(Math.pow(10,p));
+    s+=`<line x1="${x.toFixed(1)}" y1="104" x2="${x.toFixed(1)}" y2="116" class="vz-grid"/>`;
+    if(phase==="c")s+=`<text x="${x.toFixed(1)}" y="130" text-anchor="middle" class="vz-lbl">10^${p}</text>`;
+  }
+  if(phase==="c"){
+    for(const [r,lab] of[[r1,spec.lab1||""],[r2,spec.lab2||""]]){
+      const x=pos(r);
+      s+=`<circle cx="${x.toFixed(1)}" cy="110" r="5" class="vz-anspt"/>`;
+      s+=`<text x="${x.toFixed(1)}" y="92" text-anchor="middle" class="vz-lbl-ans">${lab}</text>`;
+    }
+  }
+  return vzWrap(s,"Échelle des grandeurs"+(phase==="c"?" avec les deux valeurs":""));
+}
+/* ---------- PC (newton) : lancer horizontal — point de départ + sol (q), trajectoire + impact (c) ---------- */
+function vzProj(spec,phase){
+  const h=Math.max(1,spec.h||5),v0=Math.max(0,spec.v0||3),g=Math.max(1,spec.g||10);
+  const xi=v0>0?v0*Math.sqrt(2*h/g):0;
+  const x1=Math.max(xi,1)*1.15,y1=h*1.3;
+  const {sx:X,sy:Y}=vzScale(0,x1,0,y1);
+  const id="vzclip-"+phase;
+  let s=`<line x1="${VZ.L}" y1="${Y(0).toFixed(1)}" x2="${VZ.R}" y2="${Y(0).toFixed(1)}" class="vz-axis"/>`;
+  s+=`<circle cx="${X(0).toFixed(1)}" cy="${Y(h).toFixed(1)}" r="4.5" class="vz-pt"/>`;
+  if(phase==="c"){
+    if(v0>0){
+      const f=x=>h-(g/(2*v0*v0))*x*x;
+      s+=`<g clip-path="url(#${id})"><path d="${vzCurve(f,0,xi,60,X,Y,0,y1)}" class="vz-curve" pathLength="1"/></g>`;
+      s+=`<line x1="${X(0).toFixed(1)}" y1="${Y(h).toFixed(1)}" x2="${(X(0)+40).toFixed(1)}" y2="${Y(h).toFixed(1)}" class="vz-ray"/>`;
+      s+=`<text x="${(X(0)+44).toFixed(1)}" y="${(Y(h)+4).toFixed(1)}" class="vz-lbl-ans">v₀</text>`;
+    }else{
+      s+=`<line x1="${X(0).toFixed(1)}" y1="${Y(h).toFixed(1)}" x2="${X(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" class="vz-curve" pathLength="1"/>`;
+    }
+    s+=`<circle cx="${X(xi).toFixed(1)}" cy="${Y(0).toFixed(1)}" r="4.5" class="vz-anspt"/>`;
+    s+=`<text x="${X(xi).toFixed(1)}" y="${(Y(0)+18).toFixed(1)}" text-anchor="middle" class="vz-lbl-ans">impact</text>`;
+  }
+  return vzWrap(vzClip(id)+s,"Lancer horizontal"+(phase==="c"?" avec la trajectoire":" — point de départ et sol"));
+}
+/* ---------- PC (forces/newton) : masse sur support — flèches P ↓ / T ↑ à l'échelle en correction ---------- */
+function vzForce(spec,phase){
+  const P=Math.max(0,spec.P||0),T=Math.max(0,spec.T||0);
+  const cx=180,cy=112,mx=Math.max(P,T,1);
+  const len=v=>Math.max(12,56*v/mx);
+  let s=`<line x1="90" y1="168" x2="270" y2="168" class="vz-axis"/>`;
+  s+=`<rect x="${cx-16}" y="${cy-12}" width="32" height="24" rx="5" fill="var(--accent-soft)" stroke="var(--line)"/>`;
+  if(phase==="c"){
+    if(P>0){
+      const L=len(P);
+      s+=`<line x1="${cx}" y1="${cy+12}" x2="${cx}" y2="${cy+12+L}" class="vz-ans-bad"/>`;
+      s+=`<path d="M ${cx} ${cy+12+L+8} L ${cx-5} ${cy+12+L-2} L ${cx+5} ${cy+12+L-2} Z" fill="var(--bad)"/>`;
+      s+=`<text x="${cx+9}" y="${cy+12+L+4}" class="vz-lbl">P</text>`;
+    }
+    if(T>0){
+      const L=len(T);
+      s+=`<line x1="${cx}" y1="${cy-12}" x2="${cx}" y2="${cy-12-L}" class="vz-ans"/>`;
+      s+=`<path d="M ${cx} ${cy-12-L-8} L ${cx-5} ${cy-12-L+2} L ${cx+5} ${cy-12-L+2} Z" fill="var(--good)"/>`;
+      s+=`<text x="${cx+9}" y="${cy-12-L+4}" class="vz-lbl">T</text>`;
+    }
+  }
+  return vzWrap(s,"Masse sur un support"+(phase==="c"?" avec les forces à l'échelle":""));
+}
+/* ---------- PC (energie) : bilans d'énergie — barres E꜀ / Eₚ / Eₘ, valeurs en correction ---------- */
+function vzBars(spec,phase){
+  const vals=[["E꜀",spec.ek||0],["Eₚ",spec.ep||0],["Eₘ",spec.em||0]];
+  const mx=Math.max(1,Math.max.apply(null,vals.map(v=>v[1])));
+  const base=172,top=30,bw=54,gap=30;
+  let s="";
+  vals.forEach((v,i)=>{
+    const x=52+i*(bw+gap);
+    s+=`<rect x="${x}" y="${top}" width="${bw}" height="${base-top}" fill="none" stroke="var(--line)"/>`;
+    if(phase==="c"&&v[1]>0){
+      const h=(base-top)*v[1]/mx;
+      s+=`<rect x="${x}" y="${(base-h).toFixed(1)}" width="${bw}" height="${h.toFixed(1)}" fill="var(--accent-soft)" stroke="var(--accent)"/>`;
+      s+=`<text x="${x+bw/2}" y="${(base-h-6).toFixed(1)}" text-anchor="middle" class="vz-lbl-ans">${v[1]} J</text>`;
+    }
+    s+=`<text x="${x+bw/2}" y="${base+16}" text-anchor="middle" class="vz-lbl">${v[0]}</text>`;
+  });
+  s+=`<line x1="40" y1="${base}" x2="330" y2="${base}" class="vz-axis"/>`;
+  return vzWrap(s,"Bilan d'énergie"+(phase==="c"?" avec les valeurs":" — barres vides"));
+}
+/* ---------- PC (moles) : récipient — ménisque + c, n en correction ---------- */
+function vzSoln(spec,phase){
+  const cx=180,top=40,bot=170,hw=45;
+  let s=`<path d="M ${cx-hw} ${top} L ${cx-hw} ${bot-14} Q ${cx-hw} ${bot} ${cx-hw+14} ${bot} L ${cx+hw-14} ${bot} Q ${cx+hw} ${bot} ${cx+hw} ${bot-14} L ${cx+hw} ${top}" fill="none" stroke="var(--muted)" stroke-width="1.6"/>`;
+  if(phase==="c"){
+    const h=30+0.4*Math.min(80,(spec.n||1)*10);
+    const y=bot-14-h;
+    s+=`<path d="M ${cx-hw+2} ${y} L ${cx+hw-2} ${y} L ${cx+hw-2} ${bot-14} Q ${cx+hw-2} ${bot-2} ${cx+hw-14} ${bot-2} L ${cx-hw+14} ${bot-2} Q ${cx-hw+2} ${bot-2} ${cx-hw+2} ${bot-14} Z" fill="var(--accent-soft)" opacity="0.8"/>`;
+    s+=`<line x1="${cx-hw-6}" y1="${y.toFixed(1)}" x2="${cx-hw+2}" y2="${y.toFixed(1)}" class="vz-ans"/>`;
+    if(spec.c!=null)s+=`<text x="${cx+hw+10}" y="${(y+4).toFixed(1)}" class="vz-lbl-ans">${spec.c} mol/L</text>`;
+    if(spec.n!=null)s+=`<text x="${cx}" y="${bot+16}" text-anchor="middle" class="vz-lbl">n = ${spec.n} mol</text>`;
+  }
+  return vzWrap(s,"Solution"+(phase==="c"?" avec la concentration":" — récipient"));
+}
+/* ---------- PC (stoich) : emplacements A/B/C — barres à l'état final + réactif limitant (c) ---------- */
+function vzStoich(spec,phase){
+  const a=Math.max(1,spec.a||1),b=Math.max(1,spec.b||1),c=Math.max(1,spec.c||1);
+  const nA=Math.max(0,spec.nA||0),nB=Math.max(0,spec.nB||0);
+  const t=Math.min(nA/a,nB/b),fA=Math.max(0,nA-a*t),fB=Math.max(0,nB-b*t),fC=c*t;
+  const mx=Math.max(1,nA,nB,fC);
+  const base=158,top=38,bw=54,gap=34;
+  let s=`<line x1="44" y1="${base}" x2="330" y2="${base}" class="vz-axis"/>`;
+  const items=[["A",fA],["B",fB],["C",fC]];
+  items.forEach((it,i)=>{
+    const x=56+i*(bw+gap);
+    s+=`<rect x="${x}" y="${top}" width="${bw}" height="${base-top}" fill="none" stroke="var(--line)"/>`;
+    if(phase==="c"&&it[1]>0){
+      const h=(base-top)*it[1]/mx;
+      s+=`<rect x="${x}" y="${(base-h).toFixed(1)}" width="${bw}" height="${h.toFixed(1)}" fill="var(--accent-soft)" stroke="var(--accent)"/>`;
+      s+=`<text x="${x+bw/2}" y="${(base-h-6).toFixed(1)}" text-anchor="middle" class="vz-lbl-ans">${it[1]}</text>`;
+    }
+    s+=`<text x="${x+bw/2}" y="${base+16}" text-anchor="middle" class="vz-lbl">${it[0]}</text>`;
+  });
+  if(phase==="c"&&spec.limitant){
+    const i=spec.limitant==="B"?1:(spec.limitant==="C"?2:0);
+    const x=56+i*(bw+gap);
+    s+=`<text x="${x+bw/2}" y="${top-8}" text-anchor="middle" class="vz-lbl-ans">limitant</text>`;
+  }
+  return vzWrap(s,"État final de la réaction"+(phase==="c"?" quantités restantes":" — emplacements A, B, C"));
+}
+/* ---------- PC (cinet) : décroissance — n₀, ligne 5 %, point t(95 %) en correction ---------- */
+function vzKin(spec,phase){
+  const n0=Math.max(0.1,spec.n0||1),t95=Math.max(0.5,spec.t95||4);
+  const t1=t95*1.25,y1=n0*1.2;
+  const {sx:X,sy:Y}=vzScale(0,t1,0,y1);
+  const id="vzclip-"+phase;
+  let s=vzAxes(0,t1,0,y1,X,Y);
+  const f=t=>n0*Math.exp(-2.996*t/t95); /* n(t95) ≈ 0,05·n0 (−ln 20) */
+  s+=`<g clip-path="url(#${id})"><path d="${vzCurve(f,0,t1,70,X,Y,0,y1)}" class="vz-curve" pathLength="1"/></g>`;
+  if(phase==="c"){
+    const y5=Y(0.05*n0);
+    s+=`<line x1="${VZ.L}" y1="${y5.toFixed(1)}" x2="${VZ.R}" y2="${y5.toFixed(1)}" class="vz-leg"/>`;
+    s+=`<text x="${VZ.R-4}" y="${(y5-5).toFixed(1)}" text-anchor="end" class="vz-lbl-ans">5 %</text>`;
+    s+=`<line x1="${X(t95).toFixed(1)}" y1="${Y(0).toFixed(1)}" x2="${X(t95).toFixed(1)}" y2="${y5.toFixed(1)}" class="vz-leg"/>`;
+    s+=`<circle cx="${X(t95).toFixed(1)}" cy="${y5.toFixed(1)}" r="4.5" class="vz-anspt"/>`;
+    s+=`<text x="${X(t95).toFixed(1)}" y="${(Y(0)+18).toFixed(1)}" text-anchor="middle" class="vz-lbl-ans">t(95 %)</text>`;
+    s+=`<text x="${VZ.L+4}" y="${(Y(n0)+14).toFixed(1)}" class="vz-lbl-ans">n₀</text>`;
+  }
+  return vzWrap(vzClip(id)+s,"Cinétique"+(phase==="c"?" avec t(95 %)":" — décroissance"));
+}
+/* ---------- PC (ondes) : onde sinusoïdale.
+   q : forme d'onde seule (neutre, aucun nombre) ;
+   c : + amplitude A et longueur d'onde λ d'une période. */
+function vzOnde(spec,phase){
+  const n=Math.max(1,Math.min(4,spec.n||2));
+  const mid=105,amp=40,x0=60,x1=320,N=140;
+  let d="M "+x0+" "+mid;
+  for(let i=1;i<=N;i++){
+    const x=x0+(x1-x0)*i/N;
+    const y=mid-amp*Math.sin(2*Math.PI*n*i/N);
+    d+=" L "+x.toFixed(1)+" "+y.toFixed(1);
+  }
+  let s=`<line x1="${VZ.L}" y1="${mid}" x2="${VZ.R}" y2="${mid}" class="vz-grid"/>`;
+  s+=`<path d="${d}" pathLength="1" class="vz-curve"/>`;
+  if(phase==="c"){
+    const xa=x0,xb=x0+(x1-x0)/n;
+    s+=`<line x1="${xa}" y1="${mid-amp-16}" x2="${xb.toFixed(1)}" y2="${mid-amp-16}" class="vz-ans"/>`;
+    s+=`<line x1="${xa}" y1="${mid-amp-22}" x2="${xa}" y2="${mid-amp-10}" class="vz-ans"/>`;
+    s+=`<line x1="${xb.toFixed(1)}" y1="${mid-amp-22}" x2="${xb.toFixed(1)}" y2="${mid-amp-10}" class="vz-ans"/>`;
+    s+=`<text x="${((xa+xb)/2).toFixed(1)}" y="${mid-amp-28}" text-anchor="middle" class="vz-lbl-ans">λ</text>`;
+    s+=`<line x1="${x0}" y1="${mid}" x2="${x0}" y2="${mid-amp}" class="vz-ray"/>`;
+    s+=`<text x="${x0-8}" y="${mid-amp/2+4}" text-anchor="end" class="vz-lbl-ans">A</text>`;
+  }
+  return vzWrap(s,"Onde sinusoïdale"+(phase==="c"?" — amplitude A et longueur d'onde λ":" — forme d'onde"));
+}
+/* ---------- PC (ondes) : lentille mince convergente (géométrie exacte,
+   v = f·u/(u−f) : les deux rayons passent par le sommet de l'image).
+   q : axe, lentille, objet (neutre) ; c : rayons, foyer F′, image A′. */
+function vzLent(spec,phase){
+  const f=Math.max(1,spec.f||10),u=Math.max(2,spec.u||20);
+  const v=f*u/(u-f);
+  const k=118/Math.max(f,u,v);
+  const ax=105,lx=180,h0=36,hi=h0*v/u;
+  const xo=lx-k*u,xi=lx+k*v,xf=lx+k*f;
+  let s=`<line x1="${VZ.L}" y1="${ax}" x2="${VZ.R}" y2="${ax}" class="vz-axis"/>`;
+  s+=`<line x1="${lx}" y1="${ax-58}" x2="${lx}" y2="${ax+58}" class="vz-ray"/>`;
+  s+=`<path d="M ${lx-5} ${ax-58} L ${lx} ${ax-66} L ${lx+5} ${ax-58} Z" fill="var(--muted)"/>`;
+  s+=`<path d="M ${lx-5} ${ax+58} L ${lx} ${ax+66} L ${lx+5} ${ax+58} Z" fill="var(--muted)"/>`;
+  s+=`<line x1="${xo.toFixed(1)}" y1="${ax}" x2="${xo.toFixed(1)}" y2="${ax-h0}" class="vz-ray"/>`;
+  s+=`<path d="M ${(xo-5).toFixed(1)} ${ax-h0} L ${xo.toFixed(1)} ${ax-h0-8} L ${(xo+5).toFixed(1)} ${ax-h0} Z" fill="var(--ink)"/>`;
+  if(phase==="c"){
+    s+=`<line x1="${xo.toFixed(1)}" y1="${ax-h0}" x2="${lx}" y2="${ax-h0}" class="vz-leg"/>`;
+    s+=`<line x1="${lx}" y1="${ax-h0}" x2="${xi.toFixed(1)}" y2="${(ax+hi).toFixed(1)}" class="vz-leg"/>`;
+    s+=`<line x1="${xo.toFixed(1)}" y1="${ax-h0}" x2="${xi.toFixed(1)}" y2="${(ax+hi).toFixed(1)}" class="vz-leg"/>`;
+    s+=`<circle cx="${xf.toFixed(1)}" cy="${ax}" r="4.5" class="vz-anspt"/>`;
+    s+=`<text x="${xf.toFixed(1)}" y="${ax+18}" text-anchor="middle" class="vz-lbl-ans">F′</text>`;
+    s+=`<line x1="${xi.toFixed(1)}" y1="${ax}" x2="${xi.toFixed(1)}" y2="${(ax+hi).toFixed(1)}" class="vz-ans"/>`;
+    s+=`<path d="M ${(xi-5).toFixed(1)} ${(ax+hi-8).toFixed(1)} L ${xi.toFixed(1)} ${(ax+hi).toFixed(1)} L ${(xi+5).toFixed(1)} ${(ax+hi-8).toFixed(1)} Z" fill="var(--good)"/>`;
+    s+=`<text x="${xo.toFixed(1)}" y="${ax-h0-12}" text-anchor="middle" class="vz-lbl">A</text>`;
+    s+=`<text x="${xi.toFixed(1)}" y="${(ax+hi+16).toFixed(1)}" text-anchor="middle" class="vz-lbl-ans">A′</text>`;
+  }
+  return vzWrap(s,"Lentille mince convergente"+(phase==="c"?" — rayons, foyer F′, image A′":" — axe, lentille, objet"));
+}
+/* ---------- PC (électricité) : circuit simple — générateur + résistance.
+   q : schéma neutre ; c : + sens du courant I. */
+function vzCircuit(spec,phase){
+  const x0=80,x1=280,y0=50,y1=150;
+  let s=`<line x1="${x0}" y1="${y0}" x2="140" y2="${y0}" class="vz-ray"/>`;
+  s+=`<line x1="220" y1="${y0}" x2="${x1}" y2="${y0}" class="vz-ray"/>`;
+  s+=`<rect x="140" y="${y0-7}" width="80" height="14" fill="var(--surface)" class="vz-ray"/>`;
+  s+=`<line x1="${x1}" y1="${y0}" x2="${x1}" y2="${y1}" class="vz-ray"/>`;
+  s+=`<line x1="${x1}" y1="${y1}" x2="${x0}" y2="${y1}" class="vz-ray"/>`;
+  s+=`<line x1="${x0}" y1="${y1}" x2="${x0}" y2="112" class="vz-ray"/>`;
+  s+=`<line x1="${x0}" y1="88" x2="${x0}" y2="${y0}" class="vz-ray"/>`;
+  s+=`<line x1="70" y1="94" x2="90" y2="94" class="vz-ray"/>`;
+  s+=`<line x1="76" y1="106" x2="84" y2="106" stroke-width="5" class="vz-ray"/>`;
+  s+=`<text x="100" y="100" class="vz-lbl">U</text>`;
+  s+=`<text x="180" y="${y0-14}" text-anchor="middle" class="vz-lbl">R</text>`;
+  if(phase==="c"){
+    s+=`<line x1="${x1}" y1="60" x2="${x1}" y2="128" class="vz-ans"/>`;
+    s+=`<path d="M ${x1-5} 128 L ${x1} 136 L ${x1+5} 128 Z" fill="var(--good)"/>`;
+    s+=`<text x="${x1+14}" y="100" class="vz-lbl-ans">I</text>`;
+  }
+  return vzWrap(s,"Circuit électrique — générateur et récepteur");
+}
+function vzCharges(spec,phase){
+  const ax=105,x1=110,x2=250;
+  let s=`<line x1="${VZ.L}" y1="${ax}" x2="${VZ.R}" y2="${ax}" class="vz-axis"/>`;
+  s+=`<circle cx="${x1}" cy="${ax}" r="11" class="vz-pt"/>`;
+  s+=`<circle cx="${x2}" cy="${ax}" r="11" class="vz-pt"/>`;
+  s+=`<text x="${x1}" y="${ax+33}" text-anchor="middle" class="vz-lbl">q₁</text>`;
+  s+=`<text x="${x2}" y="${ax+33}" text-anchor="middle" class="vz-lbl">q₂</text>`;
+  if(phase==="c"){
+    if(spec.attr){
+      s+=`<line x1="126" y1="${ax}" x2="165" y2="${ax}" class="vz-ans"/>`;
+      s+=`<path d="M 167 ${ax-5} L 175 ${ax} L 167 ${ax+5} Z" fill="var(--good)"/>`;
+      s+=`<line x1="234" y1="${ax}" x2="195" y2="${ax}" class="vz-ans"/>`;
+      s+=`<path d="M 193 ${ax-5} L 185 ${ax} L 193 ${ax+5} Z" fill="var(--good)"/>`;
+      s+=`<text x="145" y="${ax-12}" text-anchor="middle" class="vz-lbl-ans">F</text>`;
+      s+=`<text x="214" y="${ax-12}" text-anchor="middle" class="vz-lbl-ans">F</text>`;
+    }else{
+      s+=`<line x1="94" y1="${ax}" x2="65" y2="${ax}" class="vz-ans"/>`;
+      s+=`<path d="M 71 ${ax-5} L 63 ${ax} L 71 ${ax+5} Z" fill="var(--good)"/>`;
+      s+=`<line x1="266" y1="${ax}" x2="295" y2="${ax}" class="vz-ans"/>`;
+      s+=`<path d="M 289 ${ax-5} L 297 ${ax} L 289 ${ax+5} Z" fill="var(--good)"/>`;
+      s+=`<text x="58" y="${ax-12}" text-anchor="middle" class="vz-lbl-ans">F</text>`;
+      s+=`<text x="302" y="${ax-12}" text-anchor="middle" class="vz-lbl-ans">F</text>`;
+    }
+  }
+  return vzWrap(s,"Deux charges"+(spec.attr?" — force attractive":" — force répulsive"));
+}
+function vzWork(spec,phase){
+  const gy=140;
+  let s=`<line x1="50" y1="${gy}" x2="310" y2="${gy}" class="vz-axis"/>`;
+  s+=`<rect x="120" y="90" width="40" height="50" fill="var(--surface)" class="vz-ray"/>`;
+  if(phase==="c"){
+    s+=`<line x1="162" y1="110" x2="230" y2="110" class="vz-ans"/>`;
+    s+=`<path d="M 224 105 L 232 110 L 224 115 Z" fill="var(--good)"/>`;
+    s+=`<text x="196" y="100" text-anchor="middle" class="vz-lbl-ans">F</text>`;
+    s+=`<line x1="120" y1="158" x2="260" y2="158" class="vz-leg"/>`;
+    s+=`<line x1="120" y1="152" x2="120" y2="164" class="vz-leg"/>`;
+    s+=`<line x1="260" y1="152" x2="260" y2="164" class="vz-leg"/>`;
+    s+=`<text x="190" y="178" text-anchor="middle" class="vz-lbl">d</text>`;
+  }
+  return vzWrap(s,"Bloc sur un plan"+(phase==="c"?" — force F et déplacement d":""));
+}
+/* ---------- Point d'entrée unique ----------
+   phase "q" (question) ou "c" (correction). Renvoie "" si pas de visuel
+   ou si celui-ci ne doit pas s'afficher (ex : "var" en question).
+   Un visuel cassé renvoie "" — il ne doit JAMAIS faire planter la
+   correction ni la question. */
+function VIZdraw(spec,phase){
+  if(!spec)return"";
+  try{
+    if(spec.kind==="var"&&phase==="q")return"";
+    switch(spec.kind){
+      case"tan": return vzTan(spec,phase);
+      case"par": return vzPar(spec,phase);
+      case"unit":return vzUnit(spec,phase);
+      case"var": return vzVar(spec);
+      case"scale":return vzRatio(spec,phase);
+      case"proj":return vzProj(spec,phase);
+      case"force":return vzForce(spec,phase);
+      case"bars":return vzBars(spec,phase);
+      case"soln":return vzSoln(spec,phase);
+      case"stoich":return vzStoich(spec,phase);
+      case"kin":return vzKin(spec,phase);
+      case"onde":return vzOnde(spec,phase);
+      case"lentille":return vzLent(spec,phase);
+      case"circuit":return vzCircuit(spec,phase);
+      case"charges":return vzCharges(spec,phase);
+      case"work":return vzWork(spec,phase);
+    }
+  }catch(e){/* silencieux : le texte de la méthode reste l'essentiel */}
+  return"";
+}
+/* ================= ENGINE ================= */
+/* ---------- Persistance ---------- */
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+};
+/* ---- Matière : "maths" (défaut) ou "pc" — persistée sous cz_subject ---- */
+const SUBJECT_KEY="cz_subject";
+const state={matiere:(function(){try{const v=JSON.parse(localStorage.getItem(SUBJECT_KEY));return v==="pc"?"pc":"maths";}catch(e){return"maths";}})(),mode:null,level:"moyen",subject:"mix",q:null,sub:null,curLvl:null,streak:0,maxStreak:0,score:0,good:0,bad:0,n:0,timer:null,timeLeft:60,answered:false,skipQueue:[],skips:0};
+/* ---- Stats : deux emplacements (cz_stats maths / cz_stats_pc), même forme,
+       Migration v2 commune — les anciens utilisateurs ne perdent rien ---- */
+function loadStats(key){
+  const st=store.get(key,{ans:0,good:0,bestStreak:0,bestSprint:0,bySub:{}});
+  if(st.skips===undefined)st.skips=0;
+  if(st.streakBySub===undefined)st.streakBySub={};   /* id -> meilleure série par thème */
+  if(st.history===undefined)st.history=[];            /* [{s,l,o}] — 100 dernières réponses */
+  if(st.review===undefined)st.review=[];              /* [{s,l,q}] — liste à réviser (max 50) */
+  return st;
+}
+const activeStatsKey=()=>state.matiere==="pc"?"cz_stats_pc":"cz_stats";
+let stats=loadStats(activeStatsKey());
+const homeEl=$("#home"),playEl=$("#play"),qbox=$("#qbox");
+const save=()=>store.set(activeStatsKey(),stats);
+const subStat=id=>stats.bySub[id]||(stats.bySub[id]={ans:0,good:0});
+/* ---- v2 : historique glissant + liste de révision ---- */
+const qKey=q=>JSON.stringify(q);
+function pushHistory(s,l,o){stats.history.push({s,l,o});if(stats.history.length>100)stats.history=stats.history.slice(-100);}
+function reviewAdd(sub,lvl,q){const k=qKey(q);if(!stats.review.some(r=>qKey(r.q)===k)){stats.review.push({s:sub,l:lvl,q});if(stats.review.length>50)stats.review.shift();}}
+function reviewRemove(q){const k=qKey(q);const i=stats.review.findIndex(r=>qKey(r.q)===k);if(i>=0)stats.review.splice(i,1);}
+function reviewRequeue(q){const k=qKey(q);const i=stats.review.findIndex(r=>qKey(r.q)===k);if(i>=0){const it=stats.review.splice(i,1)[0];stats.review.push(it);}}
+/* Points faibles : top 5 cellules thème×niveau les moins précises,
+   calculées sur les 100 dernières réponses (history), min. 5 réponses. */
+function weakPoints(){
+  const agg={};
+  for(const h of stats.history){const k=h.s+":"+h.l;(agg[k]=agg[k]||{ans:0,good:0}).ans++;if(h.o)agg[k].good++;}
+  const out=[];
+  for(const k in agg){if(agg[k].ans>=5){const i=k.indexOf(":");out.push({s:k.slice(0,i),l:k.slice(i+1),acc:agg[k].good/agg[k].ans});}}
+  out.sort((a,b)=>a.acc-b.acc||b.ans-a.ans);
+  return out.slice(0,5);
+}
+/* Bascule de matière : persiste le choix, échange la variable stats
+   (une seule variable — tout le moteur passe déjà par stats),
+   réinitialise la tuile sélectionnée et re-rend l'accueil. */
+function setMatiere(m){
+  if(state.matiere===m)return;
+  state.matiere=m;
+  store.set(SUBJECT_KEY,m);
+  stats=loadStats(activeStatsKey()); /* une seule variable échangée — tout passe déjà par stats */
+  state.subject="mix";               /* réinitialise la tuile sélectionnée */
+  /* Violet PC : data-mat sur <html> → variables d'accent. La bascule est
+     IMMÉDIATE, sans temps mort : le swap et la cascade démarrent au clic, la
+     cascade masquant elle-même le changement de contenu (tous les [data-rv]
+     repartent de l'opacité 0 dans la même frame). .theming couvre les éléments
+     persistants (h1 em, eyebrow) pendant la transition couleur. Sous
+     prefers-reduced-motion : idem, et la cascade est neutralisée par les
+     règles CSS globales. */
+  const r=document.documentElement;
+  if(m==="pc")r.setAttribute("data-mat","pc");else r.removeAttribute("data-mat");
+  r.classList.add("theming");
+  clearTimeout(setMatiere._t);
+  setMatiere._t=setTimeout(function(){r.classList.remove("theming");},520);
+  renderHome();
+  /* Rejoue la cascade d'arrivée (html.boot) sur le DOM fraîchement rendu —
+     mêmes délais que le premier chargement. Passe par rearmBoot() : un SEUL
+     cycle de vie classe+timer partagé, la bascule en cours annule la cascade
+     et le timer précédent → seule la DERNIÈRE animation survit, quelle que
+     soit la cadence des bascules. */
+  rearmBoot();
+}
+
+/* ---------- Accueil ---------- */
+/* Textes héro par matière : des DONNÉES lues par renderHome —
+   aucune duplication de HTML (marque et titre restés invariables). */
+const MAT_DATA={
+ maths:{eyebrow:"Première · spécialité maths",
+   lede:"Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
+   noteTop:"e<sup>iπ</sup> + 1 = 0",
+   noteBottom:"Δ = b² − 4ac — à connaître par cœur ✎"},
+ pc:{eyebrow:"Première · spécialité physique-chimie",
+   lede:"Deux minutes de calculs ciblés — Newton, énergie, champs, moles, stœchiométrie, ondes &amp; lumière, électricité — avec une correction détaillée (et des mini-visuels) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
+   noteTop:"F = m·a — 2ᵉ loi de Newton",
+   noteBottom:"Eₖ + Eₚ = Eₘ — l'énergie mécanique ✎"}
+};
+function renderHome(){
+  const M=MAT_DATA[state.matiere];
+  $("#heroEyebrow").textContent=M.eyebrow;
+  $("#heroLede").innerHTML=M.lede;
+  $("#noteTop").innerHTML=M.noteTop;
+  $("#noteBottom").innerHTML=M.noteBottom;
+  document.querySelectorAll(".seg-btn[data-mat]").forEach(x=>x.classList.toggle("on",x.dataset.mat===state.matiere));
+  $("#bestSprint").textContent="Record : "+(stats.bestSprint>0?stats.bestSprint+" pts":"—");
+  const acc=stats.ans?Math.round(100*stats.good/stats.ans):0;
+  $("#statGrid").innerHTML=
+    `<div class="stat"><div class="v">${stats.ans}</div><div class="k">questions répondues</div></div>`+
+    `<div class="stat"><div class="v">${stats.good}</div><div class="k">réponses correctes</div></div>`+
+    `<div class="stat"><div class="v">${acc}%</div><div class="k">précision globale</div></div>`+
+    `<div class="stat"><div class="v">${stats.bestStreak}</div><div class="k">meilleure série</div></div>`+
+    `<div class="stat"><div class="v">${stats.skips}</div><div class="k">questions passées</div></div>`+
+    `<div class="stat"><div class="v">${stats.bestSprint>0?stats.bestSprint:"—"}</div><div class="k">record sprint</div></div>`;
+  const grid=$("#subGrid");
+  grid.innerHTML=activeSubjects().map((s,i)=>{
+    const st=stats.bySub[s.id]||{ans:0,good:0};
+    let pc=st.ans?Math.round(100*st.good/st.ans)+"% · "+st.ans+" q":"pas encore pratiqué";
+    if(st.skips)pc+=" · "+st.skips+" passées";
+    return `<button type="button" class="subcard${state.subject===s.id?" on":""}" data-sub="${s.id}" style="--cd:${i*60}ms">
+      <span class="sym">${s.sym}</span><span class="nm">${s.name}</span>${s.tag?`<span class="subtag">${s.tag}</span>`:""}<span class="pc">${pc}</span></button>`;
+  }).join("");
+  grid.querySelectorAll(".subcard").forEach(b=>b.addEventListener("click",()=>{
+    state.subject=(state.subject===b.dataset.sub)?"mix":b.dataset.sub;
+    renderHome();
+  }));
+  /* ---- v2 : points faibles / par thème / à réviser (affichés si données) ---- */
+  const extra=$("#statsExtra");
+  if(extra){
+    let html="";
+    const weak=weakPoints();
+    if(weak.length){
+      html+=`<section class="panel" aria-labelledby="hWeak" data-rv style="--d:1.32s">`+
+        `<h2 id="hWeak">Tes points faibles</h2>`+
+        `<p class="muted" style="margin:0 0 6px">Les thèmes qui résistent le plus, sur tes 100 dernières réponses.</p>`+
+        weak.map(w=>{
+          const nm=THEME_BY_ID[w.s];const pct=Math.round(100*w.acc);
+          return `<div class="weakrow">`+
+            `<span class="weaknm">${nm?nm.name:w.s}<small>${w.l}</small></span>`+
+            `<span class="weakbar"><i style="width:${Math.max(6,Math.min(100,pct))}%"></i></span>`+
+            `<span class="weakpct" style="color:${pct<60?"var(--bad)":"var(--accent)"}">${pct}%</span>`+
+            `<button type="button" class="btn btn-primary small" data-weak="${w.s}:${w.l}">S'entraîner →</button>`+
+            `</div>`;
+        }).join("")+
+        `</section>`;
+    }
+    if(activeSubjects().some(s=>{const st=stats.bySub[s.id];return st&&st.ans>0;})){
+      html+=`<section class="panel" aria-labelledby="hBySub" data-rv style="--d:1.42s">`+
+        `<h2 id="hBySub">Par thème</h2>`+
+        `<div class="substathead"><span>thème</span><span>q</span><span>précision</span><span>série</span></div>`+
+        activeSubjects().map(s=>{
+          const st=stats.bySub[s.id]||{ans:0,good:0};
+          const pct=st.ans?Math.round(100*st.good/st.ans)+"%":"—";
+          const stk=stats.streakBySub[s.id]||0;
+          return `<div class="substatrow"><b>${s.name}</b><span>${st.ans||0}</span><span>${pct}</span><span>${stk>0?"🔥"+stk:"—"}</span></div>`;
+        }).join("")+
+        `</section>`;
+    }
+    if(stats.review.length>0){
+      html+=`<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.52s">`+
+        `<h2 id="hRev">À réviser</h2>`+
+        `<p class="muted" style="margin:0 0 16px"><b>${stats.review.length} question${stats.review.length>1?"s":""}</b> à refaire — celles que tu as ratées (et, en révision, celles que tu as passées).</p>`+
+        `<button type="button" class="btn btn-primary" id="btnReview">Reviser maintenant →</button>`+
+        `</section>`;
+    }
+    extra.innerHTML=html;
+    extra.querySelectorAll("[data-weak]").forEach(b=>b.addEventListener("click",()=>{
+      const p=b.dataset.weak.split(":");trainWeak(p[0],p[1]);
+    }));
+    const br=$("#btnReview");
+    if(br)br.addEventListener("click",startReview);
+  }
+}
+
+/* ---------- Navigation ---------- */
+function showPlay(on){
+  homeEl.hidden=on;playEl.hidden=!on;
+  $("#topStats").hidden=!on;
+  window.scrollTo({top:0});
+  const t=on?playEl:homeEl;
+  t.classList.remove("screen-in");void t.offsetWidth;t.classList.add("screen-in");
+}
+function goHome(){
+  clearInterval(state.timer);
+  state.mode=null;
+  $("#tTimerChip").hidden=true;$("#tTimerChip").classList.remove("urgent");
+  showPlay(false);
+  renderHome();
+}
+/* S'entraîner sur un point faible : verrouille thème + niveau puis lance le mode libre. */
+function trainWeak(s,l){
+  state.level=l;
+  state.subject=s;
+  document.querySelectorAll(".seg-btn[data-lvl]").forEach(x=>x.classList.toggle("on",x.dataset.lvl===l));
+  startFree();
+}
+
+/* ---------- Questions ---------- */
+function pickQ(){
+  if(state.mode==="review"){
+    const item=stats.review[0];
+    if(!item)return null;
+    return{q:item.q,sub:THEME_BY_ID[item.s],lvl:item.l};
+  }
+  const act=activeSubjects();const subs=state.subject==="mix"?act:act.filter(s=>s.id===state.subject);
+  const sub=act.find(s=>s.id===state.subject)||pick(act);
+  let gens=sub.gens;
+  if(state.mode==="free")gens=gens.filter(g=>g.lvl===state.level);
+  if(!gens.length)gens=sub.gens;
+  let q=pick(gens).make();
+  if(state.mode==="sprint"){let i=0;while(q.type==="choice"&&i++<100)q=pick(gens).make();}
+  return{q,sub,lvl:state.level};
+}
+function renderQ(){
+  state.answered=false;
+  let r;
+  if(state.mode==="review"){
+    r=pickQ();
+    if(!r){endReview();return;}
+  }else if(state.skipQueue.length){r=state.skipQueue.shift();r.q._passed=true;}
+  else r=pickQ();
+  state.q=r.q;state.sub=r.sub;state.curLvl=r.lvl||state.level;
+  const q=state.q;
+  $("#chipSub").textContent=r.sub.name;
+  $("#chipLvl").textContent=state.mode==="sprint"?"sprint 60 s":(state.curLvl||state.level);
+  $("#qCount").textContent=state.mode==="review"?stats.review.length+" restant(s)":"question "+(state.n+1);
+  const eyebrow=state.mode==="sprint"?"Sprint 60 s — sans temps mort":state.mode==="review"?"Révision — tes questions à reprendre":r.sub.name+" · niveau "+(state.curLvl||state.level);
+  /* Visuel de question : image NEUTRE (courbe/axes sans nombres, pas de
+     tangente, pas de racines) — elle aide à visualiser sans donner la réponse.
+     Certaines questions n'en ont pas (var, QCM colinéarité…) : c'est voulu. */
+  const vzq=q.viz?VIZdraw(q.viz,"q"):"";
+  let inner=`<div class="qcard"><p class="qeyebrow">${eyebrow}</p>`+
+    `<p class="prompt">${q.prompt}</p>`+
+    (vzq?`<div class="viz">${vzq}</div>`:"");
+  if(q.type==="choice"){
+    inner+=`<div class="opts">`+q.options.map((o,i)=>`<button type="button" class="opt" data-i="${i}">${o}</button>`).join("")+`</div>`+
+      `<div style="margin-top:10px"><button type="button" class="btn btn-ghost small" id="passBtn">Passer cette question →</button></div>`;
+  }else{
+    inner+=`<div class="ans"><input id="ansIn" type="text" inputmode="decimal" autocomplete="off" placeholder="${q.type==="frac"?"ex : 3/5 ou 0,6":"ta réponse"}">`+
+      `<button class="btn btn-primary" id="ansBtn">Valider</button>`+
+      `<button class="btn btn-ghost" id="passBtn">Passer →</button>`+
+      `<span class="hint">${q.type==="frac"?"Réponds en fraction (a/b) ou en décimal — les deux sont acceptés.":"Entier ou décimal, virgule acceptée."} · Échap = passer</span></div>`;
+  }
+  inner+=`<div id="fb"></div></div>`;
+  qbox.innerHTML=inner;
+  const inp=$("#ansIn");
+  if(inp){
+    inp.focus();
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter")submit();});
+  }
+  const btn=$("#ansBtn");
+  if(btn)btn.addEventListener("click",submit);
+  const pb=$("#passBtn");
+  if(pb)pb.addEventListener("click",passQ);
+  qbox.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>answerChoice(+b.dataset.i,b)));
+}
+
+/* ---------- Vérification ---------- */
+function checkAnswer(q,raw){
+  const s=String(raw).trim();
+  if(s===""||s===".")return null;
+  if(q.type==="frac"){
+    if(s.includes("/")){
+      const p=s.split("/").map(Number);
+      if(p.length!==2||!isFinite(p[0])||!isFinite(p[1])||p[1]===0)return null;
+      const a=fr(p[0],p[1]),b=fr(q.answer.n,q.answer.d);
+      return a.n===b.n&&a.d===b.d;
+    }
+    const v=Number(s.replace(",","."));
+    if(!isFinite(v))return null;
+    return Math.abs(v-q.answer.n/q.answer.d)<1e-9;
+  }
+  const v=Number(s.replace(",","."));
+  if(!isFinite(v))return null;
+  const tol=(q.tol!==undefined?q.tol:1e-4)*Math.max(1,Math.abs(q.answer));
+  return Math.abs(v-q.answer)<=tol;
+}
+function fmtAns(q){
+  if(q.type==="frac")return fs(q.answer.n,q.answer.d);
+  if(q.tol!==undefined)return (Math.round(q.answer*100)/100).toString().replace(".",",");
+  return String(q.answer);
+}
+
+/* ---------- Réponse ---------- */
+/* Visuel « réponse » de la correction (tangente, racines, triangle, flèches).
+   Un défaut du visuel ne doit JAMAIS empêcher l'affichage de la méthode. */
+const vizAns=q=>{try{const v=q&&q.viz?VIZdraw(q.viz,"c"):"";return v?`<div class="viz viz-ans">${v}</div>`:"";}catch(e){return"";}};
+function answerChoice(i,btn){
+  if(state.answered)return;
+  state.answered=true;
+  const q=state.q,ok=i===q.correct;
+  qbox.querySelectorAll(".opt").forEach(b=>b.disabled=true);
+  qbox.querySelectorAll(".opt")[q.correct].classList.add("right");
+  if(!ok)btn.classList.add("wrong");
+  afterAnswer(ok,q,ok?"":"La bonne réponse était : <b>"+q.options[q.correct]+"</b>. ");
+}
+function submit(){
+  if(state.answered)return;
+  const inp=$("#ansIn");
+  const res=checkAnswer(state.q,inp.value);
+  if(res===null){
+    inp.classList.remove("shake");void inp.offsetWidth;inp.classList.add("shake");inp.focus();
+    return;
+  }
+  state.answered=true;
+  afterAnswer(res,state.q,res?"":"La bonne réponse était : <b>"+fmtAns(state.q)+"</b>. ");
+}
+function afterAnswer(ok,q,extra){
+  let pts=0;
+  if(ok){state.streak++;pts=10+(state.streak>=3?5:0);state.score+=pts;state.good++;stats.good++;}
+  else state.streak=0;
+  state.maxStreak=Math.max(state.maxStreak,state.streak);
+  state.n++;stats.ans++;
+  const st=subStat(state.sub.id);st.ans++;if(ok)st.good++;
+  stats.bestStreak=Math.max(stats.bestStreak,state.streak);
+  /* v2 : série par thème, historique glissant, liste de révision */
+  const lvl=state.curLvl||state.level;
+  stats.streakBySub[state.sub.id]=Math.max(stats.streakBySub[state.sub.id]||0,state.streak);
+  pushHistory(state.sub.id,lvl,ok?1:0);
+  if(ok)reviewRemove(q);
+  else if(state.mode==="review")reviewRequeue(q);
+  else reviewAdd(state.sub.id,lvl,q);
+  save();
+  $("#tScore").textContent=state.score;
+  $("#tStreak").textContent=state.streak;
+  /* Feedback : le chip « score » pulse quand la réponse est juste. */
+  if(ok){const chip=$("#tScore").closest(".chip");if(chip){chip.classList.remove("pulse");void chip.offsetWidth;chip.classList.add("pulse");}}
+  $("#fb").innerHTML=`<p class="fb ${ok?"ok":"ko"}">${ok?"✓ Bien joué, +"+pts+" pts !":"✗ Raté. "+extra}</p>`+
+    `<div class="explain ${ok?"good":"bad"}"><h4>Méthode</h4>${vizAns(q)}${q.explain}</div>`;
+  hidePass();
+  if(state.mode==="free"||state.mode==="review")offerNext();
+  else if(state.mode==="sprint")setTimeout(()=>{if(state.mode==="sprint"&&state.timeLeft>0)renderQ();},ok?1100:1700);
+}
+
+/* ---------- Passer une question ---------- */
+function hidePass(){const pb=$("#passBtn");if(pb)pb.style.visibility="hidden";}
+function offerNext(){
+  const row=document.createElement("div");row.className="nextrow";
+  const b=document.createElement("button");b.type="button";b.className="btn btn-primary";
+  if(state.mode==="review"&&stats.review.length===0){
+    b.textContent="Terminer la révision ✓";
+    b.addEventListener("click",endReview);
+  }else{
+    b.textContent="Question suivante →";
+    b.addEventListener("click",renderQ);
+  }
+  row.appendChild(b);qbox.appendChild(row);b.focus();
+}
+function countSkip(){
+  state.skips++;stats.skips=(stats.skips||0)+1;
+  const st=subStat(state.sub.id);st.skips=(st.skips||0)+1;
+  save();
+  const c=$("#tPass");if(c)c.textContent=state.skips;
+}
+function passQ(){
+  if(state.answered)return;
+  if(state.mode==="review"){reviewSkip();return;}
+  if(state.mode!=="free"&&state.mode!=="sprint")return;
+  countSkip();
+  if(state.q._passed||state.skipQueue.length>=5){revealAfterSkip();return;}
+  const skipped={q:state.q,sub:state.sub};
+  if(state.mode==="free"||state.timeLeft>0)renderQ();
+  state.skipQueue.push(skipped);
+}
+function revealAfterSkip(){
+  state.answered=true;
+  const q=state.q;
+  $("#fb").innerHTML=`<p class="fb" style="color:var(--muted)">Pas de souci, on t'aide — voici la méthode pour cette question :</p>`+
+    `<div class="explain"><h4>Méthode</h4>${vizAns(q)}${q.explain}</div>`;
+  hidePass();
+  if(state.mode==="free")offerNext();
+  else if(state.mode==="sprint")setTimeout(()=>{if(state.mode==="sprint"&&state.timeLeft>0)renderQ();},3000);
+}
+/* Révision : « Passer » = on t'aide (méthode) + la question reste dans la liste (file en fin). */
+function reviewSkip(){
+  countSkip();
+  reviewRequeue(state.q);
+  state.answered=true;
+  $("#fb").innerHTML=`<p class="fb" style="color:var(--muted)">Pas de souci — on t'aide, et la question reste dans ta liste à réviser :</p>`+
+    `<div class="explain"><h4>Méthode</h4>${vizAns(state.q)}${state.q.explain}</div>`;
+  hidePass();
+  offerNext();
+}
+
+/* ---------- Sessions ---------- */
+function startFree(){
+  clearInterval(state.timer);
+  state.mode="free";state.score=0;state.streak=0;state.maxStreak=0;
+  state.good=0;state.bad=0;state.n=0;state.skipQueue=[];state.skips=0;
+  $("#tTimerChip").hidden=true;$("#tTimerChip").classList.remove("urgent");$("#tPassChip").hidden=false;$("#tPass").textContent="0";
+  showPlay(true);
+  $("#tScore").textContent="0";$("#tStreak").textContent="0";
+  renderQ();
+}
+function startSprint(){
+  clearInterval(state.timer);
+  state.mode="sprint";state.score=0;state.streak=0;state.maxStreak=0;
+  state.good=0;state.bad=0;state.n=0;state.timeLeft=60;state.skipQueue=[];state.skips=0;
+  $("#tTimerChip").hidden=false;$("#tTimerChip").classList.remove("urgent");
+  $("#tPassChip").hidden=false;$("#tTimer").textContent="60";$("#tPass").textContent="0";
+  $("#tScore").textContent="0";$("#tStreak").textContent="0";
+  showPlay(true);
+  renderQ();
+  state.timer=setInterval(()=>{
+    if(state.mode!=="sprint"){clearInterval(state.timer);return;}
+    state.timeLeft=Math.max(0,state.timeLeft-0.1);
+    $("#tTimer").textContent=Math.ceil(state.timeLeft);
+    $("#tTimerChip").classList.toggle("urgent",state.timeLeft<=10&&state.timeLeft>0);
+    if(state.timeLeft<=0)endSprint();
+  },100);
+}
+function startReview(){
+  clearInterval(state.timer);
+  state.mode="review";state.score=0;state.streak=0;state.maxStreak=0;
+  state.good=0;state.bad=0;state.n=0;state.curLvl=null;state.skipQueue=[];state.skips=0;
+  $("#tTimerChip").hidden=true;$("#tTimerChip").classList.remove("urgent");$("#tPassChip").hidden=false;$("#tPass").textContent="0";
+  $("#tScore").textContent="0";$("#tStreak").textContent="0";
+  showPlay(true);
+  renderQ();
+}
+function countUp(el,to,ms){
+  if(typeof requestAnimationFrame!=="function"||(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){el.textContent=to;return;}
+  const t0=performance.now();
+  requestAnimationFrame(function step(t){
+    const k=Math.min(1,(t-t0)/ms);
+    el.textContent=Math.round(to*(1-Math.pow(1-k,3)));
+    if(k<1)requestAnimationFrame(step);
+  });
+}
+function endSprint(){
+  clearInterval(state.timer);
+  state.mode="done";
+  const acc=state.n?Math.round(100*state.good/state.n):0;
+  let rec=false;
+  if(state.score>stats.bestSprint){stats.bestSprint=state.score;rec=true;save();}
+  $("#tTimerChip").hidden=true;$("#tTimerChip").classList.remove("urgent");
+  qbox.innerHTML=`<div class="qcard result">
+    <p class="qeyebrow">Sprint terminé</p>
+    <div class="big" id="bigScore">0</div>
+    <h3>points</h3>
+    <p class="muted">${state.good} / ${state.n||0} bonnes réponses · ${acc}% de précision · meilleure série ${state.maxStreak}${state.skips?` · ${state.skips} passées`:""}</p>
+    ${rec?'<span class="rec">🏆 Nouveau record !</span>':""}
+    <div class="nextrow" style="justify-content:center;margin-top:22px;gap:10px">
+      <button type="button" class="btn btn-primary" id="again">Rejouer</button>
+      <button type="button" class="btn btn-ghost" id="home2">Accueil</button>
+    </div></div>`;
+  countUp($("#bigScore"),state.score,750);
+  if(rec)confetti();
+  $("#again").addEventListener("click",startSprint);
+  $("#home2").addEventListener("click",goHome);
+}
+function endReview(){
+  clearInterval(state.timer);
+  state.mode="done";
+  const acc=state.n?Math.round(100*state.good/state.n):0;
+  $("#tTimerChip").hidden=true;$("#tTimerChip").classList.remove("urgent");
+  qbox.innerHTML=`<div class="qcard result">
+    <p class="qeyebrow">Révision terminée</p>
+    <div class="big" style="font-size:64px">🎯</div>
+    <h3>Tout est repris !</h3>
+    <p class="muted">${state.n} question(s) repassée(s) · ${state.good} juste(s) · ${acc}% de précision${state.skips?` · ${state.skips} passée(s)`:""}</p>
+    <div class="nextrow" style="justify-content:center;margin-top:22px;gap:10px">
+      <button type="button" class="btn btn-primary" id="home3">Retour à l'accueil</button>
+    </div></div>`;
+  if(typeof confetti==="function")confetti();
+  $("#home3").addEventListener("click",goHome);
+}
+
+/* ---------- Confettis (célébration) ----------
+   Pluie de papier en pur DOM : aucun fichier externe, reste hors-ligne.
+   S'auto-nettoie après ~3,6 s. Désactivé si prefers-reduced-motion. */
+function confetti(){
+  if(typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const host=document.createElement("div");
+  host.className="confetti-host";
+  host.setAttribute("aria-hidden","true");
+  const colors=["#2563EB","#60A5FA","#17A05E","#F59E0B","#EC4899","#8B5CF6","#22C55E"];
+  for(let i=0;i<90;i++){
+    const p=document.createElement("i");
+    const size=(6+Math.random()*8).toFixed(1);
+    p.style.left=(Math.random()*100).toFixed(2)+"%";
+    p.style.width=size+"px";
+    p.style.height=(size*1.5)+"px";
+    p.style.background=colors[i%colors.length];
+    p.style.animation="confFall "+(1.7+Math.random()*1.3).toFixed(2)+"s "+(Math.random()*0.5).toFixed(2)+"s cubic-bezier(.3,.6,.3,1) forwards";
+    p.style.setProperty("--drift",((Math.random()*2-1)*180).toFixed(0)+"px");
+    p.style.setProperty("--rot",Math.round(360+Math.random()*540)+"deg");
+    host.appendChild(p);
+  }
+  document.body.appendChild(host);
+  setTimeout(function(){host.remove();},3600);
+}
+
+/* ---------- Câblage ---------- */
+document.querySelectorAll(".seg-btn[data-lvl]").forEach(b=>b.addEventListener("click",()=>{
+  state.level=b.dataset.lvl;
+  document.querySelectorAll(".seg-btn[data-lvl]").forEach(x=>x.classList.toggle("on",x===b));
+}));
+/* Ciblée sur .seg-btn : [data-mat] seul inclurait <html> (data-mat="pc" en mode
+   physique-chimie) et tout clic de la page rebasculerait sur PC par délégation
+   d'événement (bulles de clic). */
+document.querySelectorAll(".seg-btn[data-mat]").forEach(b=>b.addEventListener("click",()=>setMatiere(b.dataset.mat)));
+$("#btnFree").addEventListener("click",startFree);
+$("#btnSprint").addEventListener("click",startSprint);
+$("#btnBack").addEventListener("click",goHome);
+window.addEventListener("keydown",e=>{
+  if(e.key!=="Escape")return;
+  if(playEl.hidden||state.answered)return;
+  if(state.mode!=="free"&&state.mode!=="sprint"&&state.mode!=="review")return;
+  e.preventDefault();passQ();
+});
+/* ---------- Thème : Auto / Clair / Sombre ----------
+   Le CSS [data-theme] est déjà prêt (variables claires/sombres).
+   Ici on branche les 3 boutons, on applique le choix, on le persiste
+   (clé cz_theme, JSON) et on anime la bascule (classe .theming). */
+const THEME_KEY="cz_theme";
+function applyTheme(t,animate){
+  const root=document.documentElement;
+  if(t==="light"||t==="dark")root.setAttribute("data-theme",t);
+  else root.removeAttribute("data-theme"); /* "auto" → on suit le système */
+  store.set(THEME_KEY,t);
+  document.querySelectorAll(".theme-btn").forEach(b=>b.classList.toggle("on",b.dataset.themePick===t));
+  if(animate){
+    root.classList.add("theming");
+    clearTimeout(applyTheme._t);
+    applyTheme._t=setTimeout(function(){root.classList.remove("theming");},520);
+  }
+}
+(function initTheme(){
+  let t="auto";
+  const v=store.get(THEME_KEY,null);
+  if(v==="light"||v==="dark"||v==="auto")t=v;
+  applyTheme(t,false);
+  document.querySelectorAll(".theme-btn").forEach(b=>b.addEventListener("click",()=>applyTheme(b.dataset.themePick,true)));
+})();
+/* ---------- Révélation en cascade (haut → bas) ----------
+   La chorégraphie est 100 % CSS (bloc html.boot [data-rv]) : elle se joue
+   d'une traite, du premier au dernier élément, et ne peut pas se bloquer.
+   Le JS la déclenche seulement ici (première visite) et via setMatiere() à
+   chaque bascule de matière (effet « switch » complet) — jamais au simple
+   retour sur l'accueil. Les deux appels passent par rearmBoot() : UN SEUL
+   cycle de vie classe+timer partagé. Retirer la classe puis la réajouter
+   (reflow forcé) redémarre l'animation CSS — un simple add() serait un no-op
+   si la classe est déjà là — et annule le timer de retrait précédent :
+   quelle que soit la cadence des déclenchements, seule la DERNIÈRE cascade
+   survit. */
+function rearmBoot(){
+  const r=document.documentElement;
+  clearTimeout(rearmBoot._t);    /* 1 seul timer de retrait vivant (le dernier) */
+  r.classList.remove("boot");    /* réinitialise l'état d'animation */
+  void r.offsetWidth;            /* reflow forcé : le ré-ajout suivant redémarre l'animation */
+  r.classList.add("boot");
+  rearmBoot._t=setTimeout(function(){r.classList.remove("boot");},2800);
+}
+renderHome();
+rearmBoot();
+</script>
