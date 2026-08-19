@@ -1529,6 +1529,391 @@ const G_ELECTRICITE=[
      explain:`I = U/R = ${U}/${R} = ${I} A → P = U·I = ${U} × ${I} = <b>${P} W</b>.`};
  }}
 ];
+/* ================= ALLEMAND A2 (contenu seul — branchement plus tard) =================
+   Toutes les questions sont des QCM : {prompt, type:"choice", options:[bonne, …3 distracteurs],
+   correct:0, explain}. Bonne réponse TOUJOURS en index 0, distracteurs non ambigus,
+   pools de 5 à 20 entrées par make(), tirage via pick()/shuf(). Pas de viz, pas de tol. */
+/* ---------- Allemand : vocabulaire ---------- */
+const G_VOCAB=[
+ {lvl:"facile",make(){
+   const pool=[
+     {de:"Apfel",fr:"la pomme",a:"der",f:"nourriture",tip:"masculin"},
+     {de:"Käse",fr:"le fromage",a:"der",f:"nourriture",tip:"masculin"},
+     {de:"Milch",fr:"le lait",a:"die",f:"nourriture",tip:"féminin"},
+     {de:"Wasser",fr:"l'eau",a:"das",f:"nourriture",tip:"neutre"},
+     {de:"Ei",fr:"l'œuf",a:"das",f:"nourriture",tip:"neutre"},
+     {de:"Zwiebel",fr:"l'oignon",a:"die",f:"nourriture",tip:"féminin"},
+     {de:"Reis",fr:"le riz",a:"der",f:"nourriture",tip:"masculin"},
+     {de:"Tomate",fr:"la tomate",a:"die",f:"nourriture",tip:"féminin"},
+     {de:"Mutter",fr:"la mère",a:"die",f:"famille",tip:"féminin"},
+     {de:"Vater",fr:"le père",a:"der",f:"famille",tip:"masculin"},
+     {de:"Bruder",fr:"le frère",a:"der",f:"famille",tip:"masculin"},
+     {de:"Schwester",fr:"la sœur",a:"die",f:"famille",tip:"féminin"},
+     {de:"Onkel",fr:"l'oncle",a:"der",f:"famille",tip:"masculin"},
+     {de:"Tante",fr:"la tante",a:"die",f:"famille",tip:"féminin"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.de);
+   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
+     type:"choice",options:[e.de,...ds],correct:0,
+     explain:`<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`};
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {de:"Tisch",fr:"la table",a:"der",f:"maison",tip:"masculin"},
+     {de:"Fenster",fr:"la fenêtre",a:"das",f:"maison",tip:"neutre"},
+     {de:"Tür",fr:"la porte",a:"die",f:"maison",tip:"féminin"},
+     {de:"Sofa",fr:"le canapé",a:"das",f:"maison",tip:"neutre"},
+     {de:"Lampe",fr:"la lampe",a:"die",f:"maison",tip:"féminin"},
+     {de:"Vase",fr:"le vase",a:"die",f:"maison",tip:"féminin"},
+     {de:"Regal",fr:"l'étagère",a:"das",f:"maison",tip:"neutre"},
+     {de:"Küche",fr:"la cuisine",a:"die",f:"maison",tip:"féminin"},
+     {de:"Schule",fr:"l'école",a:"die",f:"ville",tip:"féminin"},
+     {de:"Supermarkt",fr:"le supermarché",a:"der",f:"ville",tip:"masculin"},
+     {de:"Bahnhof",fr:"la gare",a:"der",f:"ville",tip:"masculin"},
+     {de:"Apotheke",fr:"la pharmacie",a:"die",f:"ville",tip:"féminin"},
+     {de:"Post",fr:"la poste",a:"die",f:"ville",tip:"féminin"},
+     {de:"Bank",fr:"la banque",a:"die",f:"ville",tip:"féminin"},
+     {de:"Museum",fr:"le musée",a:"das",f:"ville",tip:"neutre"},
+     {de:"Park",fr:"le parc",a:"der",f:"ville",tip:"masculin"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.fr);
+   return{prompt:`« ${e.de} », c'est ?`,
+     type:"choice",options:[e.fr,...ds],correct:0,
+     explain:`<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`};
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {de:"Hemd",fr:"la chemise",a:"das",f:"vêtements",tip:"neutre"},
+     {de:"Hose",fr:"le pantalon",a:"die",f:"vêtements",tip:"féminin"},
+     {de:"Jacke",fr:"la veste",a:"die",f:"vêtements",tip:"féminin"},
+     {de:"Schuhe",fr:"les chaussures",a:"die",f:"vêtements",tip:"féminin, pluriel : die Schuhe"},
+     {de:"Mütze",fr:"le bonnet",a:"die",f:"vêtements",tip:"féminin"},
+     {de:"Krawatte",fr:"la cravate",a:"die",f:"vêtements",tip:"féminin"},
+     {de:"Mantel",fr:"le manteau",a:"der",f:"vêtements",tip:"masculin"},
+     {de:"Handschuhe",fr:"les gants",a:"die",f:"vêtements",tip:"féminin, pluriel : die Handschuhe"},
+     {de:"Brötchen",fr:"le petit pain",a:"das",f:"voyage",tip:"neutre — les mots en « -chen » sont toujours neutres"},
+     {de:"Regenschirm",fr:"le parapluie",a:"der",f:"voyage",tip:"masculin"},
+     {de:"Sonnenbrille",fr:"les lunettes de soleil",a:"die",f:"voyage",tip:"féminin"},
+     {de:"Wäsche",fr:"le linge",a:"die",f:"voyage",tip:"féminin"},
+     {de:"Pass",fr:"le passeport",a:"der",f:"voyage",tip:"masculin"},
+     {de:"Visum",fr:"le visa",a:"das",f:"voyage",tip:"neutre"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.de);
+   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
+     type:"choice",options:[e.de,...ds],correct:0,
+     explain:`<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`};
+ }}
+];
+/* ---------- Allemand : conjugaison ---------- */
+const G_CONJ=[
+ {lvl:"facile",make(){
+   const pool=[
+     {s:"Ich ___ (sein) müde.",ok:"bin",ws:["bist","ist","sind"],tip:"présent de sein (irrégulier) : ich bin, du bist, er ist, wir sind, ihr seid"},
+     {s:"Du ___ (sein) müde.",ok:"bist",ws:["bin","ist","seid"],tip:"présent de sein (irrégulier) : ich bin, du bist, er ist, wir sind, ihr seid"},
+     {s:"Er ___ (sein) müde.",ok:"ist",ws:["bist","bin","sind"],tip:"présent de sein (irrégulier) : ich bin, du bist, er ist, wir sind, ihr seid"},
+     {s:"Wir ___ (sein) müde.",ok:"sind",ws:["ist","seid","bin"],tip:"présent de sein (irrégulier) : ich bin, du bist, er ist, wir sind, ihr seid"},
+     {s:"Ihr ___ (sein) müde.",ok:"seid",ws:["sind","bist","ist"],tip:"présent de sein (irrégulier) : ich bin, du bist, er ist, wir sind, ihr seid"},
+     {s:"Es ___ (sein) kalt.",ok:"ist",ws:["bin","bist","seid"],tip:"présent de sein (irrégulier) : ich bin, du bist, er ist, wir sind, ihr seid"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Complète : « ${e.s} »`,
+     type:"choice",options:[e.ok,...e.ws],correct:0,
+     explain:`<b>${e.ok}</b> — ${e.tip}.`};
+ }},
+ {lvl:"facile",make(){
+   const pool=[
+     {s:"Ich ___ (haben) zwei Schwestern.",ok:"habe",ws:["hast","hat","haben"],tip:"présent de haben : ich habe, du hast, er hat, wir haben, ihr habt"},
+     {s:"Du ___ (haben) zwei Schwestern.",ok:"hast",ws:["habe","hat","habt"],tip:"présent de haben : ich habe, du hast, er hat, wir haben, ihr habt"},
+     {s:"Er ___ (haben) zwei Schwestern.",ok:"hat",ws:["habe","hast","haben"],tip:"présent de haben : ich habe, du hast, er hat, wir haben, ihr habt"},
+     {s:"Wir ___ (haben) zwei Schwestern.",ok:"haben",ws:["hat","habt","habet"],tip:"présent de haben : ich habe, du hast, er hat, wir haben, ihr habt"},
+     {s:"Ihr ___ (haben) zwei Schwestern.",ok:"habt",ws:["haben","hast","habet"],tip:"présent de haben : ich habe, du hast, er hat, wir haben, ihr habt"},
+     {s:"Es ___ (haben) Zeit.",ok:"hat",ws:["habe","haben","habt"],tip:"présent de haben : ich habe, du hast, er hat, wir haben, ihr habt"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Complète : « ${e.s} »`,
+     type:"choice",options:[e.ok,...e.ws],correct:0,
+     explain:`<b>${e.ok}</b> — ${e.tip}.`};
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {s:"Ich ___ (gehen) zur Schule.",ok:"gehe",ws:["gehst","geht","gehet"],tip:"verbe en « -en » : on retire le « -en » et on ajoute -e (ich), -st (du), -t (er/ihr), -en (wir/sie)"},
+     {s:"Du ___ (kommen) aus Berlin.",ok:"kommst",ws:["komme","kommt","kommet"],tip:"verbe en « -en » : on retire le « -en » et on ajoute -e (ich), -st (du), -t (er/ihr), -en (wir/sie)"},
+     {s:"Er ___ (machen) viel Sport.",ok:"macht",ws:["mache","machst","mache ich"],tip:"verbe en « -en » : on retire le « -en » et on ajoute -e (ich), -st (du), -t (er/ihr), -en (wir/sie)"},
+     {s:"Wir ___ (sprechen) oft Deutsch.",ok:"sprechen",ws:["sprichst","spricht","sprechst"],tip:"verbe en « -en » : on retire le « -en » et on ajoute -e (ich), -st (du), -t (er/ihr), -en (wir/sie)"},
+     {s:"Ihr ___ (wohnen) in München.",ok:"wohnt",ws:["wohne","wohnst","wohnet"],tip:"verbe en « -en » : on retire le « -en » et on ajoute -e (ich), -st (du), -t (er/ihr), -en (wir/sie)"},
+     {s:"Du ___ (sprechen) gut Englisch.",ok:"sprichst",ws:["spreche","spricht","sprechen"],tip:"verbe en « -en » : on retire le « -en » et on ajoute -e (ich), -st (du), -t (er/ihr), -en (wir/sie)"},
+     {s:"Er ___ (arbeiten) im Büro.",ok:"arbeitet",ws:["arbeite","arbeitest","arbeitet er"],tip:"verbe en « -en » : on retire le « -en » et on ajoute -e (ich), -st (du), -t (er/ihr), -en (wir/sie)"},
+     {s:"Ich ___ (lesen) gerne Bücher.",ok:"lese",ws:["liest","lies","liest er"],tip:"verbe en « -en » : on retire le « -en » et on ajoute -e (ich), -st (du), -t (er/ihr), -en (wir/sie)"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Complète : « ${e.s} »`,
+     type:"choice",options:[e.ok,...e.ws],correct:0,
+     explain:`<b>${e.ok}</b> — ${e.tip}.`};
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {s:"Ich ___ (können) gut schwimmen.",ok:"kann",ws:["kannst","können","kann ich"],tip:"les modaux sont irréguliers : ich kann, du kannst, er kann, wir können"},
+     {s:"Du ___ (müssen) heute kommen.",ok:"musst",ws:["muss","müssen","musse"],tip:"les modaux sont irréguliers : ich muss, du musst, er muss, wir müssen"},
+     {s:"Wir ___ (wollen) morgen anfangen.",ok:"wollen",ws:["will","willst","wollt"],tip:"les modaux sont irréguliers : ich will, du willst, er will, wir wollen"},
+     {s:"Er ___ (mögen) gern Kaffee trinken.",ok:"mag",ws:["magst","mögen","mochte"],tip:"les modaux sont irréguliers : ich mag, du magst, er mag, wir mögen"},
+     {s:"Du ___ (können) bitte leiser sein.",ok:"kannst",ws:["kann","können","könnte"],tip:"les modaux sont irréguliers : ich kann, du kannst, er kann, wir können"},
+     {s:"Wir ___ (müssen) das nicht machen.",ok:"müssen",ws:["muss","musst","muss ich"],tip:"les modaux sont irréguliers : ich muss, du musst, er muss, wir müssen"},
+     {s:"Ihr ___ (mögen) gern Musik hören.",ok:"magt",ws:["mag","mögen","magst"],tip:"les modaux sont irréguliers : ich mag, du magst, er mag, wir mögen"},
+     {s:"Er ___ (können) ein Fahrrad fahren.",ok:"kann",ws:["können","kannst","kannst er"],tip:"les modaux sont irréguliers : ich kann, du kannst, er kann, wir können"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Complète : « ${e.s} »`,
+     type:"choice",options:[e.ok,...e.ws],correct:0,
+     explain:`<b>${e.ok}</b> — ${e.tip}.`};
+ }}
+];
+/* ---------- Allemand : articles ---------- */
+const G_ART=[
+ {lvl:"facile",make(){
+   const pool=[
+     {n:"Mann",fr:"l'homme",a:"der",tip:"masculin"},
+     {n:"Frau",fr:"la femme",a:"die",tip:"féminin"},
+     {n:"Kind",fr:"l'enfant",a:"das",tip:"neutre"},
+     {n:"Tag",fr:"le jour",a:"der",tip:"masculin"},
+     {n:"Woche",fr:"la semaine",a:"die",tip:"féminin"},
+     {n:"Tisch",fr:"la table",a:"der",tip:"masculin"},
+     {n:"Tür",fr:"la porte",a:"die",tip:"féminin"},
+     {n:"Wasser",fr:"l'eau",a:"das",tip:"neutre"},
+     {n:"Haus",fr:"la maison",a:"das",tip:"neutre"},
+     {n:"Sonne",fr:"le soleil",a:"die",tip:"féminin — les astres : die Sonne, der Mond"},
+     {n:"Mond",fr:"la lune",a:"der",tip:"masculin — les astres : der Mond, die Sonne"},
+     {n:"Zeit",fr:"le temps",a:"die",tip:"féminin"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(["der","die","das"]).filter(x=>x!==e.a);
+   return{prompt:`Quel article porte « ${e.n} » ?`,
+     type:"choice",options:[e.a,...ds],correct:0,
+     explain:`<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`};
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {n:"Zeitung",fr:"le journal",a:"die",tip:"les noms en « -ung » sont féminins"},
+     {n:"Lampe",fr:"la lampe",a:"die",tip:"féminin"},
+     {n:"Arbeit",fr:"le travail",a:"die",tip:"les noms en « -ung » sont féminins"},
+     {n:"Sprache",fr:"la langue",a:"die",tip:"féminin"},
+     {n:"Wohnung",fr:"le logement",a:"die",tip:"les noms en « -ung » sont féminins"},
+     {n:"Brille",fr:"les lunettes",a:"die",tip:"féminin"},
+     {n:"Tasche",fr:"le sac",a:"die",tip:"féminin"},
+     {n:"Schule",fr:"l'école",a:"die",tip:"féminin"},
+     {n:"Apotheke",fr:"la pharmacie",a:"die",tip:"féminin"},
+     {n:"Stadt",fr:"la ville",a:"die",tip:"féminin"},
+     {n:"Frage",fr:"la question",a:"die",tip:"féminin"},
+     {n:"Antwort",fr:"la réponse",a:"die",tip:"féminin"},
+     {n:"Freundin",fr:"l'amie",a:"die",tip:"« -in » marque le féminin (die Freundin, die Ärztin)"},
+     {n:"Ärztin",fr:"la médecin",a:"die",tip:"« -in » marque le féminin (die Ärztin)"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(["der","die","das"]).filter(x=>x!==e.a);
+   return{prompt:`Quel article porte « ${e.n} » ?`,
+     type:"choice",options:[e.a,...ds],correct:0,
+     explain:`<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`};
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {n:"Mädchen",fr:"la fille",a:"das",tip:"les mots en « -chen » sont toujours neutres : das Mädchen"},
+     {n:"Kaffee",fr:"le café",a:"der",tip:"piège : der Kaffee est masculin"},
+     {n:"Salz",fr:"le sel",a:"das",tip:"piège : das Salz est neutre"},
+     {n:"Tee",fr:"le thé",a:"der",tip:"piège : der Tee est masculin"},
+     {n:"Butter",fr:"le beurre",a:"die",tip:"féminin"},
+     {n:"Brot",fr:"le pain",a:"das",tip:"neutre"},
+     {n:"Kuchen",fr:"le gâteau",a:"der",tip:"masculin"},
+     {n:"Apfel",fr:"la pomme",a:"der",tip:"masculin"},
+     {n:"Obst",fr:"le fruit",a:"das",tip:"neutre"},
+     {n:"Geld",fr:"l'argent",a:"das",tip:"neutre"},
+     {n:"Hund",fr:"le chien",a:"der",tip:"masculin"},
+     {n:"Schiff",fr:"le bateau",a:"das",tip:"piège : das Schiff est neutre"},
+     {n:"Auge",fr:"l'œil",a:"das",tip:"neutre"},
+     {n:"Herz",fr:"le cœur",a:"das",tip:"neutre"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(["der","die","das"]).filter(x=>x!==e.a);
+   return{prompt:`Quel article porte « ${e.n} » ?`,
+     type:"choice",options:[e.a,...ds],correct:0,
+     explain:`<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`};
+ }}
+];
+/* ---------- Allemand : nombres, dates, heures ---------- */
+const G_DATE=[
+ {lvl:"facile",make(){
+   const pool=[
+     {de:"um halb drei",fr:"2h30",f:"heure",tip:"« halb drei » = la demie avant 3 h, donc 2 h 30"},
+     {de:"um halb zehn",fr:"9h30",f:"heure",tip:"« halb zehn » = 9 h 30"},
+     {de:"um halb acht",fr:"7h30",f:"heure",tip:"« halb acht » = 7 h 30"},
+     {de:"auf zwei Uhr",fr:"2h00",f:"heure",tip:"« auf + heure » pour un rendez-vous : auf zwei Uhr (à 2 h 00)"},
+     {de:"um null Uhr",fr:"minuit (0h00)",f:"heure",tip:"minuit = null Uhr"},
+     {de:"um zwölf Uhr",fr:"12h00 (midi)",f:"heure",tip:"12 h = zwölf Uhr"},
+     {de:"Montag",fr:"lundi",f:"jour",tip:"dans une phrase : am Montag (le lundi)"},
+     {de:"Freitag",fr:"vendredi",f:"jour",tip:"dans une phrase : am Freitag (le vendredi)"},
+     {de:"Sonntag",fr:"dimanche",f:"jour",tip:"dans une phrase : am Sonntag (le dimanche)"},
+     {de:"Mittwoch",fr:"mercredi",f:"jour",tip:"dans une phrase : am Mittwoch (le mercredi)"}
+   ];
+   const e=pick(pool);
+   if(e.f==="heure"){
+     const ds=shuf(pool.filter(x=>x.f==="heure"&&x!==e)).slice(0,3).map(x=>x.fr);
+     return{prompt:`« ${e.de} » = quelle heure ?`,
+       type:"choice",options:[e.fr,...ds],correct:0,
+       explain:`<b>${e.de}</b> = ${e.fr} — ${e.tip}.`};
+   }
+   const ds=shuf(pool.filter(x=>x.f==="jour"&&x!==e)).slice(0,3).map(x=>x.de);
+   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
+     type:"choice",options:[e.de,...ds],correct:0,
+     explain:`<b>${e.de}</b> — ${e.tip}.`};
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {de:"Oktober",fr:"octobre",f:"mois",tip:"les mois sont masculins : der Oktober"},
+     {de:"Januar",fr:"janvier",f:"mois",tip:"les mois sont masculins : der Januar"},
+     {de:"März",fr:"mars",f:"mois",tip:"les mois sont masculins : der März"},
+     {de:"Mai",fr:"mai",f:"mois",tip:"les mois sont masculins : der Mai"},
+     {de:"Dezember",fr:"décembre",f:"mois",tip:"les mois sont masculins : der Dezember"},
+     {de:"15. März",fr:"15 mars",f:"date",tip:"la date : der 15. März (le 15 mars)"},
+     {de:"1. Januar",fr:"1er janvier",f:"date",tip:"le 1er = der erste (le premier) : am 1. Januar"},
+     {de:"25. Dezember",fr:"25 décembre",f:"date",tip:"la date : der 25. Dezember (Noël)"},
+     {de:"1. Mai",fr:"1er mai",f:"date",tip:"la fête du Travail : am 1. Mai"},
+     {de:"30. Juni",fr:"30 juin",f:"date",tip:"la date : der 30. Juni (le 30 juin)"}
+   ];
+   const e=pick(pool);
+   if(e.f==="mois"){
+     const ds=shuf(pool.filter(x=>x.f==="mois"&&x!==e)).slice(0,3).map(x=>x.de);
+     return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
+       type:"choice",options:[e.de,...ds],correct:0,
+       explain:`<b>der ${e.de}</b> — ${e.tip}.`};
+   }
+   const ds=shuf(pool.filter(x=>x.f==="date"&&x!==e)).slice(0,3).map(x=>x.de);
+   return{prompt:`« der ${e.de} » = quelle date ?`,
+     type:"choice",options:[e.fr,...ds],correct:0,
+     explain:`<b>der ${e.de}</b> = ${e.fr} — ${e.tip}.`};
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {de:"viertel nach eins",fr:"1h15",f:"heure",tip:"« viertel nach eins » = 1 h 15 (le quart après une heure)"},
+     {de:"viertel vor fünf",fr:"4h45",f:"heure",tip:"« viertel vor fünf » = 4 h 45 (le quart avant cinq heures)"},
+     {de:"drei Uhr zwanzig",fr:"3h20",f:"heure",tip:"minutes exactes : drei Uhr zwanzig (3 h 20)"},
+     {de:"halb zwei",fr:"1h30",f:"heure",tip:"« halb zwei » = 1 h 30"},
+     {de:"um halb zwölf",fr:"11h30",f:"heure",tip:"« halb zwölf » = 11 h 30"},
+     {de:"um null Uhr",fr:"minuit (0h00)",f:"heure",tip:"minuit = um null Uhr"},
+     {de:"Montag, den 3. April",fr:"lundi 3 avril",f:"date",tip:"jour + date : am Montag, den 3. April"},
+     {de:"1. Mai",fr:"1er mai",f:"date",tip:"am 1. Mai (le 1er mai)"},
+     {de:"7. September",fr:"7 septembre",f:"date",tip:"der 7. September (le 7 septembre)"},
+     {de:"30. November",fr:"30 novembre",f:"date",tip:"der 30. November (le 30 novembre)"}
+   ];
+   const e=pick(pool);
+   if(e.f==="heure"){
+     const ds=shuf(pool.filter(x=>x.f==="heure"&&x!==e)).slice(0,3).map(x=>x.fr);
+     return{prompt:`« ${e.de} » = quelle heure ?`,
+       type:"choice",options:[e.fr,...ds],correct:0,
+       explain:`<b>${e.de}</b> = ${e.fr} — ${e.tip}.`};
+   }
+   const ds=shuf(pool.filter(x=>x.f==="date"&&x!==e)).slice(0,3).map(x=>x.de);
+   return{prompt:`« ${e.de} » = quelle date ?`,
+     type:"choice",options:[e.fr,...ds],correct:0,
+     explain:`<b>${e.de}</b> = ${e.fr} — ${e.tip}.`};
+ }}
+];
+/* ---------- Allemand : phrases utiles ---------- */
+const G_PHRASEN=[
+ {lvl:"facile",make(){
+   const pool=[
+     {fr:"bonjour (le matin)",de:"Guten Morgen",ws:["Guten Tag","Gute Nacht","Tschüss"],tip:"« Guten Morgen » : la matinée"},
+     {fr:"bonjour (formel, la journée)",de:"Guten Tag",ws:["Guten Morgen","Gute Nacht","Tschüss"],tip:"« Guten Tag » : formel, toute la journée"},
+     {fr:"au revoir (formel)",de:"Auf Wiedersehen",ws:["Tschüss","Bis bald","Gute Nacht"],tip:"formel ; « Tschüss » = entre amis"},
+     {fr:"au revoir (informel)",de:"Tschüss",ws:["Auf Wiedersehen","Gute Nacht","Guten Tag"],tip:"informel, entre amis"},
+     {fr:"bonne nuit",de:"Gute Nacht",ws:["Guten Morgen","Guten Tag","Tschüss"],tip:"le soir, en se couchant"},
+     {fr:"merci",de:"Danke",ws:["Bitte","Entschuldigung","Ja"],tip:"on répond « bitte » (je vous en prie)"},
+     {fr:"s'il vous plaît / je vous en prie",de:"Bitte",ws:["Danke","Ja","Entschuldigung"],tip:"« bitte » = s'il vous plaît, et la réponse à « danke »"},
+     {fr:"excusez-moi",de:"Entschuldigung",ws:["Danke","Bitte","Tschüss"],tip:"pour s'excuser ou attirer l'attention"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
+     type:"choice",options:[e.de,...e.ws],correct:0,
+     explain:`<b>${e.de}</b> — ${e.tip}.`};
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {fr:"Je voudrais un café.",de:"Ich hätte gern einen Kaffee.",ws:["Ich hätte gern ein Kaffee.","Ich haben gern einen Kaffee.","Ich mag gern einen Kaffee."],tip:"politesse : « ich hätte gern … » ; der Kaffee est masculin (accusatif : einen)"},
+     {fr:"Combien ça coûte ?",de:"Wie viel kostet das ?",ws:["Wie kostet das ?","Wie viel das kostet ?","Was kostet viel ?"],tip:"« wie viel » = combien (chose) ; question : verbe en 2e position"},
+     {fr:"Où est la gare ?",de:"Wo ist der Bahnhof ?",ws:["Wo ist die Bahnhof ?","Wohin ist der Bahnhof ?","Wo der Bahnhof ist ?"],tip:"der Bahnhof (masculin) ; question : wo + verbe + sujet"},
+     {fr:"Pouvez-vous m'aider ?",de:"Können Sie mir helfen ?",ws:["Kann Sie mir helfen ?","Können ich Ihnen helfen ?","Können Sie mir hilft ?"],tip:"modal + verbe à l'infinitif en fin de phrase ; « mir » (datif)"},
+     {fr:"L'addition, s'il vous plaît.",de:"Die Rechnung, bitte.",ws:["Der Rechnung, bitte.","Die Rechnung, danke.","Die Zahlung, bitte."],tip:"die Rechnung (féminin) = l'addition au restaurant"},
+     {fr:"Je parle un peu français.",de:"Ich spreche ein bisschen Französisch.",ws:["Ich spreche ein bisschen Französischer.","Ich sprechen ein bisschen Französisch.","Ich spreche wenig Deutsch."],tip:"« ein bisschen » = un peu ; une langue se dit sans article"},
+     {fr:"Qu'est-ce que c'est ?",de:"Was ist das ?",ws:["Wie ist das ?","Was ist das wie ?","Das ist was ?"],tip:"question : was + ist + démonstratif"},
+     {fr:"Quand part le train ?",de:"Wann fährt der Zug ?",ws:["Wann der Zug fährt ?","Wo fährt der Zug ?","Wann fährt die Zug ?"],tip:"der Zug (masculin) ; question : wann + verbe + sujet"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
+     type:"choice",options:[e.de,...e.ws],correct:0,
+     explain:`<b>${e.de}</b> — ${e.tip}.`};
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {fr:"Je trouve que c'est bien.",de:"Ich finde, dass das gut ist.",ws:["Ich finde, das gut ist.","Ich finde, dass gut das ist.","Ich finde gut das."],tip:"subordonnée en « dass » : le verbe est relégué en fin de clause"},
+     {fr:"Je suis d'avis que c'est important.",de:"Ich bin der Meinung, dass das wichtig ist.",ws:["Ich bin die Meinung, dass das wichtig ist.","Ich bin der Meinung, dass wichtig das ist.","Ich habe der Meinung, dass das wichtig ist."],tip:"« ich bin der Meinung, dass … » (génitif) — pas « haben »"},
+     {fr:"Je vais bien.",de:"Mir geht es gut.",ws:["Ich bin gut.","Ich gehe gut.","Mir ist gut."],tip:"son état : « mir geht es gut » — « ich bin gut » = je suis bon (qualité)"},
+     {fr:"Je suis désolé.",de:"Es tut mir leid.",ws:["Ich bin traurig.","Es tut mir gut.","Mir tut es leid."],tip:"« es tut mir leid » = j'excuse (littéralement : cela me fait de la peine)"},
+     {fr:"J'aime la musique.",de:"Mir gefällt die Musik.",ws:["Ich gefällt die Musik.","Mir gefallen die Musik.","Mir gefällt der Musik."],tip:"« mir gefällt » (datif) : littéralement « cela me plaît »"},
+     {fr:"Aucun problème.",de:"Kein Problem.",ws:["Keine Problem.","Nicht Problem.","Das Problem nicht."],tip:"das Problem (neutre) : kein Problem"},
+     {fr:"J'ai froid.",de:"Mir ist kalt.",ws:["Ich bin kalt.","Ich habe kalt.","Mir ist frieren."],tip:"sensation : « mir ist kalt » — « ich bin kalt » = objet froid"},
+     {fr:"Ça m'est égal.",de:"Das ist mir egal.",ws:["Ich bin egal.","Das ist mir wichtig.","Mir ist das egal wichtig."],tip:"« mir » au datif avec « egal » : das ist mir egal"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
+     type:"choice",options:[e.de,...e.ws],correct:0,
+     explain:`<b>${e.de}</b> — ${e.tip}.`};
+ }}
+];
+/* ---------- Allemand : mini-traductions ---------- */
+const G_TRAD=[
+ {lvl:"facile",make(){
+   const pool=[
+     {fr:"Je m'appelle Marie.",de:"Ich heiße Marie.",ws:["Ich bin heißt Marie.","Ich heiße Maria.","Heiße ich Marie ?"],tip:"« heißen » = s'appeler"},
+     {fr:"J'ai deux sœurs.",de:"Ich habe zwei Schwestern.",ws:["Ich habe zwei Schwester.","Ich hat zwei Schwestern.","Ich habe zwei Schwestern sind."],tip:"pluriel de die Schwester : die Schwestern"},
+     {fr:"Il habite à Berlin.",de:"Er wohnt in Berlin.",ws:["Er wohnt in Berliner.","Er wohnen in Berlin.","Er ist wohnt in Berlin."],tip:"« wohnen in + ville » sans article"},
+     {fr:"Elle parle anglais.",de:"Sie spricht Englisch.",ws:["Sie sprechen Englisch.","Sie spricht der Englisch.","Sie sprechen das Englisch."],tip:"« eine Sprache sprechen » — sans article"},
+     {fr:"Nous avons du temps.",de:"Wir haben Zeit.",ws:["Wir hat Zeit.","Wir haben der Zeit.","Wir haben viele Zeiten."],tip:"1re personne du pluriel : wir haben"},
+     {fr:"Il fait beau.",de:"Das Wetter ist schön.",ws:["Das Wetter ist schöne.","Das Wetter macht gut.","Es macht schön."],tip:"la météo : « das Wetter ist … »"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Traduis : « ${e.fr} »`,
+     type:"choice",options:[e.de,...e.ws],correct:0,
+     explain:`<b>${e.de}</b> — ${e.tip}.`};
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {fr:"J'apprends l'allemand et l'espagnol.",de:"Ich lerne Deutsch und Spanisch.",ws:["Ich lerne das Deutsch und das Spanisch.","Ich lerne Deutsch und der Spanisch.","Ich lernte Deutsch und Spanisch."],tip:"les langues se disent sans article : Deutsch, Spanisch"},
+     {fr:"Ma mère cuisine bien.",de:"Meine Mutter kocht gut.",ws:["Mein Mutter kocht gut.","Meine Mutter kocht gute.","Mutter meine kocht gut."],tip:"« meine » (féminin) ; adverbe « gut » invariable"},
+     {fr:"Nous partons samedi pour Hambourg.",de:"Wir fahren am Samstag nach Hamburg.",ws:["Wir fahren um Samstag nach Hamburg.","Wir fahren den Samstag nach Hamburg.","Wir fahren am Samstag in der Hamburg."],tip:"destination (ville) : nach + ville ; jour : am Samstag"},
+     {fr:"Il sait nager.",de:"Er kann schwimmen.",ws:["Er weiß schwimmen.","Er kann zu schwimmer.","Er können schwimmen."],tip:"savoir faire = « können » — « wissen » = savoir (un fait)"},
+     {fr:"J'achète du pain et du fromage.",de:"Ich kaufe Brot und Käse.",ws:["Ich kaufe den Brot und den Käse.","Ich kaufen Brot und Käse.","Ich kaufe Brot und der Käse."],tip:"sans article : Brot und Käse (comme « du » en français)"},
+     {fr:"Mon frère va à l'école en bus.",de:"Mein Bruder fährt mit dem Bus zur Schule.",ws:["Mein Bruder fährt mit der Bus zur Schule.","Mein Bruder fährt dem Bus in die Schule.","Mein Bruder fährt auf dem Bus zur Schule."],tip:"moyen de transport : mit + datif (mit dem Bus)"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Traduis : « ${e.fr} »`,
+     type:"choice",options:[e.de,...e.ws],correct:0,
+     explain:`<b>${e.de}</b> — ${e.tip}.`};
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {fr:"D'abord je fais mes devoirs, puis je joue au basket.",de:"Zuerst mache ich die Hausaufgaben, dann spiele ich Basketball.",ws:["Zuerst ich mache die Hausaufgaben, dann spiele ich Basketball.","Zuerst mache ich der Hausaufgaben, dann spiele ich Basketball.","Zuerst machen ich die Hausaufgaben, dann spiele ich Basketball."],tip:"« zuerst … dann … » : deux clauses juxtaposées, sans « dass »"},
+     {fr:"Je ne sais pas où il habite.",de:"Ich weiß nicht, wo er wohnt.",ws:["Ich weiß nicht, wo wohnt er.","Ich weiß nicht, wo er wohnen.","Ich weis nicht, wo er wohnt."],tip:"subordonnée en « wo » : le verbe va en fin (wo er wohnt)"},
+     {fr:"Quand as-tu du temps ?",de:"Wann hast du Zeit ?",ws:["Du hast wann Zeit ?","Wann du hast Zeit ?","Wann hast du der Zeit ?"],tip:"question : mot interrogatif + verbe + sujet (Wann hast du … ?)"},
+     {fr:"Je suis fatigué parce que je travaille beaucoup.",de:"Ich bin müde, weil ich viel arbeite.",ws:["Ich bin müde, weil arbeite ich viel.","Ich bin müde, weil ich arbeite viel.","Ich bin müde, weil ich viel arbeiten."],tip:"subordonnée en « weil » : le verbe est relégué en fin de clause"},
+     {fr:"On peut dîner ensemble ce soir ?",de:"Können wir heute Abend zusammen essen ?",ws:["Können wir heute Abend zusammen zu essen ?","Können wir heute Abend zu essen ?","Könne wir heute Abend zusammen essen ?"],tip:"modal + infinitif, sans « zu »"},
+     {fr:"Je voudrais réserver une chambre.",de:"Ich möchte ein Zimmer reservieren.",ws:["Ich möchte den Zimmer reservieren.","Ich möchte einen Zimmer reservieren.","Ich möchte ein Zimmer zu reservieren."],tip:"das Zimmer (neutre) ; infinitif sans « zu »"}
+   ];
+   const e=pick(pool);
+   return{prompt:`Traduis : « ${e.fr} »`,
+     type:"choice",options:[e.de,...e.ws],correct:0,
+     explain:`<b>${e.de}</b> — ${e.tip}.`};
+ }}
+];
 /* ---------- REGISTRE PC + helpers matière ---------- */
 const SUBJECTS_PC=[
  {id:"cosmo",name:"Grandeurs cosmiques",sym:"10ⁿ",gens:G_COSMO},
@@ -1540,6 +1925,15 @@ const SUBJECTS_PC=[
  {id:"cinet",name:"Cinétique",sym:"v",tag:"Terminale · hors bac 1re",gens:G_CINET},
  {id:"ondes",name:"Ondes & lumière",sym:"λ",gens:G_ONDES},
  {id:"elec",name:"Électricité",sym:"P",gens:G_ELECTRICITE},
+];
+/* ---------- REGISTRE DE (allemand A2) — contenu seul, non branché (à câbler ensuite) ---------- */
+const SUBJECTS_DE=[
+ {id:"vocab",name:"Vocabulaire",sym:"W?",gens:G_VOCAB},
+ {id:"conj",name:"Conjugaison",sym:"ich",gens:G_CONJ},
+ {id:"art",name:"Articles",sym:"der",gens:G_ART},
+ {id:"date",name:"Nombres, dates, heures",sym:"uhr",gens:G_DATE},
+ {id:"phrasen",name:"Phrases utiles",sym:"Hallo",gens:G_PHRASEN},
+ {id:"trad",name:"Mini-traductions",sym:"→DE",gens:G_TRAD},
 ];
 const activeSubjects=()=>state.matiere==="pc"?SUBJECTS_PC:SUBJECTS_MATH;
 const THEME_BY_ID={};
