@@ -508,6 +508,7 @@ const F=(n,d)=>{const f=fr(n,d);if(f.d===1)return f.n<0?"−"+(-f.n):String(f.n)
 const fs=(n,d)=>F(n,d);   /* affichage d'une réponse fraction (fraction empilée) */
 const fa=(n,d)=>fr(n,d);   /* réponse "fraction" : {n,d} simplifiée */
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Ri(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const qcm=(p,bonne,ds,explain)=>{const o=shuf([bonne,...ds]);return{prompt:p,type:"choice",options:o,correct:o.indexOf(bonne),explain};}; /* QCM : options mélangées, correct = index réel de la bonne option */
 /* ================= GENERATORS ================= */
 /* ---------- Dérivées ---------- */
 const G_DERIV=[
@@ -1558,8 +1559,9 @@ const G_ELECTRICITE=[
  }}
 ];
 /* ================= ALLEMAND A2 (contenu seul — branchement plus tard) =================
-   Toutes les questions sont des QCM : {prompt, type:"choice", options:[bonne, …3 distracteurs],
-   correct:0, explain}. Bonne réponse TOUJOURS en index 0, distracteurs non ambigus,
+   Toutes les questions sont des QCM via qcm(prompt, bonne, distracteurs, explain) →
+   {prompt, type:"choice", options, correct, explain} — options mélangées, correct = index
+   réel de la bonne option (jamais en 1ʳᵉ position garantie). Distracteurs non ambigus,
    pools de 5 à 20 entrées par make(), tirage via pick()/shuf(). Pas de viz, pas de tol. */
 /* ---------- Allemand : vocabulaire ---------- */
 const G_VOCAB=[
@@ -1582,9 +1584,8 @@ const G_VOCAB=[
    ];
    const e=pick(pool);
    const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.de);
-   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
-     type:"choice",options:[e.de,...ds],correct:0,
-     explain:`<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`};
+   return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,ds,
+     `<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`);
  }},
  {lvl:"moyen",make(){
    const pool=[
@@ -1607,9 +1608,8 @@ const G_VOCAB=[
    ];
    const e=pick(pool);
    const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.fr);
-   return{prompt:`« ${e.de} », c'est ?`,
-     type:"choice",options:[e.fr,...ds],correct:0,
-     explain:`<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`};
+   return qcm(`« ${e.de} », c'est ?`,e.fr,ds,
+     `<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`);
  }},
  {lvl:"difficile",make(){
    const pool=[
@@ -1630,9 +1630,8 @@ const G_VOCAB=[
    ];
    const e=pick(pool);
    const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.de);
-   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
-     type:"choice",options:[e.de,...ds],correct:0,
-     explain:`<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`};
+   return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,ds,
+     `<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`);
  }}
 ];
 /* ---------- Allemand : conjugaison ---------- */
@@ -1647,9 +1646,8 @@ const G_CONJ=[
      {s:"Es ___ (sein) kalt.",ok:"ist",ws:["bin","bist","seid"],tip:"présent de sein (irrégulier) : ich bin, du bist, er ist, wir sind, ihr seid"}
    ];
    const e=pick(pool);
-   return{prompt:`Complète : « ${e.s} »`,
-     type:"choice",options:[e.ok,...e.ws],correct:0,
-     explain:`<b>${e.ok}</b> — ${e.tip}.`};
+   return qcm(`Complète : « ${e.s} »`,e.ok,e.ws,
+     `<b>${e.ok}</b> — ${e.tip}.`);
  }},
  {lvl:"facile",make(){
    const pool=[
@@ -1661,9 +1659,8 @@ const G_CONJ=[
      {s:"Es ___ (haben) Zeit.",ok:"hat",ws:["habe","haben","habt"],tip:"présent de haben : ich habe, du hast, er hat, wir haben, ihr habt"}
    ];
    const e=pick(pool);
-   return{prompt:`Complète : « ${e.s} »`,
-     type:"choice",options:[e.ok,...e.ws],correct:0,
-     explain:`<b>${e.ok}</b> — ${e.tip}.`};
+   return qcm(`Complète : « ${e.s} »`,e.ok,e.ws,
+     `<b>${e.ok}</b> — ${e.tip}.`);
  }},
  {lvl:"moyen",make(){
    const pool=[
@@ -1677,9 +1674,8 @@ const G_CONJ=[
      {s:"Ich ___ (lesen) gerne Bücher.",ok:"lese",ws:["liest","lies","liest er"],tip:"verbe en « -en » : on retire le « -en » et on ajoute -e (ich), -st (du), -t (er/ihr), -en (wir/sie)"}
    ];
    const e=pick(pool);
-   return{prompt:`Complète : « ${e.s} »`,
-     type:"choice",options:[e.ok,...e.ws],correct:0,
-     explain:`<b>${e.ok}</b> — ${e.tip}.`};
+   return qcm(`Complète : « ${e.s} »`,e.ok,e.ws,
+     `<b>${e.ok}</b> — ${e.tip}.`);
  }},
  {lvl:"difficile",make(){
    const pool=[
@@ -1693,9 +1689,8 @@ const G_CONJ=[
      {s:"Er ___ (können) ein Fahrrad fahren.",ok:"kann",ws:["können","kannst","kannst er"],tip:"les modaux sont irréguliers : ich kann, du kannst, er kann, wir können"}
    ];
    const e=pick(pool);
-   return{prompt:`Complète : « ${e.s} »`,
-     type:"choice",options:[e.ok,...e.ws],correct:0,
-     explain:`<b>${e.ok}</b> — ${e.tip}.`};
+   return qcm(`Complète : « ${e.s} »`,e.ok,e.ws,
+     `<b>${e.ok}</b> — ${e.tip}.`);
  }}
 ];
 /* ---------- Allemand : articles ---------- */
@@ -1717,9 +1712,8 @@ const G_ART=[
    ];
    const e=pick(pool);
    const ds=shuf(["der","die","das"]).filter(x=>x!==e.a);
-   return{prompt:`Quel article porte « ${e.n} » ?`,
-     type:"choice",options:[e.a,...ds],correct:0,
-     explain:`<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`};
+   return qcm(`Quel article porte « ${e.n} » ?`,e.a,ds,
+     `<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`);
  }},
  {lvl:"moyen",make(){
    const pool=[
@@ -1740,9 +1734,8 @@ const G_ART=[
    ];
    const e=pick(pool);
    const ds=shuf(["der","die","das"]).filter(x=>x!==e.a);
-   return{prompt:`Quel article porte « ${e.n} » ?`,
-     type:"choice",options:[e.a,...ds],correct:0,
-     explain:`<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`};
+   return qcm(`Quel article porte « ${e.n} » ?`,e.a,ds,
+     `<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`);
  }},
  {lvl:"difficile",make(){
    const pool=[
@@ -1763,9 +1756,8 @@ const G_ART=[
    ];
    const e=pick(pool);
    const ds=shuf(["der","die","das"]).filter(x=>x!==e.a);
-   return{prompt:`Quel article porte « ${e.n} » ?`,
-     type:"choice",options:[e.a,...ds],correct:0,
-     explain:`<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`};
+   return qcm(`Quel article porte « ${e.n} » ?`,e.a,ds,
+     `<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`);
  }}
 ];
 /* ---------- Allemand : nombres, dates, heures ---------- */
@@ -1786,14 +1778,12 @@ const G_DATE=[
    const e=pick(pool);
    if(e.f==="heure"){
      const ds=shuf(pool.filter(x=>x.f==="heure"&&x!==e)).slice(0,3).map(x=>x.fr);
-     return{prompt:`« ${e.de} » = quelle heure ?`,
-       type:"choice",options:[e.fr,...ds],correct:0,
-       explain:`<b>${e.de}</b> = ${e.fr} — ${e.tip}.`};
+     return qcm(`« ${e.de} » = quelle heure ?`,e.fr,ds,
+       `<b>${e.de}</b> = ${e.fr} — ${e.tip}.`);
    }
    const ds=shuf(pool.filter(x=>x.f==="jour"&&x!==e)).slice(0,3).map(x=>x.de);
-   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
-     type:"choice",options:[e.de,...ds],correct:0,
-     explain:`<b>${e.de}</b> — ${e.tip}.`};
+   return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,ds,
+     `<b>${e.de}</b> — ${e.tip}.`);
  }},
  {lvl:"moyen",make(){
    const pool=[
@@ -1811,14 +1801,12 @@ const G_DATE=[
    const e=pick(pool);
    if(e.f==="mois"){
      const ds=shuf(pool.filter(x=>x.f==="mois"&&x!==e)).slice(0,3).map(x=>x.de);
-     return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
-       type:"choice",options:[e.de,...ds],correct:0,
-       explain:`<b>der ${e.de}</b> — ${e.tip}.`};
+     return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,ds,
+       `<b>der ${e.de}</b> — ${e.tip}.`);
    }
    const ds=shuf(pool.filter(x=>x.f==="date"&&x!==e)).slice(0,3).map(x=>x.de);
-   return{prompt:`« der ${e.de} » = quelle date ?`,
-     type:"choice",options:[e.fr,...ds],correct:0,
-     explain:`<b>der ${e.de}</b> = ${e.fr} — ${e.tip}.`};
+   return qcm(`« der ${e.de} » = quelle date ?`,e.fr,ds,
+     `<b>der ${e.de}</b> = ${e.fr} — ${e.tip}.`);
  }},
  {lvl:"difficile",make(){
    const pool=[
@@ -1836,14 +1824,12 @@ const G_DATE=[
    const e=pick(pool);
    if(e.f==="heure"){
      const ds=shuf(pool.filter(x=>x.f==="heure"&&x!==e)).slice(0,3).map(x=>x.fr);
-     return{prompt:`« ${e.de} » = quelle heure ?`,
-       type:"choice",options:[e.fr,...ds],correct:0,
-       explain:`<b>${e.de}</b> = ${e.fr} — ${e.tip}.`};
+     return qcm(`« ${e.de} » = quelle heure ?`,e.fr,ds,
+       `<b>${e.de}</b> = ${e.fr} — ${e.tip}.`);
    }
    const ds=shuf(pool.filter(x=>x.f==="date"&&x!==e)).slice(0,3).map(x=>x.de);
-   return{prompt:`« ${e.de} » = quelle date ?`,
-     type:"choice",options:[e.fr,...ds],correct:0,
-     explain:`<b>${e.de}</b> = ${e.fr} — ${e.tip}.`};
+   return qcm(`« ${e.de} » = quelle date ?`,e.fr,ds,
+     `<b>${e.de}</b> = ${e.fr} — ${e.tip}.`);
  }}
 ];
 /* ---------- Allemand : phrases utiles ---------- */
@@ -1860,9 +1846,8 @@ const G_PHRASEN=[
      {fr:"excusez-moi",de:"Entschuldigung",ws:["Danke","Bitte","Tschüss"],tip:"pour s'excuser ou attirer l'attention"}
    ];
    const e=pick(pool);
-   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
-     type:"choice",options:[e.de,...e.ws],correct:0,
-     explain:`<b>${e.de}</b> — ${e.tip}.`};
+   return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,e.ws,
+     `<b>${e.de}</b> — ${e.tip}.`);
  }},
  {lvl:"moyen",make(){
    const pool=[
@@ -1876,9 +1861,8 @@ const G_PHRASEN=[
      {fr:"Quand part le train ?",de:"Wann fährt der Zug ?",ws:["Wann der Zug fährt ?","Wo fährt der Zug ?","Wann fährt die Zug ?"],tip:"der Zug (masculin) ; question : wann + verbe + sujet"}
    ];
    const e=pick(pool);
-   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
-     type:"choice",options:[e.de,...e.ws],correct:0,
-     explain:`<b>${e.de}</b> — ${e.tip}.`};
+   return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,e.ws,
+     `<b>${e.de}</b> — ${e.tip}.`);
  }},
  {lvl:"difficile",make(){
    const pool=[
@@ -1892,9 +1876,8 @@ const G_PHRASEN=[
      {fr:"Ça m'est égal.",de:"Das ist mir egal.",ws:["Ich bin egal.","Das ist mir wichtig.","Mir ist das egal wichtig."],tip:"« mir » au datif avec « egal » : das ist mir egal"}
    ];
    const e=pick(pool);
-   return{prompt:`Comment dit-on « ${e.fr} » en allemand ?`,
-     type:"choice",options:[e.de,...e.ws],correct:0,
-     explain:`<b>${e.de}</b> — ${e.tip}.`};
+   return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,e.ws,
+     `<b>${e.de}</b> — ${e.tip}.`);
  }}
 ];
 /* ---------- Allemand : mini-traductions ---------- */
@@ -1909,9 +1892,8 @@ const G_TRAD=[
      {fr:"Il fait beau.",de:"Das Wetter ist schön.",ws:["Das Wetter ist schöne.","Das Wetter macht gut.","Es macht schön."],tip:"la météo : « das Wetter ist … »"}
    ];
    const e=pick(pool);
-   return{prompt:`Traduis : « ${e.fr} »`,
-     type:"choice",options:[e.de,...e.ws],correct:0,
-     explain:`<b>${e.de}</b> — ${e.tip}.`};
+   return qcm(`Traduis : « ${e.fr} »`,e.de,e.ws,
+     `<b>${e.de}</b> — ${e.tip}.`);
  }},
  {lvl:"moyen",make(){
    const pool=[
@@ -1923,9 +1905,8 @@ const G_TRAD=[
      {fr:"Mon frère va à l'école en bus.",de:"Mein Bruder fährt mit dem Bus zur Schule.",ws:["Mein Bruder fährt mit der Bus zur Schule.","Mein Bruder fährt dem Bus in die Schule.","Mein Bruder fährt auf dem Bus zur Schule."],tip:"moyen de transport : mit + datif (mit dem Bus)"}
    ];
    const e=pick(pool);
-   return{prompt:`Traduis : « ${e.fr} »`,
-     type:"choice",options:[e.de,...e.ws],correct:0,
-     explain:`<b>${e.de}</b> — ${e.tip}.`};
+   return qcm(`Traduis : « ${e.fr} »`,e.de,e.ws,
+     `<b>${e.de}</b> — ${e.tip}.`);
  }},
  {lvl:"difficile",make(){
    const pool=[
@@ -1937,9 +1918,8 @@ const G_TRAD=[
      {fr:"Je voudrais réserver une chambre.",de:"Ich möchte ein Zimmer reservieren.",ws:["Ich möchte den Zimmer reservieren.","Ich möchte einen Zimmer reservieren.","Ich möchte ein Zimmer zu reservieren."],tip:"das Zimmer (neutre) ; infinitif sans « zu »"}
    ];
    const e=pick(pool);
-   return{prompt:`Traduis : « ${e.fr} »`,
-     type:"choice",options:[e.de,...e.ws],correct:0,
-     explain:`<b>${e.de}</b> — ${e.tip}.`};
+   return qcm(`Traduis : « ${e.fr} »`,e.de,e.ws,
+     `<b>${e.de}</b> — ${e.tip}.`);
  }}
 ];
 /* ---------- REGISTRE PC + helpers matière ---------- */
