@@ -137,6 +137,8 @@ body{
 .space-between{justify-content:space-between}
 .wrap-row{flex-wrap:wrap}
 .grow{flex:1}
+.topbar .divider{width:1px;height:20px;background:var(--line);flex:none}
+@media (max-width:720px){.topbar .wrap{flex-wrap:wrap;row-gap:10px}}
 .topbar{
   position:sticky;top:0;z-index:10;
   background:var(--surface);border-bottom:1px solid var(--line);
@@ -437,7 +439,13 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
 <header class="topbar">
   <div class="wrap row space-between">
     <div class="brand">Quiz<span>io</span></div>
-    <div class="row" style="gap:12px">
+    <div class="row wrap-row" style="gap:12px">
+      <div class="seg" role="group" aria-label="Matière">
+        <button type="button" class="seg-btn on" data-mat="maths">Maths</button>
+        <button type="button" class="seg-btn" data-mat="pc">Physique-Chimie</button>
+        <button type="button" class="seg-btn" data-mat="de">Allemand</button>
+      </div>
+      <span class="divider" aria-hidden="true"></span>
       <div class="theme-seg" role="group" aria-label="Thème">
         <button type="button" class="theme-btn" data-theme-pick="auto" title="Suivre le système">Auto</button>
         <button type="button" class="theme-btn" data-theme-pick="light" title="Thème clair">Clair</button>
@@ -468,15 +476,6 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
       <span class="soft" style="--d:.80s"><span class="sai">tu&nbsp;sais.<svg class="pen" viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M3 8C26 3 55 10 82 6S114 7 117 5" pathLength="1" vector-effect="non-scaling-stroke"/></svg></span></span>
     </p>
     <p class="lede" data-rv style="--d:.78s" id="heroLede">Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.</p>
-
-    <div class="row space-between wrap-row" data-rv style="--d:.88s;margin-bottom:22px">
-      <span class="lbl">Matière</span>
-      <div class="seg" role="group" aria-label="Matière">
-        <button type="button" class="seg-btn on" data-mat="maths">Maths</button>
-        <button type="button" class="seg-btn" data-mat="pc">Physique-Chimie</button>
-        <button type="button" class="seg-btn" data-mat="de">Allemand</button>
-      </div>
-    </div>
 
     <section class="panel" aria-labelledby="hFree" data-rv style="--d:.9s">
       <h2 id="hFree">Entraînement libre</h2>
