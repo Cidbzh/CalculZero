@@ -51,7 +51,6 @@ Le fichier est un fragment (démarre par `<title>`, pas de `<!DOCTYPE>`/`<html>`
   - Noms de chapitre en `var(--accent)` (et non `--ink`) — décidé 2026-08-19 : le quasi-noir était jugé difficilement lisible. Trois occurrences : `.subcard .nm`, `.substatrow b`, `.weaknm` — + elles sont dans la liste `.theming`. L'accent suit la matière (bleu maths / violet PC) et le thème.
   - `bySub` est normalisé dans `loadStats` (`st.bySub={}` s'il manque) — un objet sauvegardé sans ce champ faisait planter `renderHome` (bug réel détecté par la section [15] de `_qz_verify.js`, 2026-08-20) ; ne pas retirer la normalisation.
   - **Sources briefs** : PC → `docs/superpowers/specs/2026-08-19-physique-chimie-design.md` (+ plan `docs/superpowers/plans/2026-08-19-physique-chimie.md`) — le document visé par les notes « verbatim du brief » ci-dessus ; allemand → plan `docs/superpowers/plans/2026-08-19-allemand.md`.
-  - **Skills projet** (`.claude/skills/`) : `/debug-issue`, `/explore-codebase`, `/refactor-safely`, `/review-changes`.
 
 ## Tests (aucun framework)
 
@@ -67,30 +66,3 @@ node -e 'const fs=require("fs"),vm=require("vm");[...fs.readFileSync("index.html
 ```
 
 **Vérification fonctionnelle plus large** (ad hoc) : script Node avec DOM factice (stubs `localStorage`/`window`) + `vm.runInThisContext` sur le `<script>` principal extrait, puis appel direct des fonctions de l'app (`startFree()`, `passQ()`, `submit()`, …) et assertions sur `state`/`stats`.
-
-## MCP Tools: code-review-graph
-
-**IMPORTANT : ce projet a un graphe de connaissances. TOUJOURS utiliser les outils MCP code-review-graph AVANT Grep/Glob/Read pour explorer** — plus rapide, moins cher, et contexte structurel (appelants, dépendants, couverture) qu'un scan de fichiers ne donne pas.
-
-### Protocole de session — OBLIGATOIRE (demandé par Cid, réitéré le 2026-08-19)
-
-À **chaque** nouvelle session, avant toute exploration ou modification du code :
-1. Le hook `SessionStart` affiche l'état du graphe (nodes/edges) : c'est le signal qu'il est prêt et à jour.
-2. **Le premier outil d'exploration est TOUJOURS un outil du graphe** : `get_minimal_context_tool` (entrée, ~100 tokens), puis selon la tâche `semantic_search_nodes_tool` / `query_graph_tool` / `get_impact_radius_tool` — **avant** tout Grep/Glob/Read.
-3. Avant toute revue ou commit : `detect_changes_tool` + `get_review_context_tool`.
-4. Grep/Glob/Read = **repli uniquement**, et seulement si le graphe ne couvre pas la question — à *déclarer* dans la réponse (ex. les règles CSS de `index.html` ne sont pas des nœuds du graphe ; les fonctions JS, si).
-5. Serveur MCP time out → repli direct sur la lecture de `index.html` (1 seul fichier, ~2 900 lignes, coût faible) ; réessayer le graphe à la prochaine session.
-
-⚠️ Le serveur (`.mcp.json` : `python -m code_review_graph serve`) peut échouer à se connecter (time out de 30 s observé). Dans ce cas, **lire `index.html` directement** — c'est un unique fichier d'environ 2 900 lignes, le coût est faible.
-
-### Support HTML (patch local — ne pas oublier)
-
-`index.html` est parsé (253 fonctions, blocs `<script>` extraits et re-parsés en JS) grâce à un **patch idempotent** du paquet installé : la ligne `".html": "svelte"` est ajoutée au dictionnaire `EXTENSION_TO_LANGUAGE` de `site-packages/code_review_graph/parser.py` (le langage « svelte » sert uniquement de déclencheur vers le chemin d'extraction SFC `_parse_svelte`). Le paquet ne le fait pas nativement et `languages.toml` ne peut pas non plus y arriver (le dispatch dépend du *nom* de la langue, et les noms builtin ne sont pas réutilisables).
-
-```bash
-python _crg_patch_html.py   # appliquer / re-appliquer le patch (idempotent, auto-test inclus)
-```
-
-- **Rejouer après** `pip install --upgrade code-review-graph` (le réinstallateur écrase `parser.py`).
-- Les snapshots `.superpowers/` (copies historiques d'index.html) sont exclus du graphe via **`.code-review-graphignore`** (mécanisme natif du paquet, syntaxe type `.gitignore`).
-- Rebuild complet : `python -m code_review_graph build` — **dans un processus neuf** : un serveur MCP déjà lancé garde le module non patché en mémoire (le patch n'a d'effet que pour les nouveaux processus ; le graphe lui-même est partagé via SQLite).

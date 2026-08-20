@@ -1,5 +1,0 @@
-# Ignoré par code-review-graph (comme .gitignore)
-#
-# .superpowers/ contient des snapshots historiques et maquettes
-# (copies complètes d'index.html) — du bruit pour le graphe.
-.superpowers/

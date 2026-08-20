@@ -24,10 +24,8 @@ Aucun build, aucune dépendance, aucun serveur : **ouvrez `index.html` dans un n
 |---|---|
 | `index.html` | L'application complète (~3 000 lignes : HTML + CSS + JS, sections balisées) |
 | `_qz_verify.js` | Vérification fonctionnelle complète (compilation des 2 blocs `<script>` + tests sur DOM factice) |
-| `_crg_patch_html.py` | Patch idempotent de `code-review-graph` pour parser le HTML (rejouer après mise à jour du paquet) |
 | `CLAUDE.md` | Guide du projet (structure, conventions, règles à respecter, notes de revue) |
 | `docs/superpowers/` | Spécifications et plans de conception (physique-chimie, allemand) — documents historiques |
-| `.claude/skills/` | Skills projet : `/debug-issue`, `/explore-codebase`, `/refactor-safely`, `/review-changes` |
 
 ## Vérification
 
