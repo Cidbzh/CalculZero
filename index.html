@@ -184,7 +184,7 @@ h1 em{font-style:italic;color:var(--accent)}
    rejoue à chaque bascule de matière ; état de base = trait visible
    (sécurité JS éteint). Hors "prefers-reduced-motion" : jamais masqué. */
 @media (prefers-reduced-motion: no-preference){
-  html.boot .slogan .sai .pen path{stroke-dasharray:1;stroke-dashoffset:1;animation:penIn .55s var(--ease) 1.15s forwards}
+  html.boot .slogan .sai .pen path{stroke-dasharray:1;stroke-dashoffset:1;animation:penIn .55s var(--ease) forwards;animation-delay:calc(1.15s*var(--boot-k,1))}
 }
 @keyframes penIn{to{stroke-dashoffset:0}}
 /* Révélation mot à mot (masque de ligne) — titre, puis slogan ; le dernier
@@ -194,10 +194,10 @@ h1 em{font-style:italic;color:var(--accent)}
    bascule de matière (la bascule masque le changement de contenu). */
 h1 .wr,.slogan .wr{display:inline-block;overflow:hidden;vertical-align:bottom}
 h1 .wr>span,.slogan .wr>span{display:inline-block}
-html.boot h1 .wr>span,html.boot .slogan .wr>span{transform:translateY(108%);animation:wrIn .9s var(--ease) both;animation-delay:var(--d,0s)}
+html.boot h1 .wr>span,html.boot .slogan .wr>span{transform:translateY(108%);animation:wrIn .9s var(--ease) both;animation-delay:calc(var(--d,0s)*var(--boot-k,1))}
 @keyframes wrIn{to{transform:none}}
 .slogan .soft{display:inline-block}
-html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation-delay:var(--d,0s)}
+html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation-delay:calc(var(--d,0s)*var(--boot-k,1))}
 @keyframes saiIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .lede{margin:0 0 34px;max-width:58ch;color:var(--muted);font-size:17.5px}
 /* Formule « gribouillée en marge », comme un prof qui laisse une trace au coin de la page */
@@ -360,10 +360,13 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
    100 % CSS : les éléments sont VISIBLES par défaut et l'animation se joue une
    seule fois au chargement. Même si le JS ne s'exécute pas (ou meurt en route),
    rien ne peut rester bloqué invisible. */
-html.boot [data-rv]{animation:rvIn .85s var(--ease) both;animation-delay:var(--d,0s)}
+/* --boot-k : multiplicateur des délais de la cascade (1 par défaut =
+   chorégraphie complète à la première visite ; compressé en mode « switch »
+   → le premier mouvement part quasi immédiatement après le clic) */
+html.boot [data-rv]{animation:rvIn .85s var(--ease) both;animation-delay:calc(var(--d,0s)*var(--boot-k,1))}
 @keyframes rvIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 /* Les tuiles de thèmes défilent à leur tour pendant le premier chargement */
-html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc(.95s + var(--cd,0ms))}
+html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95s + var(--cd,0ms))*var(--boot-k,1))}
 /* Transition douce entre l'accueil et l'écran d'exercice */
 #home.screen-in,#play.screen-in{animation:screenIn .4s var(--ease) both}
 @keyframes screenIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -2513,12 +2516,13 @@ function setMatiere(m){
   clearTimeout(setMatiere._t);
   setMatiere._t=setTimeout(function(){r.classList.remove("theming");},520);
   renderHome();
-  /* Rejoue la cascade d'arrivée (html.boot) sur le DOM fraîchement rendu —
-     mêmes délais que le premier chargement. Passe par rearmBoot() : un SEUL
-     cycle de vie classe+timer partagé, la bascule en cours annule la cascade
-     et le timer précédent → seule la DERNIÈRE animation survit, quelle que
-     soit la cadence des bascules. */
-  rearmBoot();
+  /* Rejoue la cascade d'arrivée (html.boot) sur le DOM fraîchement rendu,
+     en mode rapide (délais × .45) : le premier mouvement part quasi
+     immédiatement après le clic, sans temps mort. Passe par rearmBoot(true) :
+     un SEUL cycle de vie classe+timer partagé, la bascule en cours annule la
+     cascade et le timer précédent → seule la DERNIÈRE animation survit,
+     quelle que soit la cadence des bascules. */
+  rearmBoot(true);
 }
 
 /* ---------- Accueil ---------- */
@@ -2981,22 +2985,27 @@ function applyTheme(t,animate){
 /* ---------- Révélation en cascade (haut → bas) ----------
    La chorégraphie est 100 % CSS (bloc html.boot [data-rv]) : elle se joue
    d'une traite, du premier au dernier élément, et ne peut pas se bloquer.
-   Le JS la déclenche seulement ici (première visite) et via setMatiere() à
-   chaque bascule de matière (effet « switch » complet) — jamais au simple
+   Le JS la déclenche seulement ici (première visite, délais complets) et
+   via setMatiere() à chaque bascule de matière (effet « switch » complet,
+   délais compressés par --boot-k → pas de temps mort après le clic) — jamais au simple
    retour sur l'accueil. Les deux appels passent par rearmBoot() : UN SEUL
    cycle de vie classe+timer partagé. Retirer la classe puis la réajouter
    (reflow forcé) redémarre l'animation CSS — un simple add() serait un no-op
    si la classe est déjà là — et annule le timer de retrait précédent :
    quelle que soit la cadence des déclenchements, seule la DERNIÈRE cascade
    survit. */
-function rearmBoot(){
+function rearmBoot(fast){
   const r=document.documentElement;
   clearTimeout(rearmBoot._t);    /* 1 seul timer de retrait vivant (le dernier) */
   r.classList.remove("boot");    /* réinitialise l'état d'animation */
   void r.offsetWidth;            /* reflow forcé : le ré-ajout suivant redémarre l'animation */
+  /* fast (bascule de matière) : délais compressés (--boot-k=.45) → pas de
+     temps mort entre le clic et le premier mouvement. Première visite : 1. */
+  if(fast)r.style.setProperty("--boot-k",".45");
+  else r.style.removeProperty("--boot-k");
   r.classList.add("boot");
   rearmBoot._t=setTimeout(function(){r.classList.remove("boot");},2800);
 }
 renderHome();
-rearmBoot();
+rearmBoot();   /* première visite : chorégraphie complète, délais non compressés */
 </script>

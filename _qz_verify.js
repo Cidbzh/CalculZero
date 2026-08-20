@@ -13,7 +13,7 @@ function ok(name,cond){ if(cond){pass++;console.log("  ✓ "+name);} else {fail+
 function makeEl(opts){
   const el={
     _attrs:{},_listeners:{},_classes:new Set(),
-    style:Object.assign({setProperty:function(){}},{}),
+    style:(function(){const s={};s.setProperty=function(k,v){s[k]=String(v);};s.removeProperty=function(k){delete s[k];};return s;})(),
     dataset:{},children:[],hidden:false,value:"",textContent:"",_innerHTML:"",
     setAttribute(k,v){this._attrs[k]=String(v);if(k==="class")String(v).split(/\s+/).forEach(c=>c&&this._classes.add(c));},
     getAttribute(k){return this._attrs[k]===undefined?null:this._attrs[k];},
@@ -372,6 +372,7 @@ console.log("\n[11] Bascule — PAS de temps mort : swap IMMÉDIAT au clic");
     return qsa0.call(this,sel);
   };
   const ctx=runApp(env);
+  ok("première visite : pas de compression (--boot-k absent, délais complets)",doc.style["--boot-k"]===undefined);
   segM.click();
   ok("clic (non reduced) → swap SYNCHRONE : matière basculée immédiatement",vm.runInContext("state.matiere",ctx)==="maths");
   ok("clic (non reduced) → data-mat retiré immédiatement (pas d'attente 230 ms)",doc.getAttribute("data-mat")===null);
@@ -379,6 +380,8 @@ console.log("\n[11] Bascule — PAS de temps mort : swap IMMÉDIAT au clic");
   const homeEl=env.byId.home;
   ok("plus de classes home-out/home-in sur #home (chorégraphie de sortie supprimée)",
      !homeEl||(homeEl._classes.has("home-out")===false&&homeEl._classes.has("home-in")===false));
+  ok("clic → délais de cascade compressés (--boot-k=.45) : le 1er mouvement part quasi immédiatement",
+     doc.style["--boot-k"]===".45");
 }
 
 /* ========================================================= */
