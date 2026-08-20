@@ -12,9 +12,10 @@ Le script compile les **deux** blocs `<script>` (anti-flash + principal) via `vm
 
 - **Thème** : défaut `auto`, clics Auto/Clair/Sombre, persistance `cz_theme`, rechargement.
 - **Fumigène** `confetti()`.
-- **Section [7] — générateurs** : chaque générateur des deux registres (`SUBJECTS_MATH` + `SUBJECTS_PC`) est lancé **25×** :
+- **Section [7] — générateurs** : chaque générateur des **trois** registres (`SUBJECTS_MATH` + `SUBJECTS_PC` + `SUBJECTS_DE`) est lancé **25×** :
   - forme de la question ;
-  - auto-cohérence `checkAnswer()` avec sa propre réponse ;
+  - auto-cohérence `checkAnswer()` avec sa propre réponse (réponses saisies) ;
+  - **contrat QCM** (tous les générateurs choice, maths + PC + DE) : options non vides et deux à deux distinctes, et l'index de la bonne réponse **non constant** sur les 25 tirages — la preuve des options mélangées via `shuf()` : avec ≥2 options, un index constant sur 25 tirages a une probabilité ~(1/n)²⁴, c'est la signature d'un générateur non converti au helper `qcm()`, pas de la chance ;
   - rendu des visuels SVG en phases `"q"` et `"c"` ;
   - round-trip `JSON.parse(JSON.stringify(q))` qui simule le mode révision après un rechargement — c'est ce qui détecte les fonctions ou `undefined` glissés dans les specs `viz`.
 - **Section [8] — régression de bascule** : après `setMatiere("pc")` + une bonne réponse PC :
@@ -25,11 +26,11 @@ Le script compile les **deux** blocs `<script>` (anti-flash + principal) via `vm
 - **Section [10] — bascule EN PLEINE cascade** : bascule alors que `boot` est encore active (état réel, **sans** la simulation de [9]), avec des timers suivis/annulables et un journal des opérations `classList` sur `<html>` : asserte que `boot` est retirée **puis** réajoutée (la seule façon de redémarrer l'animation CSS — un simple `add()` est un no-op si la classe est déjà là), qu'**un seul** timer de retrait (2800 ms) reste vivant, et que l'ancien timer du premier chargement (annulé) ne coupe pas la nouvelle cascade à T+2800 ms — le garde-fou de l'animation « unique » : seule la dernière cascade et son timer survivent, quelle que soit la cadence des bascules. Le cycle de vie classe+timer est centralisé dans `rearmBoot()` (index.html), appelé à la première visite **ET** depuis `setMatiere()` — ne pas ré-introduire de `setTimeout` de retrait de `boot` ailleurs.
 - **Section [11] — pas de temps mort** : sans reduced-motion (`matchMedia` par défaut `matches:false`), le clic sur « Maths » doit swaper de façon **synchrone** (`data-mat` retiré, `boot` active, aucune classe `home-out`/`home-in` sur `#home`) : l'ancienne chorégraphie de sortie 230 ms (homeOut/homeIn) est supprimée, ne pas la ré-introduire.
 
+- **Section [12] — bascule DE** : miroir de [8] pour la 3e matière, avec deux renforcements : `cz_stats_pc` **aussi** doit rester bit-à-bit inchangé après une réponse allemande, et — l'allemand étant 100 % QCM — la bonne réponse passe par le **vrai chemin moteur** `answerChoice(state.q.correct, …)` (et non `afterAnswer()` direct) : l'option `q.correct` doit être acceptée, `cz_stats_de` incrémentée (1 réponse / 1 bonne), `cz_stats` et `cz_stats_pc` intacts, et le retour maths restaure les stats au bit près. `#secSprint` doit être masqué dès la bascule.
+- **Section [13] — basculeur 3 matières** : page ouverte en allemand (`data-mat="de"` sur `<html>`), les listeners `click` doivent porter sur les **trois** boutons `.seg-btn` (Maths / Physique-Chimie / Allemand) et `<html>` doit en avoir **aucun** (même garde-fou que [9] : le sélecteur câblé doit être `.seg-btn[data-mat]`, jamais `[data-mat]` seul — le DOM factice ne simule pas la bulle, l'assertion porte donc sur le listener lui-même). Clic « Maths » → `state.matiere="maths"`, `data-mat` retiré, cascade réarmée ; clic « Allemand » → `data-mat="de"` reposé (accent vert) et bouton « Allemand » seul marqué `.on`.
+- **Section [14] — sprint masqué en allemand** : `renderHome()` pose `hidden=true` sur `#secSprint` quand `matiere==="de"` (matière 100 % QCM, exclue du sprint) et `hidden=false` en maths comme en PC — seule l'entrée est cachée, la mécanique moteur (`startSprint`/`pickQ`) reste telle quelle.
+
 **Historique** : ce script remplace l'ancienne vérification `awk`, qui n'extrayait qu'un seul bloc `<script>` (cassée depuis l'ajout du script anti-flash).
-
-## ⚠️ Lacune connue (constatée le 2026-08-20)
-
-La section [7] itère uniquement `SUBJECTS_MATH` + `SUBJECTS_PC` (`_cz_verify.js` ligne 167 : `const REGISTERS=[].concat(probe.SUBJECTS_MATH||[],probe.SUBJECTS_PC||[])`) — **les générateurs allemands (`SUBJECTS_DE`) ne sont pas couverts** : ni forme de question, ni auto-cohérence `checkAnswer`, ni round-trip JSON. À combler en ajoutant `SUBJECTS_DE` dans la sonde et dans `REGISTERS`.
 
 ## Vérification de syntaxe seule
 

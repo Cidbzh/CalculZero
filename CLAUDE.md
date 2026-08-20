@@ -56,9 +56,7 @@ Le fichier est un fragment (démarre par `<title>`, pas de `<!DOCTYPE>`/`<html>`
 ```bash
 node _cz_verify.js
 ```
-Compile les **deux** blocs `<script>` (anti-flash + principal) via `vm`, puis teste fonctionnellement sur DOM factice : thème (défaut `auto`, clics, persistance `cz_theme`, rechargement), fumigène `confetti()`, **chaque générateur × 25** (forme, auto-cohérence `checkAnswer()`, rendu SVG phases `"q"`/`"c"`, round-trip JSON qui détecte fonctions/`undefined` dans les specs `viz`), bascule matière (stabilité bit-à-bit des stats, câblage du basculeur, ré-armement de la cascade, pas de temps mort). **Détail section par section → `docs/verification.md`.**
-
-⚠️ **Lacune connue** : `_cz_verify.js` n'itére que `SUBJECTS_MATH` + `SUBJECTS_PC` (ligne 167) — les générateurs allemands (`SUBJECTS_DE`) ne sont **pas couverts**.
+Compile les **deux** blocs `<script>` (anti-flash + principal) via `vm`, puis teste fonctionnellement sur DOM factice : thème (défaut `auto`, clics, persistance `cz_theme`, rechargement), fumigène `confetti()`, **chaque générateur des trois registres × 25** (`SUBJECTS_MATH` + `SUBJECTS_PC` + `SUBJECTS_DE` — forme, auto-cohérence `checkAnswer()` pour les réponses saisies, **contrat QCM** pour les choix : options non vides et distinctes + bonne réponse jamais en position fixe sur les tirages, rendu SVG phases `"q"`/`"c"`, round-trip JSON qui détecte fonctions/`undefined` dans les specs `viz`), bascules matière (stabilité bit-à-bit des stats maths/PC/DE, bascule DE via le vrai chemin moteur `answerChoice()`, câblage du basculeur 3 boutons sans jamais cibler `<html>`, ré-armement de la cascade, pas de temps mort, sprint masqué en allemand). **Détail section par section → `docs/verification.md`.**
 
 **Vérification de syntaxe seule** (contrôle rapide des 2 blocs) :
 ```bash

@@ -161,12 +161,14 @@ console.log("\n[7] Générateurs — forme des questions, visuels SVG, round-tri
   const ctx=runApp(env);
   /* Les registres et fonctions sont des const du scope global : on passe
      par runInContext (elles ne sont PAS des propriétés de sandbox). */
-  const probe=vm.runInContext("({SUBJECTS_MATH,SUBJECTS_PC,checkAnswer,VIZdraw})",ctx);
-  ok("SUBJECTS_MATH, SUBJECTS_PC, checkAnswer et VIZdraw accessibles",!!(probe.SUBJECTS_MATH&&probe.SUBJECTS_PC&&probe.checkAnswer&&probe.VIZdraw));
-  let bad=0,vzbad=0,rtbad=0,checked=0,vizCount=0;
-  const REGISTERS=[].concat(probe.SUBJECTS_MATH||[],probe.SUBJECTS_PC||[]);
+  const probe=vm.runInContext("({SUBJECTS_MATH,SUBJECTS_PC,SUBJECTS_DE,checkAnswer,VIZdraw})",ctx);
+  ok("SUBJECTS_MATH, SUBJECTS_PC, SUBJECTS_DE, checkAnswer et VIZdraw accessibles",!!(probe.SUBJECTS_MATH&&probe.SUBJECTS_PC&&probe.SUBJECTS_DE&&probe.checkAnswer&&probe.VIZdraw));
+  let bad=0,vzbad=0,rtbad=0,qbad=0,checked=0,vizCount=0,qcmGens=0;
+  const REGISTERS=[].concat(probe.SUBJECTS_MATH||[],probe.SUBJECTS_PC||[],probe.SUBJECTS_DE||[]);
   for(const sub of REGISTERS){
-    for(const g of sub.gens){
+    for(let gi=0;gi<sub.gens.length;gi++){
+      const g=sub.gens[gi];
+      const correctIdx=new Set(); /* indices de la bonne réponse observés sur les 25 tirages (QCM) */
       for(let i=0;i<25;i++){
         let q;
         try{q=g.make();}
@@ -176,6 +178,15 @@ console.log("\n[7] Générateurs — forme des questions, visuels SVG, round-tri
         if(q.type==="choice"){
           if(!Array.isArray(q.options)||q.options.length<2||!Number.isInteger(q.correct)||q.correct<0||q.correct>=q.options.length){
             bad++;console.log("      choix invalide : "+sub.id+" "+JSON.stringify(q.options));}
+          else{
+            /* Contrat QCM (2026-08-20) : options non vides et deux à deux
+               distinctes (un leurre identique à la bonne réponse rendrait le
+               QCM ambigu), et l'index correct non constant sur les tirages —
+               options mélangées via shuf(), un index constant signale un
+               générateur non converti au helper qcm(). */
+            correctIdx.add(q.correct);
+            if(!q.options.every(o=>typeof o==="string"&&o.trim()!=="")){qbad++;console.log("      QCM : option vide — "+sub.id+" "+g.lvl);}
+            if(new Set(q.options).size!==q.options.length){qbad++;console.log("      QCM : options en double — "+sub.id+" "+g.lvl+" "+JSON.stringify(q.options));}}
         }else if(q.type==="frac"){
           if(!q.answer||!isFinite(q.answer.n)||!isFinite(q.answer.d)||q.answer.d===0){bad++;console.log("      fraction invalide : "+sub.id);continue;}
           if(probe.checkAnswer(q,q.answer.n+"/"+q.answer.d)!==true){bad++;console.log("      checkAnswer rejette sa propre réponse (frac) : "+sub.id);}
@@ -202,9 +213,17 @@ console.log("\n[7] Générateurs — forme des questions, visuels SVG, round-tri
           }catch(e){rtbad++;console.log("      round-trip plante : "+sub.id+": "+e.message);}
         }
       }
+      if(correctIdx.size>0){
+        /* Avec shuf() sur ≥2 options, un index constant sur 25 tirages a une
+           probabilité ~ (1/n)^24 (n = nb d'options) : c'est la signature
+           d'un générateur QCM figé, pas de la chance. */
+        qcmGens++;
+        if(correctIdx.size<2){qbad++;console.log("      QCM : index correct constant sur 25 tirages — "+sub.id+" "+g.lvl);}
+      }
     }
   }
   ok("tous les générateurs produisent des questions valides ("+checked+" générées, "+REGISTERS.length+" thèmes)",bad===0);
+  ok("QCM : options non vides et distinctes, bonne réponse jamais en position fixe ("+qcmGens+" générateurs)",qbad===0);
   ok("tous les visuels se dessinent en phase question ET correction ("+vizCount+" questions visuelles)",vzbad===0);
   ok("questions + visuels survivent au round-trip localStorage (mode révision)",rtbad===0);
 }
@@ -355,6 +374,102 @@ console.log("\n[11] Bascule — PAS de temps mort : swap IMMÉDIAT au clic");
   const homeEl=env.byId.home;
   ok("plus de classes home-out/home-in sur #home (chorégraphie de sortie supprimée)",
      !homeEl||(homeEl._classes.has("home-out")===false&&homeEl._classes.has("home-in")===false));
+}
+
+/* ========================================================= */
+console.log("\n[12] Bascule DE — les stats maths ET PC doivent rester intactes");
+{
+  /* Miroir exact de [8] pour la 3e matière, avec deux renforcements :
+     - les stats PC aussi doivent rester bit-à-bit (avant : seule la clé maths
+       était gardée en référence) ;
+     - l'allemand est 100 % QCM → on répond par le VRAI chemin moteur,
+       answerChoice(), et non pas aprèsAnswer() direct : le bon choix (index
+       q.correct) doit être accepté, et sur la bonne réponse btn n'est jamais
+       touché (guard if(!ok)) → on peut passer null. */
+  lsData.clear();
+  const mathsSeed={ans:12,good:9,bestStreak:4,bestSprint:80,bySub:{deriv:{ans:5,good:4}},skips:2,streakBySub:{deriv:3},history:[{s:"deriv",l:"facile",o:1}],review:[]};
+  const pcSeed={ans:7,good:3,bySub:{cosmo:{ans:2,good:1}}};
+  lsData.set("cz_stats",JSON.stringify(mathsSeed));
+  lsData.set("cz_stats_pc",JSON.stringify(pcSeed));
+  const env=buildEnv();
+  const optBtns=[0,1,2,3].map(i=>{const b=makeEl();b.dataset.i=String(i);b._classes.add("opt");return b;});
+  env.byId.qbox=makeEl({querySelectorAll:sel=>sel===".opt"?optBtns:[]});
+  const ctx=runApp(env);
+  const mathsBefore=lsData.get("cz_stats");
+  const pcBefore=lsData.get("cz_stats_pc");
+  const api=vm.runInContext("({setMatiere,startFree,statsNow:()=>stats,choiceOk:()=>answerChoice(state.q.correct,null)})",ctx);
+  api.setMatiere("de");
+  ok("cz_subject persisté = de",lsData.get("cz_subject")==='"de"');
+  ok("#secSprint masqué dès la bascule (matière 100 % QCM)",env.byId.secSprint.hidden===true);
+  api.startFree();
+  ok("la question DE est bien un QCM (type choice)",vm.runInContext("state.q.type",ctx)==="choice");
+  api.choiceOk(); /* répond par le chemin moteur : l'option q.correct doit être acceptée */
+  const deRaw=lsData.get("cz_stats_de");
+  ok("cz_stats (maths) bit-à-bit inchangé après la réponse DE",lsData.get("cz_stats")===mathsBefore);
+  ok("cz_stats_pc bit-à-bit inchangé après la réponse DE",lsData.get("cz_stats_pc")===pcBefore);
+  ok("cz_stats_de existe et a été incrémenté (1 réponse, 1 bonne)",deRaw&&JSON.parse(deRaw).ans===1&&JSON.parse(deRaw).good===1);
+  api.setMatiere("maths");
+  ok("retour maths : stats restaurées à l'identique (deep-compare)",JSON.stringify(api.statsNow())===JSON.stringify(mathsSeed));
+  ok("cz_stats (maths) toujours bit-à-bit inchangé",lsData.get("cz_stats")===mathsBefore);
+}
+
+/* ========================================================= */
+console.log("\n[13] Basculeur 3 matières — câblage (3 boutons, <html> jamais ciblé)");
+{
+  /* Même garde-fou que [9], étendu à la 3e matière : un sélecteur [data-mat]
+     sans .seg-btn inclurait <html> (qui porte data-mat en PC et en DE) et lui
+     attacherait un listener click — le DOM factice ne simule pas la bulle,
+     l'assertion porte donc sur le listener lui-même. */
+  lsData.clear();
+  lsData.set("cz_subject","\"de\""); /* page ouverte en allemand */
+  const env=buildEnv();
+  const doc=env.document.documentElement;
+  doc.setAttribute("data-mat","de"); /* ce que l'anti-flash fait au chargement */
+  const segM=makeEl({dataset:{mat:"maths"}});segM._classes.add("seg-btn");
+  const segP=makeEl({dataset:{mat:"pc"}});segP._classes.add("seg-btn");
+  const segD=makeEl({dataset:{mat:"de"}});segD._classes.add("seg-btn");
+  const qsa0=env.document.querySelectorAll;
+  env.document.querySelectorAll=function(sel){
+    if(sel==="[data-mat]")return [doc,segM,segP,segD]; /* = comportement du navigateur réel */
+    if(sel===".seg-btn[data-mat]")return [segM,segP,segD];
+    return qsa0.call(this,sel);
+  };
+  const ctx=runApp(env);
+  ok("état initial = de (page ouverte en allemand)",vm.runInContext("state.matiere",ctx)==="de");
+  ok("bouton « Maths » a un listener click",Array.isArray(segM._listeners["click"])&&segM._listeners["click"].length===1);
+  ok("bouton « Physique-Chimie » a un listener click",Array.isArray(segP._listeners["click"])&&segP._listeners["click"].length===1);
+  ok("bouton « Allemand » a un listener click",Array.isArray(segD._listeners["click"])&&segD._listeners["click"].length===1);
+  ok("<html> n'a AUCUN listener click (sélecteur [data-mat] trop large)",!(doc._listeners["click"]&&doc._listeners["click"].length>0));
+  /* Le timer de retrait de boot (2800 ms) ne « fire » jamais dans le DOM
+     factice (setTimeout stub) : on simule le retrait post-chargement, sinon
+     l'assertion ci-dessous passerait même si rearmBoot ne ré-armed rien. */
+  doc._classes.delete("boot");
+  ok("pré-condition : boot retiré après le chargement (état simulé)",!doc._classes.has("boot"));
+  segM.click();
+  ok("clic « Maths » → state.matiere = maths",vm.runInContext("state.matiere",ctx)==="maths");
+  ok("clic « Maths » → data-mat retiré de <html> (accent vert désactivé)",doc.getAttribute("data-mat")===null);
+  ok("clic « Maths » → cascade d'arrivée réarmée (html.boot)",doc._classes.has("boot"));
+  segD.click();
+  ok("clic « Allemand » → data-mat=\"de\" posé sur <html> (accent vert activé)",doc.getAttribute("data-mat")==="de");
+  ok("bouton « Allemand » actif, les deux autres non",segD.classList.contains("on")&&segM.classList.contains("on")===false&&segP.classList.contains("on")===false);
+}
+
+/* ========================================================= */
+console.log("\n[14] Sprint masqué en allemand — entrée invisible, visible en maths/PC");
+{
+  /* La mécanique moteur (startSprint/pickQ) reste telle quelle, seule l'ENTRÉE
+     #secSprint est cachée en allemand — c'est exactement ce qu'asserte ici
+     renderHome (index.html : $("#secSprint").hidden = matiere==="de"). */
+  lsData.clear();
+  lsData.set("cz_subject","\"de\"");
+  const env=buildEnv();
+  const ctx=runApp(env);
+  const sprintEl=env.byId.secSprint; /* même objet que $("#secSprint") côté app */
+  ok("allemand : #secSprint masqué (prop hidden = true)",sprintEl&&sprintEl.hidden===true);
+  vm.runInContext("setMatiere('maths')",ctx);
+  ok("maths : #secSprint visible (prop hidden = false)",sprintEl.hidden===false);
+  vm.runInContext("setMatiere('pc')",ctx);
+  ok("PC : #secSprint visible (prop hidden = false)",sprintEl.hidden===false);
 }
 
 console.log("=====================================");
