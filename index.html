@@ -165,15 +165,34 @@ body{
   content:"";display:inline-block;width:20px;height:2px;border-radius:2px;
   background:var(--pen);opacity:.6;margin-right:10px;vertical-align:3px;
 }
+/* Titre + slogan : deux registres — le titre domine, le slogan est sa
+   sous-ligne en italique (le « · » n'a plus lieu d'être : l'espace fait le travail) */
 h1{
-  margin:10px 0 12px;font:700 clamp(32px,5.6vw,46px)/1.1 var(--f-display);
-  text-wrap:balance;
+  margin:10px 0 2px;font:700 clamp(42px,6.5vw,60px)/1.05 var(--f-display);
+  letter-spacing:-.01em;
 }
 h1 em{font-style:italic;color:var(--accent)}
-/* Révélation mot à mot du titre (masque de ligne) — tous les mots montent au même rythme */
-h1 .wr{display:inline-block;overflow:hidden;vertical-align:bottom}
-h1 .wr>span{display:inline-block;transform:translateY(108%);animation:wrIn .9s var(--ease) both;animation-delay:var(--d,0s)}
+.slogan{
+  margin:0 0 18px;max-width:40ch;
+  font:italic 500 clamp(19px,2.5vw,23px)/1.45 var(--f-display);color:var(--muted);
+}
+.slogan .sai{position:relative;display:inline-block;color:var(--accent)}
+/* Trait de plume sous « tu sais. » — l'app écrit la page, comme le prof gribouille en marge */
+.slogan .sai .pen{position:absolute;left:2%;bottom:-8px;width:96%;height:10px;overflow:visible;pointer-events:none}
+.slogan .sai .pen path{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;opacity:.85}
+/* Le trait se trace (pathLength="1"). Hors "prefers-reduced-motion" :
+   aucune dasharray → trait visible d'emblée. */
+@media (prefers-reduced-motion: no-preference){
+  .slogan .sai .pen path{stroke-dasharray:1;stroke-dashoffset:1;animation:penIn .55s var(--ease) 1.15s forwards}
+}
+@keyframes penIn{to{stroke-dashoffset:0}}
+/* Révélation mot à mot (masque de ligne) — titre, puis slogan ; le dernier
+   mot « saute » sans masque, sinon le trait de plume serait rogné */
+h1 .wr,.slogan .wr{display:inline-block;overflow:hidden;vertical-align:bottom}
+h1 .wr>span,.slogan .wr>span{display:inline-block;transform:translateY(108%);animation:wrIn .9s var(--ease) both;animation-delay:var(--d,0s)}
 @keyframes wrIn{to{transform:none}}
+.slogan .soft{display:inline-block;opacity:0;animation:saiIn .5s var(--ease) both;animation-delay:var(--d,0s)}
+@keyframes saiIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .lede{margin:0 0 34px;max-width:58ch;color:var(--muted);font-size:17.5px}
 /* Formule « gribouillée en marge », comme un prof qui laisse une trace au coin de la page */
 .margin-note{
@@ -350,20 +369,22 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc(.95s
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   [data-rv]{opacity:1!important;transform:none!important}
-  h1 .wr>span{transform:none!important;opacity:1!important}
+  h1 .wr>span,.slogan .wr>span{transform:none!important;opacity:1!important}
+  .slogan .soft{opacity:1!important;transform:none!important}
 }
 /* Thème : transition douce des couleurs pendant la bascule.
    Classe .theming posée ~500 ms sur <html> au changement de thème.
    Spécificité html.theming > .btn/.subcard/… → écrase les transitions
    habituelles (hover) uniquement pendant cette courte fenêtre. */
 @media (prefers-reduced-motion: no-preference){
-  html.theming :is(.panel,.subcard,.btn,.chip,.stat,.seg,.seg-btn,.theme-btn,.opt,.ans input,.explain,.qcard,.weakbar,.substatrow,.substathead,.prompt,.qeyebrow,.weaknm,.fb,.lede,.note,.brand,.margin-note){
+  html.theming :is(.panel,.subcard,.btn,.chip,.stat,.seg,.seg-btn,.theme-btn,.opt,.ans input,.explain,.qcard,.weakbar,.substatrow,.substathead,.prompt,.qeyebrow,.weaknm,.fb,.lede,.slogan,.note,.brand,.margin-note){
     transition:background-color .45s var(--ease),border-color .45s var(--ease),color .45s var(--ease);
   }
   /* Les éléments dont la COULEUR (pas le fond) lit var(--accent) : eyebrow,
      mot en italique du titre, noms de chapitre — ajoutés pour la bascule
      de matière (violet PC) et les changements de thème. */
-  html.theming :is(.eyebrow,h1 em,.subcard .nm,.substatrow b,.weaknm){transition:color .45s var(--ease)}
+  html.theming :is(.eyebrow,h1 em,.slogan .sai,.subcard .nm,.substatrow b,.weaknm){transition:color .45s var(--ease)}
+  html.theming .slogan .sai .pen path{transition:stroke .45s var(--ease)}
 }
 /* Confettis : pluie de papier colorée (révision finie / record sprint).
    Chaque pièce porte --drift (écart horizontal) et --rot (rotation totale). */
@@ -402,7 +423,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc(.95s
 }
 @keyframes vzDraw{to{stroke-dashoffset:0}}
 </style>
-<noscript><style>[data-rv]{opacity:1;transform:none}h1 .wr>span{transform:none;opacity:1}</style></noscript>
+<noscript><style>[data-rv]{opacity:1;transform:none}h1 .wr>span,.slogan .wr>span{transform:none;opacity:1}.slogan .soft{opacity:1;transform:none}</style></noscript>
 
 <header class="topbar">
   <div class="wrap row space-between">
@@ -429,14 +450,14 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc(.95s
     <p class="eyebrow" data-rv style="--d:.24s" id="heroEyebrow">Première · spécialité maths</p>
     <h1>
       <span class="wr"><span style="--d:.34s">Quizio</span></span>
-      <span class="wr"><span style="--d:.42s">·</span></span>
-      <span class="wr"><span style="--d:.50s">Plus</span></span>
-      <span class="wr"><span style="--d:.58s">tu</span></span>
-      <span class="wr"><span style="--d:.66s">quiz,</span></span>
-      <span class="wr"><span style="--d:.74s">plus</span></span>
-      <span class="wr"><span style="--d:.82s"><em>tu</em></span></span>
-      <span class="wr"><span style="--d:.90s"><em>sais.</em></span></span>
     </h1>
+    <p class="slogan">
+      <span class="wr"><span style="--d:.46s">Plus</span></span>
+      <span class="wr"><span style="--d:.54s">tu</span></span>
+      <span class="wr"><span style="--d:.62s">quiz,</span></span>
+      <span class="wr"><span style="--d:.70s">plus</span></span>
+      <span class="soft" style="--d:.80s"><span class="sai">tu&nbsp;sais.<svg class="pen" viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M3 8C26 3 55 10 82 6S114 7 117 5" pathLength="1" vector-effect="non-scaling-stroke"/></svg></span></span>
+    </p>
     <p class="lede" data-rv style="--d:.78s" id="heroLede">Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.</p>
 
     <div class="row space-between wrap-row" data-rv style="--d:.88s;margin-bottom:22px">
