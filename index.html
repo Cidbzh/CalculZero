@@ -336,8 +336,8 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .hero{grid-area:hero;min-width:0;display:flex;gap:40px;align-items:flex-end}
 .herotxt{flex:0 1 auto;min-width:0}
 /* « À réviser » : #revSlot est un simple <div> rempli/vidé par renderHome ;
-   vide = display:none → pas de vide parasite. .revcta garde sa carte voyante
-   (hors de la marge → le décartonnage .marge .panel ne l'atteint pas). */
+   vide = display:none → pas de vide parasite. .revcta est une carte voyante,
+   comme les panneaux standards. */
 #revSlot{min-width:0;flex:0 0 300px;margin-bottom:-24px}
 #revSlot:empty{display:none}
 .hero .revcta{margin-bottom:0}
@@ -346,14 +346,11 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .margewrap{position:sticky;top:88px;display:grid;gap:24px}
 .margewrap .margin-note{margin:0;margin-left:auto}
 #noteTop{display:none}
-/* La marge porte « Points faibles » (#statsExtra) en « notes manuscrites » :
-   le « décartonnage » retire carton/bordure/ombre et réduit le titre en petit
-   label majuscule. L'exclusion :not(.revcta) reste comme garde-fou au cas où
-   une CARTE voyante reviendrait un jour en marge. « À réviser » (#revSlot) a
-   quitté la marge pour la rangée du hero ; « Par thème » (#bySubSlot) reste en
-   colonne principale sous le sprint. */
-.marge .panel:not(.revcta){padding:0;margin-bottom:0;background:transparent;border:0;box-shadow:none}
-.marge .panel:not(.revcta) h2{font:700 12.5px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 10px}
+/* La marge porte « Points faibles » (#statsExtra) en PANNEAU STANDARD —
+   carton, bordure, ombre, h2 20 px + trait de plume, comme les autres blocs
+   de l'accueil (plus de « décartonnage » en notes manuscrites : jugé trop
+   discret, 2026-08-22). « À réviser » (#revSlot) est dans la rangée du hero ;
+   « Par thème » (#bySubSlot) reste en colonne principale sous le sprint. */
 @media (max-width:1024px){
   #home{display:block}
   .margewrap{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
@@ -2680,11 +2677,9 @@ function renderHome(){
   /* ---- v2 : « À réviser » (rangée du hero) / « Par thème » (colonne) / points
      faibles (marge) ---- */
   /* « À réviser » : CTA de relance — carte voyante .revcta, DANS le hero, à
-     droite du bloc texte, alignée avec la description (#revSlot, hors de la
-     marge → conserve sa carte, le décartonnage .marge .panel ne la touche
-     plus). Le slot est un simple <div> (vide = display:none, pas de vide
-     parasite) ; son bouton #btnReview est câblé ici, le slot étant
-     rempli/vidé à chaque rendu. */
+     droite du bloc texte, alignée avec la description. Le slot est un simple
+     <div> (vide = display:none, pas de vide parasite) ; son bouton #btnReview
+     est câblé ici, le slot étant rempli/vidé à chaque rendu. */
   const revSlot=$("#revSlot");
   if(revSlot){
     revSlot.innerHTML=stats.review.length>0?
@@ -2714,9 +2709,9 @@ function renderHome(){
         }).join("")+
       `</section>`:"";
   }
-  /* Points faibles : dans la MARGE (slot #statsExtra dans .margewrap) — le
-     décartonnage .marge .panel l'affiche en « notes manuscrites » (titre en
-     petit label, sans carton). Slot simple <div>, vide = 0 hauteur. */
+  /* Points faibles : dans la MARGE (slot #statsExtra dans .margewrap) —
+     panneau standard (carton + h2 + trait de plume), comme les autres blocs
+     de l'accueil. Slot simple <div>, vide = 0 hauteur. */
   const extra=$("#statsExtra");
   if(extra){
     let html="";
