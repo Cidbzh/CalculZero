@@ -214,9 +214,6 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
   font:italic 500 16.5px/1.4 var(--f-display);color:var(--muted);opacity:.95;
   transform:rotate(-2deg);transform-origin:100% 0;
 }
-.margin-note.end{
-  margin:36px auto 12px;transform:rotate(1.6deg);transform-origin:100% 0;
-}
 .note{margin:12px 0 0;font-size:13px;color:var(--muted);padding-left:11px;border-left:2.5px solid var(--pen)}
 .panel{
   background:var(--surface);border:1px solid var(--line);
@@ -316,11 +313,10 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .marge .panel{padding:0;margin-bottom:0;background:transparent;border:0;box-shadow:none}
 .marge .panel h2{font:700 12.5px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 10px}
 #statsExtra{display:contents}
-/* Ordre de la marge : Par thème → À réviser → Points faibles.
-   Les enfants de #statsExtra sont des items de la grid .margewrap
-   (display:contents) → order les décale sans toucher au DOM/JS. */
-#statsExtra .bysub{order:-2}
-#statsExtra .revcta{order:-1}
+/* Ordre de la marge : À réviser → Points faibles, donné par l'ordre du DOM
+   (#revSlot placé avant #statsExtra dans .margewrap). Les enfants de
+   #statsExtra sont des items de la grid .margewrap (display:contents).
+   « Par thème » vit en colonne principale sous les stats — voir #bySubSlot. */
 .marge .weakrow{display:grid;grid-template-columns:1fr auto;row-gap:8px;align-items:center}
 .marge .weakrow .weaknm{grid-area:1/1}
 .marge .weakrow .weakpct{grid-area:1/2}
@@ -545,20 +541,22 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
       <h2 id="hSprint">Sprint 60 s</h2>
       <p class="muted" style="margin:0 0 14px">Tous les thèmes mélangés, réponses rapides, sans temps mort. Le chrono ne s'arrête pas entre deux questions.</p>
       <div class="row space-between wrap-row">
-        <button class="btn btn-ghost" id="btnSprint">Lancer le sprint</button>
+        <button class="btn btn-primary" id="btnSprint">Lancer le sprint</button>
         <span class="chip" id="bestSprint">Record : —</span>
       </div>
     </section>
 
     <div class="statgrid" id="statGrid" data-rv style="--d:1.14s"></div>
 
+    <div id="bySubSlot"></div>
+
     </div>
 
     <aside class="marge">
       <div class="margewrap">
         <p class="margin-note" aria-hidden="true" data-rv style="--d:.15s" id="noteTop">e<sup>iπ</sup> + 1 = 0</p>
+        <div id="revSlot"></div>
         <div id="statsExtra"></div>
-        <p class="margin-note end" aria-hidden="true" data-rv style="--d:1.62s" id="noteBottom">Δ = b² − 4ac — à connaître par cœur ✎</p>
       </div>
     </aside>
   </section>
@@ -2592,23 +2590,19 @@ function setMatiere(m){
 const MAT_DATA={
  maths:{eyebrow:"Première · spécialité maths",
    lede:"Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
-   noteTop:"e<sup>iπ</sup> + 1 = 0",
-   noteBottom:"Δ = b² − 4ac — à connaître par cœur ✎"},
+   noteTop:"e<sup>iπ</sup> + 1 = 0"},
  pc:{eyebrow:"Première · spécialité physique-chimie",
    lede:"Deux minutes de calculs ciblés — Newton, énergie, champs, moles, stœchiométrie, ondes &amp; lumière, électricité — avec une correction détaillée (et des mini-visuels) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
-   noteTop:"F = m·a — 2ᵉ loi de Newton",
-   noteBottom:"Eₖ + Eₚ = Eₘ — l'énergie mécanique ✎"},
+   noteTop:"F = m·a — 2ᵉ loi de Newton"},
  de:{eyebrow:"Première · allemand A2",
    lede:"Deux minutes de révision ciblée — vocabulaire, conjugaison, articles, nombres &amp; dates, phrases utiles, mini-traductions — avec une correction détaillée à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
-   noteTop:"der · die · das — trois articles, pas un de plus",
-   noteBottom:"Hallo! — saluer avant de commencer ✎"}
+   noteTop:"der · die · das — trois articles, pas un de plus"}
 };
 function renderHome(){
   const M=MAT_DATA[state.matiere];
   $("#heroEyebrow").textContent=M.eyebrow;
   $("#heroLede").innerHTML=M.lede;
   $("#noteTop").innerHTML=M.noteTop;
-  $("#noteBottom").innerHTML=M.noteBottom;
   document.querySelectorAll(".seg-btn[data-mat]").forEach(x=>x.classList.toggle("on",x.dataset.mat===state.matiere));
   $("#bestSprint").textContent="Record : "+(stats.bestSprint>0?stats.bestSprint+" pts":"—");
   /* Sprint : entrée masquée en allemand (matière 100 % QCM) — la mécanique
@@ -2634,17 +2628,41 @@ function renderHome(){
     state.subject=(state.subject===b.dataset.sub)?"mix":b.dataset.sub;
     renderHome();
   }));
-  /* ---- v2 : points faibles / par thème / à réviser (affichés si données) ---- */
-  const extra=$("#statsExtra");
-  if(extra){
-    let html="";
-    if(stats.review.length>0){
-      html+=`<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.32s">`+
+  /* ---- v2 : « À réviser » + points faibles (marge) / par thème (colonne) ---- */
+  /* « À réviser » : CTA de relance dans la marge, au-dessus des points faibles.
+     Le slot est un simple <div> (vide = 0 hauteur, pas de vide parasite) ; son
+     bouton #btnReview est câblé ici, le slot étant rempli/vidé à chaque rendu. */
+  const revSlot=$("#revSlot");
+  if(revSlot){
+    revSlot.innerHTML=stats.review.length>0?
+      `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.06s">`+
         `<h2 id="hRev">À réviser</h2>`+
         `<p class="muted" style="margin:0 0 16px"><b>${stats.review.length} question${stats.review.length>1?"s":""}</b> à refaire — celles que tu as ratées (et, en révision, celles que tu as passées).</p>`+
         `<button type="button" class="btn btn-primary" id="btnReview">Reviser maintenant →</button>`+
-        `</section>`;
-    }
+        `</section>`:"";
+    const br=$("#btnReview");
+    if(br)br.addEventListener("click",startReview);
+  }
+  /* « Par thème » : tableau des résultats par thème, en colonne principale
+     sous les stats. Slot simple <div> : vide = 0 hauteur, pas de vide
+     parasite tant qu'aucune question n'a été répondue. */
+  const bySlot=$("#bySubSlot");
+  if(bySlot){
+    bySlot.innerHTML=activeSubjects().some(s=>{const st=stats.bySub[s.id];return st&&st.ans>0;})?
+      `<section class="panel bysub" aria-labelledby="hBySub" data-rv style="--d:1.52s">`+
+        `<h2 id="hBySub">Par thème</h2>`+
+        `<div class="substathead"><span>thème</span><span>q</span><span>précision</span><span>série</span></div>`+
+        activeSubjects().map(s=>{
+          const st=stats.bySub[s.id]||{ans:0,good:0};
+          const pct=st.ans?Math.round(100*st.good/st.ans)+"%":"—";
+          const stk=stats.streakBySub[s.id]||0;
+          return `<div class="substatrow"><b>${s.name}</b><span>${st.ans||0}</span><span>${pct}</span><span>${stk>0?"🔥"+stk:"—"}</span></div>`;
+        }).join("")+
+      `</section>`:"";
+  }
+  const extra=$("#statsExtra");
+  if(extra){
+    let html="";
     const weak=weakPoints();
     if(weak.length){
       html+=`<section class="panel" aria-labelledby="hWeak" data-rv style="--d:1.42s">`+
@@ -2663,26 +2681,10 @@ function renderHome(){
     }else{
       html+=`<p class="margeline" data-rv style="--d:1.42s">Lance quelques entraînements : tes points faibles apparaîtront ici.</p>`;
     }
-    if(activeSubjects().some(s=>{const st=stats.bySub[s.id];return st&&st.ans>0;})){
-      html+=`<section class="panel bysub" aria-labelledby="hBySub" data-rv style="--d:1.52s">`+
-        `<h2 id="hBySub">Par thème</h2>`+
-        `<div class="substathead"><span>thème</span><span>q</span><span>précision</span><span>série</span></div>`+
-        activeSubjects().map(s=>{
-          const st=stats.bySub[s.id]||{ans:0,good:0};
-          const pct=st.ans?Math.round(100*st.good/st.ans)+"%":"—";
-          const stk=stats.streakBySub[s.id]||0;
-          return `<div class="substatrow"><b>${s.name}</b><span>${st.ans||0}</span><span>${pct}</span><span>${stk>0?"🔥"+stk:"—"}</span></div>`;
-        }).join("")+
-        `</section>`;
-    }else{
-      html+=`<p class="margeline" data-rv style="--d:1.52s">Tes résultats par thème apparaîtront ici.</p>`;
-    }
     extra.innerHTML=html;
     extra.querySelectorAll("[data-weak]").forEach(b=>b.addEventListener("click",()=>{
       const p=b.dataset.weak.split(":");trainWeak(p[0],p[1]);
     }));
-    const br=$("#btnReview");
-    if(br)br.addEventListener("click",startReview);
   }
 }
 
@@ -3006,10 +3008,23 @@ function confetti(){
 }
 
 /* ---------- Câblage ---------- */
-document.querySelectorAll(".seg-btn[data-lvl]").forEach(b=>b.addEventListener("click",()=>{
-  state.level=b.dataset.lvl;
-  document.querySelectorAll(".seg-btn[data-lvl]").forEach(x=>x.classList.toggle("on",x===b));
-}));
+/* Changement de niveau : même chorégraphie que la bascule de matière —
+   fenêtre .theming (couleurs) pendant 520 ms + cascade d'arrivée rearmée en
+   mode rapide (rearmBoot(true)). Le niveau ne change ni texte ni accent :
+   la transition est le "souffle" de ré-entrée, comme après un changement de
+   matière. Le guard évite de rejouer la cascade en reclickant le niveau actif. */
+function setNiveau(l){
+  if(state.level===l)return;
+  state.level=l;
+  document.querySelectorAll(".seg-btn[data-lvl]").forEach(x=>x.classList.toggle("on",x.dataset.lvl===l));
+  const r=document.documentElement;
+  r.classList.add("theming");
+  clearTimeout(setNiveau._t);
+  setNiveau._t=setTimeout(function(){r.classList.remove("theming");},520);
+  renderHome();
+  rearmBoot(true);
+}
+document.querySelectorAll(".seg-btn[data-lvl]").forEach(b=>b.addEventListener("click",()=>setNiveau(b.dataset.lvl)));
 /* Ciblée sur .seg-btn : [data-mat] seul inclurait <html> (data-mat="pc" en mode
    physique-chimie) et tout clic de la page rebasculerait sur PC par délégation
    d'événement (bulles de clic). */
