@@ -1,4 +1,4 @@
-<title>Quizio</title>
+<title>Quizey</title>
 <!-- Favicon : le « Q à la plume » (source : logo.svg). Data: URI pour garder
      l'app en fichier unique ; la plume change d'accent avec la matière (setFavicon). -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cg%20fill='none'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='29'%20cy='28'%20r='19'%20stroke='%2316233D'%20stroke-width='7'/%3E%3Cpath%20d='M23%2033%20C31%2044,%2045%2047,%2055%2035'%20stroke='%232563EB'%20stroke-width='7'/%3E%3C/g%3E%3C/svg%3E">
@@ -163,7 +163,7 @@ body{
   body:has(#home:not([hidden])) .topbar .wrap{padding-right:360px}
 }
 .brand{display:inline-flex;align-items:center;font:700 21px var(--f-display);letter-spacing:.01em}
-/* Pas de gap sur le conteneur : « Quiz » et « io » seraient deux items flex
+/* Pas de gap sur le conteneur : « Quiz » et « ey » seraient deux items flex
    séparés de 9 px. L'espacement logo→texte vit sur la marque elle-même. */
 .brand .brandmark{flex:none;transform:translateY(1px);margin-right:9px}
 .brand span{font-style:italic;color:var(--pen)}
@@ -325,27 +325,57 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .substathead{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .substatrow{border-top:1px solid var(--line);font:500 15px var(--f-body);color:var(--muted)}
 .substatrow b{font:700 15.5px var(--f-display);color:var(--accent)}
-.revcta{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent);padding:12px 24px}
-/* Apparence d'origine (300 px, titre 20 px, bouton plein format) — 2026-08-20 :
-   carte COMPACTE : la ligne « N questions à refaire » est pliée DANS le bouton
-   (« Réviser N questions → »), padding vertical 12 px, h2 -10 px. Hauteur mesurée
-   ≈ 117 px (la description .lede fait 84 px) : le haut de la carte atteint la
-   partie basse du slogan, jamais le titre. */
-.revcta h2{margin-bottom:10px}
+/* « À réviser » — PANNEAU STANDARD, comme les autres blocs de l'accueil
+   (redesign 2026-08-21 : la carte « encre » était jugée plus voyante que le
+   reste — l'applatir). Fond/bordure/ombre hérités de .panel, h2 standard avec
+   son trait. Contenu = UNIQUEMENT le nombre de questions en attente (les
+   chapitres retirés à la demande — le bloc est réduit et resserré), bouton
+   standard, comme les CTA des autres blocs. */
+.revnum{display:flex;align-items:baseline;gap:8px;margin:0 0 14px}
+.revcount{font:600 24px/1 var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.revsub{font:500 13px var(--f-body);color:var(--muted)}
+/* Bouton = .btn .btn-primary STANDARD, comme « Commencer l'entraînement » et
+   « Lancer le sprint » (pas de surcharge de taille pour ce bloc). */
 /* ---------- « cahier avec marge » : accueil en 2 colonnes (spec §3.2) ---------- */
-/* La rangée du hero traverse les DEUX colonnes : à l'intérieur, le bloc texte
-   (titre + slogan + description) est dimensionné sur son contenu et la carte
-   « À réviser » se cale juste à sa droite — plus collée au bord droit de la
-   page — en bas (align-items:flex-end) → alignée avec la description. */
-#home{display:grid;grid-template-areas:"hero hero" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:40px}
-.hero{grid-area:hero;min-width:0;display:flex;gap:40px;align-items:flex-end}
-.herotxt{flex:0 1 auto;min-width:0}
+/* La rangée du hero traverse les DEUX colonnes : le bloc texte (titre +
+   slogan + description) est en tête, et la carte « À réviser » passe SOUS
+   le texte, sur sa propre ligne, avec la MÊME LARGEUR que la colonne
+   principale : ses DEUX bords sont calés sur les blocs en dessous (stats /
+   entraînement / sprint) — ne les dépasse jamais. Largeur = 100% de la
+   rangée moins 360px (320 marge + 40 gap), le même décalage que les
+   sélecteurs de la topbar. Écart description↔carte = 24 px : le rythme
+   standard entre blocs (16 px) « légèrement augmenté » — demande 2026-08-21. */
+/* row-gap 16 px = rythme standard entre panneaux (marge des .panel) —
+   l'écart « À réviser » → blocs en dessous est le même que partout
+   (demande 2026-08-21) ; column-gap 40 px = écart entre colonnes. */
+#home{display:grid;grid-template-areas:"hero hero" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:16px 40px}
+.hero{grid-area:hero;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:24px}
+.herotxt{min-width:0}
 /* « À réviser » : #revSlot est un simple <div> rempli/vidé par renderHome ;
-   vide = display:none → pas de vide parasite. .revcta est une carte voyante,
-   comme les panneaux standards. */
-#revSlot{min-width:0;flex:0 0 300px;margin-bottom:-24px}
+   vide = display:none → pas de vide parasite. .revcta = panneau STANDARD,
+   pas plus voyant que les autres blocs (décision 2026-08-21), et sur UNE
+   ligne : [titre · N questions à refaire] … [noms de chapitres] [bouton].
+   2026-08-21 : carte sur sa propre ligne sous le texte, pleine largeur de
+   la colonne principale — alignée avec les blocs en dessous, sans jamais
+   les dépasser ; son écart avec les blocs sous elle = 16 px, le rythme
+   standard entre panneaux (row-gap de #home, même valeur que la marge des
+   .panel). */
+#revSlot{min-width:0;width:calc(100% - 360px)}
 #revSlot:empty{display:none}
-.hero .revcta{margin-bottom:0}
+.hero .revcta{display:flex;align-items:center;flex-wrap:wrap;gap:10px 22px;padding:20px 22px;margin-bottom:0}
+.hero .revcta h2{margin:0}
+/* Composition de la ligne (demande 2026-08-21) : [À réviser]
+   [N questions à refaire · ≈ N min] [chapitres, max 4 noms + « +N autres »] … [bouton]
+   — la ligne DOIT toujours tenir sur une ligne (sinon le bouton passe sur
+   une 2e ligne — d'où le plafond de 4 noms dans renderHome). Les
+   informations restent groupées à gauche (compteur, estimation « ≈ N min »
+   et chapitres collés, gap 22 px de la carte) et la marge auto du bouton
+   l'aligne sur le bord droit — l'estimation comble les espaces qui
+   entouraient le groupe centré (jugés trop larges, demande 2026-08-21). */
+.hero .revcta .revnum{margin:0}
+.hero .revcta .revtime{font:500 14px/1.3 var(--f-body);color:var(--muted)}
+.hero .revcta .revchaps{min-width:0;font:500 14px/1.3 var(--f-body);color:var(--muted)}
+.hero .revcta .btn{margin-left:auto}
 .home-main{grid-area:main;min-width:0}
 .marge{grid-area:marge;min-width:0}
 .margewrap{position:sticky;top:88px;display:grid;gap:24px}
@@ -358,12 +388,10 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
    « Par thème » (#bySubSlot) reste en colonne principale sous le sprint. */
 @media (max-width:1024px){
   #home{display:block}
+  /* Plus de colonne principale à ne pas dépasser (blocs empilés pleine
+     largeur) → la carte repasse pleine largeur. */
+  #revSlot{width:100%}
   .margewrap{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
-}
-/* Écrans étroits : la carte « À réviser » passe sous le texte, pleine largeur. */
-@media (max-width:900px){
-  .hero{flex-direction:column;align-items:stretch;gap:24px}
-  #revSlot{flex-basis:auto;width:100%;margin-bottom:0}
 }
 @media (max-width:600px){
   .margewrap{grid-template-columns:1fr}
@@ -517,7 +545,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
 
 <header class="topbar">
   <div class="wrap row space-between">
-    <div class="brand"><svg class="brandmark" width="25" height="25" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="29" cy="28" r="19" stroke="var(--ink)" stroke-width="7"/><path d="M23 33 C31 44, 45 47, 55 35" stroke="var(--pen)" stroke-width="7"/></g></svg>Quiz<span>io</span></div>
+    <div class="brand"><svg class="brandmark" width="25" height="25" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="29" cy="28" r="19" stroke="var(--ink)" stroke-width="7"/><path d="M23 33 C31 44, 45 47, 55 35" stroke="var(--pen)" stroke-width="7"/></g></svg>Quiz<span>ey</span></div>
     <div class="row wrap-row" style="gap:12px">
       <div class="seg" role="group" aria-label="Matière">
         <button type="button" class="seg-btn on" data-mat="maths">Maths</button>
@@ -546,7 +574,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
     <div class="herotxt">
     <p class="eyebrow" data-rv style="--d:.24s" id="heroEyebrow">Première · spécialité maths</p>
     <h1>
-      <span class="wr"><span style="--d:.34s">Quizio</span></span>
+      <span class="wr"><span style="--d:.34s">Quizey</span></span>
     </h1>
     <p class="slogan">
       <span class="wr"><span style="--d:.46s">Plus</span></span>
@@ -2494,13 +2522,15 @@ const store={
   get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 };
-/* ---- Renommage CalculZéro → Quizio (2026-08-20) : on porte les clés historiques cz_*
-       sur qz_* — les stats et les choix des utilisateurs existants survivent au renommage.
+/* ---- Historique des renommages : CalculZéro (cz_*) → Quizio → Quizey (2026-08-21).
+       Seuls les cz_* ont migré, vers qz_* — l'app s'appelle Quizey mais les clés
+       gardent le préfixe d'origine : aucune migration supplémentaire à faire,
+       les stats et les choix des utilisateurs existants survivent à chaque renommage.
        Les anciennes clés sont conservées en secours (aucune donnée n'est supprimée). ---- */
 ["theme","subject","stats","stats_pc","stats_de"].forEach(k=>{try{const old=localStorage.getItem("cz_"+k);if(old!==null&&localStorage.getItem("qz_"+k)===null)localStorage.setItem("qz_"+k,old);}catch(e){}});
 /* ---- Matière : "maths" (défaut), "pc" ou "de" — persistée sous qz_subject ---- */
 const SUBJECT_KEY="qz_subject";
-const state={matiere:(function(){try{const v=JSON.parse(localStorage.getItem(SUBJECT_KEY));return v==="pc"?"pc":v==="de"?"de":"maths";}catch(e){return"maths";}})(),mode:null,level:"moyen",subject:"mix",q:null,sub:null,curLvl:null,streak:0,maxStreak:0,score:0,good:0,bad:0,n:0,timer:null,timeLeft:60,answered:false,skipQueue:[],skips:0};
+const state={matiere:(function(){try{const v=JSON.parse(localStorage.getItem(SUBJECT_KEY));return v==="pc"?"pc":v==="de"?"de":"maths";}catch(e){return"maths";}})(),mode:null,level:"moyen",subject:"mix",q:null,sub:null,curLvl:null,streak:0,maxStreak:0,score:0,good:0,bad:0,n:0,timer:null,timeLeft:60,answered:false,skipQueue:[],skips:0,qT0:0};
 /* ---- Stats : trois emplacements (qz_stats maths / qz_stats_pc / qz_stats_de), même forme,
        Migration v2 commune + migration de nom cz_* → qz_* ci-dessus — les anciens utilisateurs ne perdent rien ---- */
 function loadStats(key){
@@ -2510,6 +2540,8 @@ function loadStats(key){
   if(st.streakBySub===undefined)st.streakBySub={};   /* id -> meilleure série par thème */
   if(st.history===undefined)st.history=[];            /* [{s,l,o}] — 100 dernières réponses */
   if(st.review===undefined)st.review=[];              /* [{s,l,q}] — liste à réviser (max 50) */
+  if(st.respTimes===undefined)st.respTimes=[];        /* [s] — temps de réponse récents (mode libre) → estimation « ≈ N min » */
+  if(st.respTimes.length>30)st.respTimes=st.respTimes.slice(-30);
   /* Orphelines : une question à réviser ou une entrée d'historique rattachée à un thème
      supprimé du registre (ex. « cosmo », retiré de PC) plantait renderQ (r.sub.name) et
      cassait « S'entraîner » (point faible inexistant). Purgées au chargement — idempotent.
@@ -2640,17 +2672,39 @@ function renderHome(){
   }));
   /* ---- v2 : « À réviser » (rangée du hero) / « Par thème » (colonne) / points
      faibles (marge) ---- */
-  /* « À réviser » : CTA de relance — carte voyante .revcta, DANS le hero, à
-     droite du bloc texte, alignée avec la description. Le slot est un simple
+  /* « À réviser » : panneau standard .revcta (pas plus voyant que les autres
+     blocs — décision 2026-08-21), DANS le hero, sur sa propre ligne sous le
+     texte, pleine largeur de la colonne principale. Le slot est un simple
      <div> (vide = display:none, pas de vide parasite) ; son bouton #btnReview
      est câblé ici, le slot étant rempli/vidé à chaque rendu. */
   const revSlot=$("#revSlot");
   if(revSlot){
-    revSlot.innerHTML=stats.review.length>0?
-      `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.06s">`+
+    if(stats.review.length>0){
+      /* 2026-08-21 : ligne = [titre] [N questions à refaire · ≈ N min]
+         [chapitres, MAX 4 noms + « +N autres » sinon le bouton passe sur une
+         2e ligne] … [bouton aligné à droite]. Thèmes distincts de la liste,
+         ordre de première occurrence, noms résolus par THEME_BY_ID (toutes
+         matières confondues — loadStats ne garde que les ids résolus).
+         & échappé (« Log & exp », « Droites & affines »).
+         « ≈ N min » (2026-08-21) : moyenne des temps de réponse du mode libre
+         (stats.respTimes, chrono SILENCIEUX d'afterAnswer) × nombre de
+         questions — affichée seulement s'il y a ≥ 3 mesures, jamais < 1 min. */
+      const chapsAll=[...new Set(stats.review.map(r=>THEME_BY_ID[r.s]?THEME_BY_ID[r.s].name:null))].filter(Boolean);
+      const chaps=chapsAll.length?chapsAll.slice(0,4).map(n=>n.replace(/&/g,"&amp;")).join(" · ")+
+        (chapsAll.length>4?` +${chapsAll.length-4} autre${chapsAll.length>5?"s":""}`:""):"";
+      const n=stats.review.length;
+      const est=(stats.respTimes.length>=3)?Math.max(1,Math.round(stats.respTimes.reduce((a,b)=>a+b,0)/stats.respTimes.length*n/60)):0;
+      revSlot.innerHTML=
+        `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.06s">`+
         `<h2 id="hRev">À réviser</h2>`+
-        `<button type="button" class="btn btn-primary" id="btnReview">Réviser ${stats.review.length} question${stats.review.length>1?"s":""} →</button>`+
-        `</section>`:"";
+        `<p class="revnum"><span class="revcount">${n}</span><span class="revsub">questions à refaire</span></p>`+
+        (est?`<span class="revtime">≈ ${est} min</span>`:"")+
+        (chaps?`<span class="revchaps">${chaps}</span>`:"")+
+        `<button type="button" class="btn btn-primary" id="btnReview">Réviser maintenant →</button>`+
+        `</section>`;
+    }else{
+      revSlot.innerHTML="";
+    }
     const br=$("#btnReview");
     if(br)br.addEventListener("click",startReview);
   }
@@ -2744,6 +2798,7 @@ function pickQ(){
 }
 function renderQ(){
   state.answered=false;
+  state.qT0=performance.now();   /* horodatage de l'affichage — chronomètre SILENCIEUX (sert à estimer le temps de révision, jamais affiché pendant la partie) */
   let r;
   if(state.mode==="review"){
     r=pickQ();
@@ -2851,6 +2906,11 @@ function afterAnswer(ok,q,extra){
   stats.bestStreak=Math.max(stats.bestStreak,state.streak);
   /* v2 : série par thème, historique glissant, liste de révision */
   const lvl=state.curLvl||state.level;
+  /* Chrono silencieux (2026-08-21) : temps de réponse du mode LIBRE uniquement,
+     30 derniers conservés, pour estimer « ≈ N min » sur la carte À réviser —
+     jamais affiché pendant la partie. Garde-fou 0,5 s–1 h : exclut les artefacts
+     (DOM de test, onglet inactif) et les valeurs absurdes. */
+  if(state.mode==="free"&&state.qT0){const dt=(performance.now()-state.qT0)/1000;if(dt>0.5&&dt<3600){stats.respTimes.push(dt);if(stats.respTimes.length>30)stats.respTimes=stats.respTimes.slice(-30);}}
   stats.streakBySub[state.sub.id]=Math.max(stats.streakBySub[state.sub.id]||0,state.streak);
   pushHistory(state.sub.id,lvl,ok?1:0);
   if(ok)reviewRemove(q);

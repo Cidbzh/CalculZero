@@ -1,12 +1,12 @@
-# Quizio
+# Quizey
 
 **Plus tu quiz, plus tu sais.**
 
-Quizio c'est de l'entraînement pour la **Première** : maths (spécialité), physique-chimie et allemand A2. Chaque question est générée à la volée — tu ne vois jamais deux fois les mêmes nombres — avec sa correction détaillée.
+Quizey c'est de l'entraînement pour la **Première** : maths (spécialité), physique-chimie et allemand A2. Chaque question est générée à la volée — tu ne vois jamais deux fois les mêmes nombres — avec sa correction détaillée.
 
 ## Démarrer
 
-Ouvre `Quizio.html` dans ton navigateur. C'est tout : aucun compte, aucune installation, fonctionne hors ligne. Tes progrès restent sur ton ordinateur.
+Ouvre `Quizey.html` dans ton navigateur. C'est tout : aucun compte, aucune installation, fonctionne hors ligne. Tes progrès restent sur ton ordinateur.
 
 ## Trois façons de t'entraîner
 
@@ -18,7 +18,7 @@ Ouvre `Quizio.html` dans ton navigateur. C'est tout : aucun compte, aucune insta
 
 Chaque question s'accompagne d'une **correction détaillée** (la méthode, pas seulement le résultat), d'un **mini-visuel** quand la question s'y prête, et d'un bouton **Passer** qui met la question de côté.
 
-Quizio repère aussi tes **points faibles** (thème × niveau, sur tes 100 dernières réponses) et te propose un entraînement ciblé sur chacun.
+Quizey repère aussi tes **points faibles** (thème × niveau, sur tes 100 dernières réponses) et te propose un entraînement ciblé sur chacun.
 
 ## Les thèmes
 
