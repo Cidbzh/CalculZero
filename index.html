@@ -299,18 +299,24 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 #home{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px}
 .home-main{min-width:0}
 .marge{min-width:0}
-.margewrap{position:sticky;top:88px;display:grid;gap:16px}
+.margewrap{position:sticky;top:88px;display:grid;gap:24px}
 .margewrap .margin-note{margin:0;margin-left:auto}
-.marge .statgrid{grid-template-columns:repeat(2,1fr);gap:8px;margin-top:0}
-.marge .stat{padding:12px}
+/* Marge v2 — notes manuscrites : zéro carton, hiérarchie typographique */
+#noteTop{display:none}
+.marge .statgrid{grid-template-columns:repeat(3,1fr);gap:16px 14px;margin-top:0}
+.marge .stat{border:0;background:transparent;padding:0;box-shadow:none}
+.marge .stat:hover{transform:none;box-shadow:none;border-color:var(--line)}
 .marge .stat .v{font-size:18px}
-.marge .panel{padding:16px;margin-bottom:0}
+.marge .stat .k{font-size:11.5px;line-height:1.35;margin-top:3px}
+.marge .panel{padding:0;margin-bottom:0;background:transparent;border:0;box-shadow:none}
+.marge .panel h2{font:700 12.5px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 10px}
 #statsExtra{display:contents}
 .marge .weakrow{flex-wrap:wrap;row-gap:8px}
 .marge .weakrow .weakbar{width:auto;flex:1 1 120px}
 @media (max-width:1024px){
   #home{display:block}
   .margewrap{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
+  .marge .statgrid{grid-template-columns:repeat(2,1fr);gap:16px 14px}
 }
 @media (max-width:600px){
   .margewrap{grid-template-columns:1fr}
