@@ -1,5 +1,5 @@
 
-# Snapshots historiques (copies d'index.html)
+# Snapshots historiques (copies de Quizio.html)
 .superpowers/
 
 # Configuration éditeur personnelle (chemins absolus)
@@ -7,3 +7,14 @@
 
 # Fichiers de backup
 *.bak
+
+# Artefacts QA éphémères (copies tmp + captures, jamais commités)
+.shots/
+
+# Fichiers de dev — volontairement HORS du dépôt GitHub (le dépôt ne contient que l'app + ce .gitignore)
+CLAUDE.md
+README.md
+_qz_verify.js
+docs/
+logo.svg
+logo-preview.html
