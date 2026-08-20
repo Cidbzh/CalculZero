@@ -1,6 +1,6 @@
 "use strict";
-/* Vérification CalculZéro — syntaxe + test fonctionnel du thème (DOM factice).
-   Aucune dépendance. Lancer : node _cz_verify.js */
+/* Vérification Quizio — syntaxe + test fonctionnel du thème (DOM factice).
+   Aucune dépendance. Lancer : node _qz_verify.js */
 const fs=require("fs"),vm=require("vm"),path=require("path");
 const html=fs.readFileSync(path.join(__dirname,"index.html"),"utf8");
 const blocks=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
@@ -78,7 +78,7 @@ function runApp(env){
   vm.runInContext(appBlock,ctx);
   return ctx;
 }
-function savedTheme(){const v=lsData.get("cz_theme");return v==null?null:JSON.parse(v);}
+function savedTheme(){const v=lsData.get("qz_theme");return v==null?null:JSON.parse(v);}
 
 /* ========================================================= */
 console.log("\n[1] Syntaxe — compilation des deux blocs <script>");
@@ -93,10 +93,15 @@ console.log("\n[2] Script anti-flash (tête de fichier)");
 {
   const el=makeEl();
   vm.runInContext(earlyBlock,vm.createContext({localStorage:{getItem:()=>"\"dark\"",setItem:()=>{},removeItem:()=>{}},document:{documentElement:el}}));
-  ok("cz_theme=\"dark\" → data-theme=\"dark\"",el.getAttribute("data-theme")==="dark");
+  ok("qz_theme=\"dark\" → data-theme=\"dark\"",el.getAttribute("data-theme")==="dark");
   const el2=makeEl();
   vm.runInContext(earlyBlock,vm.createContext({localStorage:{getItem:()=>null,setItem:()=>{},removeItem:()=>{}},document:{documentElement:el2}}));
-  ok("cz_theme absent → pas d'attribut (auto)",el2.getAttribute("data-theme")===null);
+  ok("qz_theme absent → pas d'attribut (auto)",el2.getAttribute("data-theme")===null);
+  /* Fallback pré-migration : un "ancien" navigateur n'a QUE l'ancienne clé cz_theme —
+     le script anti-flash (qui tourne AVANT le gros script et sa migration) doit la lire. */
+  const el3=makeEl();
+  vm.runInContext(earlyBlock,vm.createContext({localStorage:{getItem:k=>k==="cz_theme"?"\"dark\"":null,setItem:()=>{},removeItem:()=>{}},document:{documentElement:el3}}));
+  ok("seule l'ancienne clé cz_theme présente → data-theme=\"dark\" (fallback anti-flash)",el3.getAttribute("data-theme")==="dark");
 }
 
 /* ========================================================= */
@@ -133,7 +138,7 @@ console.log("\n[4] Clic sur les boutons — application + persistance");
 /* ========================================================= */
 console.log("\n[5] Rechargement — le choix sauvegardé est réappliqué");
 {
-  lsData.clear();lsData.set("cz_theme",JSON.stringify("dark")); /* dernière préférence = sombre */
+  lsData.clear();lsData.set("qz_theme",JSON.stringify("dark")); /* dernière préférence = sombre */
   const env=buildEnv();runApp(env);
   ok("recharge : data-theme=\"dark\" restauré",env.document.documentElement.getAttribute("data-theme")==="dark");
   ok("recharge : bouton Sombre actif",env.tb.dark.classList.contains("on")===true);
@@ -233,21 +238,21 @@ console.log("\n[8] Bascule de matière — les stats maths doivent rester intact
 {
   lsData.clear();
   const mathsSeed={ans:12,good:9,bestStreak:4,bestSprint:80,bySub:{deriv:{ans:5,good:4}},skips:2,streakBySub:{deriv:3},history:[{s:"deriv",l:"facile",o:1},{s:"deriv",l:"moyen",o:0}],review:[]};
-  lsData.set("cz_stats",JSON.stringify(mathsSeed));
+  lsData.set("qz_stats",JSON.stringify(mathsSeed));
   const env=buildEnv();
   const ctx=runApp(env);
-  const mathsBefore=lsData.get("cz_stats");
+  const mathsBefore=lsData.get("qz_stats");
   const api=vm.runInContext("({setMatiere,startFree,statsNow:()=>stats,okAns:()=>afterAnswer(true,state.q,'')})",ctx);
   api.setMatiere("pc");
-  ok("cz_subject persisté = pc",lsData.get("cz_subject")==='"pc"');
+  ok("qz_subject persisté = pc",lsData.get("qz_subject")==='"pc"');
   api.startFree();
   api.okAns(); /* répond « juste » à la question PC courante */
-  const pcRaw=lsData.get("cz_stats_pc");
-  ok("cz_stats (maths) bit-à-bit inchangé après la réponse PC",lsData.get("cz_stats")===mathsBefore);
-  ok("cz_stats_pc existe et a été incrémenté (1 réponse, 1 bonne)",pcRaw&&JSON.parse(pcRaw).ans===1&&JSON.parse(pcRaw).good===1);
+  const pcRaw=lsData.get("qz_stats_pc");
+  ok("qz_stats (maths) bit-à-bit inchangé après la réponse PC",lsData.get("qz_stats")===mathsBefore);
+  ok("qz_stats_pc existe et a été incrémenté (1 réponse, 1 bonne)",pcRaw&&JSON.parse(pcRaw).ans===1&&JSON.parse(pcRaw).good===1);
   api.setMatiere("maths");
   ok("retour maths : stats restaurées à l'identique (deep-compare)",JSON.stringify(api.statsNow())===JSON.stringify(mathsSeed));
-  ok("cz_stats (maths) toujours bit-à-bit inchangé",lsData.get("cz_stats")===mathsBefore);
+  ok("qz_stats (maths) toujours bit-à-bit inchangé",lsData.get("qz_stats")===mathsBefore);
 }
 
 /* ========================================================= */
@@ -260,7 +265,7 @@ console.log("\n[9] Bascule de matière — câblage (régression : <html> jamais
      Le DOM factice ne simule pas la bulle — c'est pour ça que l'assertion
      porte sur le listener lui-même, pas sur le comportement en cascade. */
   lsData.clear();
-  lsData.set("cz_subject","\"pc\""); /* page ouverte en PC */
+  lsData.set("qz_subject","\"pc\""); /* page ouverte en PC */
   const env=buildEnv();
   const doc=env.document.documentElement;
   doc.setAttribute("data-mat","pc"); /* ce que l'anti-flash fait au chargement */
@@ -302,7 +307,7 @@ console.log("\n[10] Bascule EN PLEINE cascade — animation UNIQUE (seule la der
            boot à T+2800 ms et coupait la « nouvelle » cascade.
      D'où l'animation « différente selon l'intervalle » de la bascule. */
   lsData.clear();
-  lsData.set("cz_subject","\"pc\""); /* page ouverte en PC */
+  lsData.set("qz_subject","\"pc\""); /* page ouverte en PC */
   const env=buildEnv();
   const doc=env.document.documentElement;
   doc.setAttribute("data-mat","pc");
@@ -355,7 +360,7 @@ console.log("\n[11] Bascule — PAS de temps mort : swap IMMÉDIAT au clic");
      vieux code, le setTimeout(…,230) est stubbé (ne fire jamais) → le swap
      n'est jamais exécuté → data-mat reste « pc » et home-out est posé. */
   lsData.clear();
-  lsData.set("cz_subject","\"pc\"");
+  lsData.set("qz_subject","\"pc\"");
   const env=buildEnv(); /* matchMedia par défaut : matches:false (non reduced) */
   const doc=env.document.documentElement;
   doc.setAttribute("data-mat","pc");
@@ -389,28 +394,28 @@ console.log("\n[12] Bascule DE — les stats maths ET PC doivent rester intactes
   lsData.clear();
   const mathsSeed={ans:12,good:9,bestStreak:4,bestSprint:80,bySub:{deriv:{ans:5,good:4}},skips:2,streakBySub:{deriv:3},history:[{s:"deriv",l:"facile",o:1}],review:[]};
   const pcSeed={ans:7,good:3,bySub:{cosmo:{ans:2,good:1}}};
-  lsData.set("cz_stats",JSON.stringify(mathsSeed));
-  lsData.set("cz_stats_pc",JSON.stringify(pcSeed));
+  lsData.set("qz_stats",JSON.stringify(mathsSeed));
+  lsData.set("qz_stats_pc",JSON.stringify(pcSeed));
   const env=buildEnv();
   const optBtns=[0,1,2,3].map(i=>{const b=makeEl();b.dataset.i=String(i);b._classes.add("opt");return b;});
   env.byId.qbox=makeEl({querySelectorAll:sel=>sel===".opt"?optBtns:[]});
   const ctx=runApp(env);
-  const mathsBefore=lsData.get("cz_stats");
-  const pcBefore=lsData.get("cz_stats_pc");
+  const mathsBefore=lsData.get("qz_stats");
+  const pcBefore=lsData.get("qz_stats_pc");
   const api=vm.runInContext("({setMatiere,startFree,statsNow:()=>stats,choiceOk:()=>answerChoice(state.q.correct,null)})",ctx);
   api.setMatiere("de");
-  ok("cz_subject persisté = de",lsData.get("cz_subject")==='"de"');
+  ok("qz_subject persisté = de",lsData.get("qz_subject")==='"de"');
   ok("#secSprint masqué dès la bascule (matière 100 % QCM)",env.byId.secSprint.hidden===true);
   api.startFree();
   ok("la question DE est bien un QCM (type choice)",vm.runInContext("state.q.type",ctx)==="choice");
   api.choiceOk(); /* répond par le chemin moteur : l'option q.correct doit être acceptée */
-  const deRaw=lsData.get("cz_stats_de");
-  ok("cz_stats (maths) bit-à-bit inchangé après la réponse DE",lsData.get("cz_stats")===mathsBefore);
-  ok("cz_stats_pc bit-à-bit inchangé après la réponse DE",lsData.get("cz_stats_pc")===pcBefore);
-  ok("cz_stats_de existe et a été incrémenté (1 réponse, 1 bonne)",deRaw&&JSON.parse(deRaw).ans===1&&JSON.parse(deRaw).good===1);
+  const deRaw=lsData.get("qz_stats_de");
+  ok("qz_stats (maths) bit-à-bit inchangé après la réponse DE",lsData.get("qz_stats")===mathsBefore);
+  ok("qz_stats_pc bit-à-bit inchangé après la réponse DE",lsData.get("qz_stats_pc")===pcBefore);
+  ok("qz_stats_de existe et a été incrémenté (1 réponse, 1 bonne)",deRaw&&JSON.parse(deRaw).ans===1&&JSON.parse(deRaw).good===1);
   api.setMatiere("maths");
   ok("retour maths : stats restaurées à l'identique (deep-compare)",JSON.stringify(api.statsNow())===JSON.stringify(mathsSeed));
-  ok("cz_stats (maths) toujours bit-à-bit inchangé",lsData.get("cz_stats")===mathsBefore);
+  ok("qz_stats (maths) toujours bit-à-bit inchangé",lsData.get("qz_stats")===mathsBefore);
 }
 
 /* ========================================================= */
@@ -421,7 +426,7 @@ console.log("\n[13] Basculeur 3 matières — câblage (3 boutons, <html> jamais
      attacherait un listener click — le DOM factice ne simule pas la bulle,
      l'assertion porte donc sur le listener lui-même. */
   lsData.clear();
-  lsData.set("cz_subject","\"de\""); /* page ouverte en allemand */
+  lsData.set("qz_subject","\"de\""); /* page ouverte en allemand */
   const env=buildEnv();
   const doc=env.document.documentElement;
   doc.setAttribute("data-mat","de"); /* ce que l'anti-flash fait au chargement */
@@ -461,7 +466,7 @@ console.log("\n[14] Sprint masqué en allemand — entrée invisible, visible en
      #secSprint est cachée en allemand — c'est exactement ce qu'asserte ici
      renderHome (index.html : $("#secSprint").hidden = matiere==="de"). */
   lsData.clear();
-  lsData.set("cz_subject","\"de\"");
+  lsData.set("qz_subject","\"de\"");
   const env=buildEnv();
   const ctx=runApp(env);
   const sprintEl=env.byId.secSprint; /* même objet que $("#secSprint") côté app */
@@ -470,6 +475,42 @@ console.log("\n[14] Sprint masqué en allemand — entrée invisible, visible en
   ok("maths : #secSprint visible (prop hidden = false)",sprintEl.hidden===false);
   vm.runInContext("setMatiere('pc')",ctx);
   ok("PC : #secSprint visible (prop hidden = false)",sprintEl.hidden===false);
+}
+
+console.log("\n[15] Renommage Quizio — migration des clés cz_* → qz_*");
+{
+  /* Utilisateur "ancien" (CalculZéro) : ses données ne sont que sous les clés cz_*.
+     À l'ouverture, l'app doit les porter sur qz_* sans rien perdre ni supprimer. */
+  lsData.clear();
+  lsData.set("cz_theme",JSON.stringify("dark"));
+  lsData.set("cz_subject",JSON.stringify("de"));
+  lsData.set("cz_stats",JSON.stringify({ans:12,good:9,skips:2}));
+  lsData.set("cz_stats_pc",JSON.stringify({ans:7,good:3,skips:0}));
+  lsData.set("cz_stats_de",JSON.stringify({ans:4,good:2,skips:1,history:[{s:"de",l:"facile",o:0}],review:[]}));
+  const env=buildEnv();
+  const ctx=runApp(env);
+  ok("cz_theme → qz_theme (valeur identique)",lsData.get("qz_theme")===lsData.get("cz_theme"));
+  ok("cz_subject → qz_subject (valeur identique)",lsData.get("qz_subject")===lsData.get("cz_subject"));
+  ok("cz_stats → qz_stats (valeurs ans=12, good=9)",
+     (()=>{try{const s=JSON.parse(lsData.get("qz_stats")||"null");return s&&s.ans===12&&s.good===9;}catch(e){return false;}})());
+  ok("cz_stats_pc → qz_stats_pc (valeurs ans=7, good=3)",
+     (()=>{try{const s=JSON.parse(lsData.get("qz_stats_pc")||"null");return s&&s.ans===7&&s.good===3;}catch(e){return false;}})());
+  ok("cz_stats_de → qz_stats_de (valeurs ans=4, good=2)",
+     (()=>{try{const s=JSON.parse(lsData.get("qz_stats_de")||"null");return s&&s.ans===4&&s.good===2;}catch(e){return false;}})());
+  ok("anciennes clés conservées en secours (aucune donnée supprimée)",
+     lsData.has("cz_theme")&&lsData.has("cz_subject")&&lsData.has("cz_stats")&&lsData.has("cz_stats_pc")&&lsData.has("cz_stats_de"));
+  ok("thème migré réellement appliqué (data-theme=\"dark\")",
+     env.document.documentElement.getAttribute("data-theme")==="dark");
+  ok("matière migrée effective (state.matiere=\"de\")",vm.runInContext("state.matiere",ctx)==="de");
+  ok("stats allemandes migrees chargées (stats.ans=4)",vm.runInContext("stats.ans",ctx)===4);
+  /* Cas 2 : si la nouvelle clé existe déjà, elle gagne — la migration ne l'écrase pas. */
+  lsData.clear();
+  lsData.set("cz_theme",JSON.stringify("dark"));
+  lsData.set("qz_theme",JSON.stringify("light"));
+  const env2=buildEnv();
+  runApp(env2);
+  ok("qz_theme existante → cz_theme ne l'écrase PAS (data-theme=\"light\")",
+     env2.document.documentElement.getAttribute("data-theme")==="light");
 }
 
 console.log("=====================================");
