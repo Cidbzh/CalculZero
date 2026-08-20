@@ -1,36 +1,39 @@
 # Quizio
 
-Application d'entraînement de Première — **trois matières sur le même moteur** : maths (spécialité), physique-chimie et allemand (A2, QCM).
+**Plus tu quiz, plus tu sais.**
+
+Quizio est une application d'entraînement de **Première** — trois matières sur le même moteur : **maths** (spécialité), **physique-chimie** et **allemand** (A2). Chaque question est générée au moment de l'affichage : même thème, même niveau, mais des nombres et des énoncés toujours différents.
+
+## Comment ça se passe ?
+
+Tu choisis une matière, un niveau (facile / moyen / difficile) et un thème — ou tu laisses l'application piocher. Pour chaque question :
+
+- une **correction détaillée** qui montre la méthode, pas juste le résultat ;
+- un **mini-visuel** (tangente, parabole, forces en jeu, circuit, onde…) quand la question s'y prête ;
+- un bouton **Passer** pour mettre la question de côté — elle revient juste après, et si tu la passes une seconde fois, on t'aide.
+
+## Trois façons de t'entraîner
+
+| Mode | Pour qui ? |
+|---|---|
+| **Entraînement libre** | Progresser à son rythme, thème par thème |
+| **Sprint 60 s** | Se chronométrer, faire des séries 🔥 et battre son record |
+| **À réviser** | Refaire uniquement les questions ratées, jusqu'à ce que la liste soit vide |
+
+L'application suit ce qui te résiste : elle détecte tes **points faibles** (thème × niveau) sur tes 100 dernières réponses et te propose un entraînement ciblé sur chacun.
+
+## Trois matières, trois univers
+
+- **Maths** (spécialité) — 10 thèmes : dérivées, suites, log & exp, 2ᵉ degré, trigonométrie, probabilités, vecteurs, droites & affines, limites, variations ;
+- **Physique-chimie** — 9 thèmes : grandeurs cosmiques, Newton, forces, énergie, moles, stœchiométrie, cinétique, ondes & lumière, électricité ;
+- **Allemand A2** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres & dates, phrases utiles, mini-traductions.
+
+Les statistiques de chaque matière sont **indépendantes** : ta précision en maths n'interfère jamais avec ton allemand.
 
 ## Démarrage
 
-Aucun build, aucune dépendance, aucun serveur : **ouvrez `index.html` dans un navigateur**. L'application fonctionne hors ligne (les Google Fonts ont des stacks de repli).
+Aucun compte, aucune installation, aucune connexion : **ouvre `index.html` dans ton navigateur**. L'application fonctionne hors ligne, et tes progrès restent sur *ton* ordinateur.
 
-## Fonctionnalités
-
-- **Trois matières** (basculeur Maths / Physique-Chimie / Allemand) avec stats indépendantes :
-  - Maths — 10 thèmes : dérivées, suites, logarithme & exponentielle, équations du second degré, trigonométrie, probabilités, vecteurs, fonctions affines, limites, variations ;
-  - Physique-chimie — 9 thèmes : cosmétrie, lois de Newton, forces, énergie, moles, stœchiométrie, cinétique chimique, ondes & lumière, électricité ;
-  - Allemand (A2) — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres/dates/heures, phrases utiles, mini-traductions (sprint désactivé).
-- **Générateurs aléatoires** : chaque question est générée à l'affichage (aucune banque fixe), avec correction détaillée et mini-visuels SVG (tangente, parabole, cercle unité, forces, circuits, ondes…).
-- **Trois modes** : entraînement libre, sprint 60 s (points + séries 🔥), révision (questions à refaire).
-- **Points faibles** : détection des cellules thème × niveau les moins précises, avec entraînement ciblé.
-- **Statistiques persistées** (localStorage) par matière : précision par thème, meilleures séries, historique des 100 dernières réponses, liste à réviser. Clés préfixées `qz_*` — les anciennes clés `cz_*` (époque CalculZéro) sont migrées automatiquement à l'ouverture.
-- **Thème** Auto / Clair / Sombre, respect de `prefers-reduced-motion`, confettis de fin de session.
-
-## Structure du dépôt
-
-| Fichier | Rôle |
-|---|---|
-| `index.html` | L'application complète (~3 000 lignes : HTML + CSS + JS, sections balisées) |
-| `_qz_verify.js` | Vérification fonctionnelle complète (compilation des 2 blocs `<script>` + tests sur DOM factice) |
-| `CLAUDE.md` | Guide du projet (structure, conventions, règles à respecter, notes de revue) |
-| `docs/superpowers/` | Spécifications et plans de conception (physique-chimie, allemand) — documents historiques |
-
-## Vérification
-
-```bash
-node _qz_verify.js
-```
-
-Compile les deux blocs `<script>` (anti-flash + principal) via `vm`, puis teste : thème et persistance (dont le fallback anti-flash sur l'ancienne clé `cz_theme`), confettis, chaque générateur des **trois** registres lancé 25× (forme de question, auto-cohérence de la correction, contrat QCM — bonne réponse jamais en position fixe, rendu des visuels en phases question/correction, round-trip JSON du mode révision), régression de bascule de matière (les stats d'une matière n'écrivent jamais la clé d'une autre — maths + PC + allemand), câblage du basculeur à 3 boutons, le cycle de vie de l'animation d'arrivée, et la migration des clés historiques `cz_*` vers `qz_*`.
+- Thème **Auto / Clair / Sombre** (suivi de ta préférence système) ;
+- Responsive — utilisable sur téléphone et ordinateur ;
+- Sans dépendance : un seul fichier, prêt à imprimer, à copier, à partager.

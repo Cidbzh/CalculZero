@@ -155,9 +155,10 @@ body{
 .topbar .wrap{padding-top:12px;padding-bottom:12px}
 /* Écrans larges : l'accueil est en 2 colonnes (marge 320 px + gap 40 px). Les
    sélecteurs (matière + thème) ne doivent plus « flotter » au-dessus de la
-   colonne de la marge — où vit « À réviser » : leur bord droit s'arrête au
-   bord droit de la colonne principale (360 px = 320 + 40). Hors accueil
-   (écran d'exercice, pleine largeur), la topbar reprend toute sa largeur. */
+   colonne de la marge — où vivent les « Points faibles » : leur bord droit
+   s'arrête au bord droit de la colonne principale (360 px = 320 + 40). Hors
+   accueil (écran d'exercice, pleine largeur), la topbar reprend toute sa
+   largeur. */
 @media (min-width:1025px){
   body:has(#home:not([hidden])) .topbar .wrap{padding-right:360px}
 }
@@ -308,13 +309,19 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .stat .v{font:600 24px var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .stat .k{font:500 12.5px var(--f-body);color:var(--muted);margin-top:2px}
 /* v2 : points faibles / par thème / à réviser */
-.weakrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+/* Deux lignes par point faible : (nom + %) puis (barre + bouton). La ligne
+   unique cramait nom+barre(96px)+%(46px)+bouton dans la marge de 320 px,
+   restant ~27 px pour le NOM : un mot sans espace (« Trigonométrie ») ne
+   casse pas et déborderait par-dessus la barre. En deux lignes, le nom a la
+   pleine largeur → le chevauchement est géométriquement impossible. */
+.weakrow{display:grid;gap:7px;padding:11px 0;border-top:1px solid var(--line)}
 .weakrow:first-of-type{border-top:0}
-.weaknm{font:600 15.5px var(--f-body);color:var(--accent);flex:1;min-width:0}
+.weakline{display:flex;align-items:center;gap:10px;min-width:0}
+.weaknm{font:600 15.5px var(--f-body);color:var(--accent);flex:1;min-width:0;overflow-wrap:break-word}
 .weaknm small{display:block;font:500 12.5px var(--f-body);color:var(--muted)}
-.weakbar{width:96px;height:8px;border-radius:4px;background:var(--accent-soft);overflow:hidden;flex:none}
+.weakbar{flex:1;min-width:0;height:8px;border-radius:4px;background:var(--accent-soft);overflow:hidden}
 .weakbar i{display:block;height:100%;border-radius:4px;background:var(--accent)}
-.weakpct{font:700 15px var(--f-mono);width:46px;text-align:right;flex:none}
+.weakpct{font:700 15px var(--f-mono);text-align:right;flex:none}
 .substathead,.substatrow{display:grid;grid-template-columns:1fr 3.5rem 4.6rem 3.9rem;align-items:center;gap:8px;padding:9px 2px}
 .substathead{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .substatrow{border-top:1px solid var(--line);font:500 15px var(--f-body);color:var(--muted)}
@@ -322,12 +329,19 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .revcta{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent)}
 .revcta p b{color:var(--ink)}
 /* ---------- « cahier avec marge » : accueil en 2 colonnes (spec §3.2) ---------- */
-#home{display:grid;grid-template-areas:"hero rev" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:40px}
-.hero{grid-area:hero;min-width:0}
-/* « À réviser » : colonne droite de la rangée du hero (à droite du titre, au-dessus
-   des stats). align-self:start → la carte reste en haut, non étirée sur la hauteur
-   du hero. Slot vide (0 question à refaire) = 0 hauteur, pas de vide parasite. */
-#revSlot{grid-area:rev;min-width:0;align-self:start}
+/* La rangée du hero traverse les DEUX colonnes : à l'intérieur, le bloc texte
+   (titre + slogan + description) est dimensionné sur son contenu et la carte
+   « À réviser » se cale juste à sa droite — plus collée au bord droit de la
+   page — en bas (align-items:flex-end) → alignée avec la description. */
+#home{display:grid;grid-template-areas:"hero hero" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:40px}
+.hero{grid-area:hero;min-width:0;display:flex;gap:40px;align-items:flex-end}
+.herotxt{flex:0 1 auto;min-width:0}
+/* « À réviser » : #revSlot est un simple <div> rempli/vidé par renderHome ;
+   vide = display:none → pas de vide parasite. .revcta garde sa carte voyante
+   (hors de la marge → le décartonnage .marge .panel ne l'atteint pas). */
+#revSlot{min-width:0;flex:0 0 300px}
+#revSlot:empty{display:none}
+.hero .revcta{margin-bottom:0}
 .home-main{grid-area:main;min-width:0}
 .marge{grid-area:marge;min-width:0}
 .margewrap{position:sticky;top:88px;display:grid;gap:24px}
@@ -344,6 +358,11 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 @media (max-width:1024px){
   #home{display:block}
   .margewrap{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
+}
+/* Écrans étroits : la carte « À réviser » passe sous le texte, pleine largeur. */
+@media (max-width:900px){
+  .hero{flex-direction:column;align-items:stretch;gap:24px}
+  #revSlot{flex-basis:auto;width:100%}
 }
 @media (max-width:600px){
   .margewrap{grid-template-columns:1fr}
@@ -523,6 +542,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
 <main class="wrap">
   <section id="home">
     <div class="hero">
+    <div class="herotxt">
     <p class="eyebrow" data-rv style="--d:.24s" id="heroEyebrow">Première · spécialité maths</p>
     <h1>
       <span class="wr"><span style="--d:.34s">Quizio</span></span>
@@ -536,8 +556,8 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
     </p>
     <p class="lede" data-rv style="--d:.78s" id="heroLede">Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.</p>
     </div>
-
     <div id="revSlot"></div>
+    </div>
 
     <div class="home-main">
     <div class="statgrid" id="statGrid" data-rv style="--d:.84s"></div>
@@ -2619,6 +2639,16 @@ const MAT_DATA={
    noteTop:"der · die · das — trois articles, pas un de plus"}
 };
 function renderHome(){
+  /* Re-rendu « simple » (niveau, tuile thème, retour accueil) : ne jamais
+     rejouer la cascade d'arrivée. Si html.boot est encore active (fenêtre de
+     2,8 s qui suit une bascule de matière), les nouveaux nœuds [data-rv]
+     repartiraient en animation et le timer en cours pourrait retirer la classe
+     en plein vol → l'« animation à moitié ». On désarme classe + timer : un
+     simple re-rendu ne peut plus rejouer ni interrompre la cascade. Les deux
+     chemins volontaires (première visite, bascule matière) ré-armed via
+     rearmBoot() APRÈS le rendu. */
+  clearTimeout(rearmBoot._t);
+  document.documentElement.classList.remove("boot");
   const M=MAT_DATA[state.matiere];
   $("#heroEyebrow").textContent=M.eyebrow;
   $("#heroLede").innerHTML=M.lede;
@@ -2650,11 +2680,12 @@ function renderHome(){
   }));
   /* ---- v2 : « À réviser » (rangée du hero) / « Par thème » (colonne) / points
      faibles (marge) ---- */
-  /* « À réviser » : CTA de relance — carte voyante .revcta, colonne droite de la
-     rangée du hero (#revSlot, hors de la marge → conserve sa carte, le
-     décartonnage .marge .panel ne la touche plus). Le slot est un simple <div>
-     (vide = 0 hauteur, pas de vide parasite) ; son bouton #btnReview est câblé
-     ici, le slot étant rempli/vidé à chaque rendu. */
+  /* « À réviser » : CTA de relance — carte voyante .revcta, DANS le hero, à
+     droite du bloc texte, alignée avec la description (#revSlot, hors de la
+     marge → conserve sa carte, le décartonnage .marge .panel ne la touche
+     plus). Le slot est un simple <div> (vide = display:none, pas de vide
+     parasite) ; son bouton #btnReview est câblé ici, le slot étant
+     rempli/vidé à chaque rendu. */
   const revSlot=$("#revSlot");
   if(revSlot){
     revSlot.innerHTML=stats.review.length>0?
@@ -2698,10 +2729,10 @@ function renderHome(){
         weak.map(w=>{
           const nm=THEME_BY_ID[w.s];const pct=Math.round(100*w.acc);
           return `<div class="weakrow">`+
-            `<span class="weaknm">${nm?nm.name:w.s}<small>${w.l}</small></span>`+
-            `<span class="weakbar"><i style="width:${Math.max(6,Math.min(100,pct))}%"></i></span>`+
-            `<span class="weakpct" style="color:${pct<60?"var(--bad)":"var(--accent)"}">${pct}%</span>`+
-            `<button type="button" class="btn btn-primary small" data-weak="${w.s}:${w.l}">S'entraîner →</button>`+
+            `<div class="weakline"><span class="weaknm">${nm?nm.name:w.s}<small>${w.l}</small></span>`+
+            `<span class="weakpct" style="color:${pct<60?"var(--bad)":"var(--accent)"}">${pct}%</span></div>`+
+            `<div class="weakline"><span class="weakbar"><i style="width:${Math.max(6,Math.min(100,pct))}%"></i></span>`+
+            `<button type="button" class="btn btn-primary small" data-weak="${w.s}:${w.l}">S'entraîner →</button></div>`+
             `</div>`;
         }).join("")+
         `</section>`;
@@ -3103,7 +3134,10 @@ function applyTheme(t,animate){
    (reflow forcé) redémarre l'animation CSS — un simple add() serait un no-op
    si la classe est déjà là — et annule le timer de retrait précédent :
    quelle que soit la cadence des déclenchements, seule la DERNIÈRE cascade
-   survit. */
+   survit. Garde-fou symétrique : renderHome() désarme classe + timer en
+   tête, donc un re-rendu fait EN PLEINE fenêtre de 2,8 s (changer de niveau
+   juste après une bascule de matière) ne rejoue ni ne coupe la cascade à
+   moitié. */
 function rearmBoot(fast){
   const r=document.documentElement;
   clearTimeout(rearmBoot._t);    /* 1 seul timer de retrait vivant (le dernier) */
