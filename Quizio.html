@@ -325,8 +325,13 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .substathead{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .substatrow{border-top:1px solid var(--line);font:500 15px var(--f-body);color:var(--muted)}
 .substatrow b{font:700 15.5px var(--f-display);color:var(--accent)}
-.revcta{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent)}
-.revcta p b{color:var(--ink)}
+.revcta{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent);padding:12px 24px}
+/* Apparence d'origine (300 px, titre 20 px, bouton plein format) — 2026-08-20 :
+   carte COMPACTE : la ligne « N questions à refaire » est pliée DANS le bouton
+   (« Réviser N questions → »), padding vertical 12 px, h2 -10 px. Hauteur mesurée
+   ≈ 117 px (la description .lede fait 84 px) : le haut de la carte atteint la
+   partie basse du slogan, jamais le titre. */
+.revcta h2{margin-bottom:10px}
 /* ---------- « cahier avec marge » : accueil en 2 colonnes (spec §3.2) ---------- */
 /* La rangée du hero traverse les DEUX colonnes : à l'intérieur, le bloc texte
    (titre + slogan + description) est dimensionné sur son contenu et la carte
@@ -1064,55 +1069,6 @@ const SUBJECTS_MATH=[
  {id:"affine",name:"Droites & affines",sym:"y=ax+b",gens:G_AFF},
  {id:"lim",name:"Limites",sym:"→",gens:G_LIM},
  {id:"var",name:"Variations",sym:"↗",gens:G_VAR},
-];
-/* ---------- Grandeurs cosmiques (PC) ----------
-   Notation scientifique et ordres de grandeur — 1 calcul dominant
-   tenable en 60 s, constantes toujours dans le prompt. */
-const G_COSMO=[
- {lvl:"facile",make(){
-   const m=pick([1.5,2,3.2,3.84,4.2,6.4]),e=pick([4,5,6]);
-   const ms=String(m).replace(".",","),ans=Math.round(m*Math.pow(10,e+3));
-   return{prompt:`Une distance spatiale vaut ${ms} × 10^${e} km. Convertis-la en mètres et écris le résultat en chiffres.`,
-     type:"number",answer:ans,tol:0.011,
-     explain:`1 km = 10³ m, donc l'exposant augmente de 3 : ${ms} × 10^${e} km = ${ms} × 10^${e+3} m = <b>${ans}</b> m.`};
- }},
- {lvl:"facile",make(){
-   const r1=pick([4000,6400,8000,16000]),k=pick([5,8,10,16,20,25]);
-   const r2=r1*k;
-   return{prompt:`Le rayon de la planète A vaut ${r1} km, celui de la planète B vaut ${r2} km. Combien de fois A est-elle plus petite que B ?`,
-     type:"number",answer:k,
-     viz:{kind:"scale",r1:r1,r2:r2,lab1:"A",lab2:"B"},
-     explain:`Ratio = ${r2} / ${r1} = <b>${k}</b> : le rayon de B est ${k} fois plus grand.`};
- }},
- {lvl:"moyen",make(){
-   const N=pick([2,3,4,5,8]);
-   const ans=Math.round(N*9.46*Math.pow(10,15));
-   return{prompt:`Une année-lumière vaut 9,46 × 10¹⁵ m. Quelle distance la lumière parcourt-elle en ${N} ans ? (en m)`,
-     type:"number",answer:ans,tol:0.011,
-     explain:`d = N × (9,46 × 10¹⁵ m) = ${N} × 9,46 × 10¹⁵ = <b>${ans}</b> m.`};
- }},
- {lvl:"moyen",make(){
-   const t=pick([2,3,4,5]);
-   const d=t*3*Math.pow(10,8);
-   return{prompt:`La lumière voyage à c = 3 × 10⁸ m/s. En combien de temps parcourt-elle une distance de ${d} m ? (en s)`,
-     type:"number",answer:t,
-     explain:`t = d/c = ${d} / (3 × 10⁸) = <b>${t} s</b>.`};
- }},
- {lvl:"difficile",make(){
-   const a=pick([4,5,6]),b=pick([7,8,9,10]);
-   const k=3*(b-a);
-   return{prompt:`Deux sphères ont pour rayons r₁ = 10^${a} m et r₂ = 10^${b} m. Le rapport V₂/V₁ de leurs volumes vaut 10^k. Donne k.`,
-     type:"number",answer:k,
-     explain:`V = (4/3)πr³, donc V₂/V₁ = (r₂/r₁)³ = (10^${b} / 10^${a})³ = 10^${3*(b-a)}.<br>k = 3 × (${b} − ${a}) = <b>${k}</b>.`};
- }},
- {lvl:"difficile",make(){
-   const p=pick([0.2,0.25,0.4,0.5,1,2,4]);
-   const d=Math.round(1/p*100)/100;
-   return{prompt:`Une étoile présente une parallaxe de ${String(p).replace(".",",")}″ (secondes d'angle). À quelle distance se trouve-t-elle ? (en parsecs, d = 1/p)`,
-     type:"number",answer:d,
-     viz:{kind:"scale",r1:1,r2:d,lab1:"1 pc",lab2:d+" pc"},
-     explain:`d = 1/p = 1/${String(p).replace(".",",")} = <b>${String(d).replace(".",",")} pc</b>. (1 pc ≈ 3,26 années-lumière.)`};
- }}
 ];
 /* ---------- PC (newton) : mécanique & Newton ---------- */
 const G_NEWTON=[
@@ -2017,7 +1973,6 @@ const G_TRAD=[
 ];
 /* ---------- REGISTRE PC + helpers matière ---------- */
 const SUBJECTS_PC=[
- {id:"cosmo",name:"Grandeurs cosmiques",sym:"10ⁿ",gens:G_COSMO},
  {id:"newton",name:"Mécanique & Newton",sym:"F=ma",gens:G_NEWTON},
  {id:"forces",name:"Forces & champs",sym:"G",gens:G_FORCES},
  {id:"energie",name:"Énergie",sym:"E",gens:G_ENERGIE},
@@ -2238,7 +2193,10 @@ function vzVar(spec){
   }
   return vzWrap(vzClip(id)+s,"Étude de variations — courbe de f avec les sens de variation");
 }
-/* ---------- PC (cosmo) : règle log des grandeurs — marqueurs en correction ---------- */
+/* ---------- Visuel "scale" (règle log des grandeurs — marqueurs en correction) ----------
+   Kind historique du chapitre « cosmo » (retiré de PC le 2026-08-20) : conservé
+   car des specs {kind:"scale"} peuvent subsister en localStorage (liste à
+   réviser) — VIZdraw doit rester capable de les dessiner sans planter. */
 function vzRatio(spec,phase){
   const r1=Math.max(1,spec.r1||1),r2=Math.max(1,spec.r2||1);
   const p0=Math.floor(Math.log10(Math.min(r1,r2)))-1;
@@ -2552,6 +2510,12 @@ function loadStats(key){
   if(st.streakBySub===undefined)st.streakBySub={};   /* id -> meilleure série par thème */
   if(st.history===undefined)st.history=[];            /* [{s,l,o}] — 100 dernières réponses */
   if(st.review===undefined)st.review=[];              /* [{s,l,q}] — liste à réviser (max 50) */
+  /* Orphelines : une question à réviser ou une entrée d'historique rattachée à un thème
+     supprimé du registre (ex. « cosmo », retiré de PC) plantait renderQ (r.sub.name) et
+     cassait « S'entraîner » (point faible inexistant). Purgées au chargement — idempotent.
+     bySub/streakBySub orphelins : inoffensifs (jamais rendus), conservés. */
+  st.review=st.review.filter(it=>THEME_BY_ID[it.s]);
+  st.history=st.history.filter(it=>THEME_BY_ID[it.s]);
   return st;
 }
 const activeStatsKey=()=>state.matiere==="de"?"qz_stats_de":state.matiere==="pc"?"qz_stats_pc":"qz_stats";
@@ -2685,8 +2649,7 @@ function renderHome(){
     revSlot.innerHTML=stats.review.length>0?
       `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.06s">`+
         `<h2 id="hRev">À réviser</h2>`+
-        `<p class="muted" style="margin:0 0 16px"><b>${stats.review.length} question${stats.review.length>1?"s":""}</b> à refaire — celles que tu as ratées (et, en révision, celles que tu as passées).</p>`+
-        `<button type="button" class="btn btn-primary" id="btnReview">Reviser maintenant →</button>`+
+        `<button type="button" class="btn btn-primary" id="btnReview">Réviser ${stats.review.length} question${stats.review.length>1?"s":""} →</button>`+
         `</section>`:"";
     const br=$("#btnReview");
     if(br)br.addEventListener("click",startReview);

@@ -2,38 +2,28 @@
 
 **Plus tu quiz, plus tu sais.**
 
-Quizio est une application d'entraînement de **Première** — trois matières sur le même moteur : **maths** (spécialité), **physique-chimie** et **allemand** (A2). Chaque question est générée au moment de l'affichage : même thème, même niveau, mais des nombres et des énoncés toujours différents.
+Quizio c'est de l'entraînement pour la **Première** : maths (spécialité), physique-chimie et allemand A2. Chaque question est générée à la volée — tu ne vois jamais deux fois les mêmes nombres — avec sa correction détaillée.
 
-## Comment ça se passe ?
+## Démarrer
 
-Tu choisis une matière, un niveau (facile / moyen / difficile) et un thème — ou tu laisses l'application piocher. Pour chaque question :
-
-- une **correction détaillée** qui montre la méthode, pas juste le résultat ;
-- un **mini-visuel** (tangente, parabole, forces en jeu, circuit, onde…) quand la question s'y prête ;
-- un bouton **Passer** pour mettre la question de côté — elle revient juste après, et si tu la passes une seconde fois, on t'aide.
+Ouvre `Quizio.html` dans ton navigateur. C'est tout : aucun compte, aucune installation, fonctionne hors ligne. Tes progrès restent sur ton ordinateur.
 
 ## Trois façons de t'entraîner
 
-| Mode | Pour qui ? |
+| Mode | À quoi ça sert |
 |---|---|
-| **Entraînement libre** | Progresser à son rythme, thème par thème |
+| **Entraînement libre** | Choisis thème et niveau (facile / moyen / difficile), progresse à ton rythme |
 | **Sprint 60 s** | Se chronométrer, faire des séries 🔥 et battre son record |
 | **À réviser** | Refaire uniquement les questions ratées, jusqu'à ce que la liste soit vide |
 
-L'application suit ce qui te résiste : elle détecte tes **points faibles** (thème × niveau) sur tes 100 dernières réponses et te propose un entraînement ciblé sur chacun.
+Chaque question s'accompagne d'une **correction détaillée** (la méthode, pas seulement le résultat), d'un **mini-visuel** quand la question s'y prête, et d'un bouton **Passer** qui met la question de côté.
 
-## Trois matières, trois univers
+Quizio repère aussi tes **points faibles** (thème × niveau, sur tes 100 dernières réponses) et te propose un entraînement ciblé sur chacun.
 
-- **Maths** (spécialité) — 10 thèmes : dérivées, suites, log & exp, 2ᵉ degré, trigonométrie, probabilités, vecteurs, droites & affines, limites, variations ;
-- **Physique-chimie** — 9 thèmes : grandeurs cosmiques, Newton, forces, énergie, moles, stœchiométrie, cinétique, ondes & lumière, électricité ;
-- **Allemand A2** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres & dates, phrases utiles, mini-traductions.
+## Les thèmes
 
-Les statistiques de chaque matière sont **indépendantes** : ta précision en maths n'interfère jamais avec ton allemand.
+- **Maths** (spécialité) — 10 : dérivées, suites, log & exp, 2ᵉ degré, trigonométrie, probabilités, vecteurs, droites & affines, limites, variations
+- **Physique-chimie** — 8 : mécanique & Newton, forces & champs, énergie, quantités de matière, stœchiométrie & état final, cinétique, ondes & lumière, électricité
+- **Allemand A2** — 6, 100 % QCM : vocabulaire, conjugaison, articles, nombres, dates & heures, phrases utiles, mini-traductions
 
-## Démarrage
-
-Aucun compte, aucune installation, aucune connexion : **ouvre `index.html` dans ton navigateur**. L'application fonctionne hors ligne, et tes progrès restent sur *ton* ordinateur.
-
-- Thème **Auto / Clair / Sombre** (suivi de ta préférence système) ;
-- Responsive — utilisable sur téléphone et ordinateur ;
-- Sans dépendance : un seul fichier, prêt à imprimer, à copier, à partager.
+Les statistiques de chaque matière sont **indépendantes** : ta précision en maths n'interfère jamais avec ton allemand, et inversement.
