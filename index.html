@@ -232,7 +232,6 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .panel.lead{padding:28px}
 .panel.second{padding:20px}
 .panel h2{margin:0 0 16px;font:600 20px var(--f-display)}
-.margeline{font:italic 500 12.5px/1.5 var(--f-body);color:var(--muted);margin:0}
 /* Trait de stylo du prof sous le titre de section */
 .panel h2::after{
   content:"";display:block;width:34px;height:3px;border-radius:2px;
@@ -339,7 +338,7 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 /* « À réviser » : #revSlot est un simple <div> rempli/vidé par renderHome ;
    vide = display:none → pas de vide parasite. .revcta garde sa carte voyante
    (hors de la marge → le décartonnage .marge .panel ne l'atteint pas). */
-#revSlot{min-width:0;flex:0 0 300px}
+#revSlot{min-width:0;flex:0 0 300px;margin-bottom:-24px}
 #revSlot:empty{display:none}
 .hero .revcta{margin-bottom:0}
 .home-main{grid-area:main;min-width:0}
@@ -362,7 +361,7 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 /* Écrans étroits : la carte « À réviser » passe sous le texte, pleine largeur. */
 @media (max-width:900px){
   .hero{flex-direction:column;align-items:stretch;gap:24px}
-  #revSlot{flex-basis:auto;width:100%}
+  #revSlot{flex-basis:auto;width:100%;margin-bottom:0}
 }
 @media (max-width:600px){
   .margewrap{grid-template-columns:1fr}
@@ -464,7 +463,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
    Spécificité html.theming > .btn/.subcard/… → écrase les transitions
    habituelles (hover) uniquement pendant cette courte fenêtre. */
 @media (prefers-reduced-motion: no-preference){
-  html.theming :is(.panel,.subcard,.btn,.chip,.stat,.seg,.seg-btn,.theme-btn,.opt,.ans input,.explain,.qcard,.weakbar,.substatrow,.substathead,.prompt,.qeyebrow,.weaknm,.fb,.lede,.slogan,.margeline,.note,.brand,.margin-note){
+  html.theming :is(.panel,.subcard,.btn,.chip,.stat,.seg,.seg-btn,.theme-btn,.opt,.ans input,.explain,.qcard,.weakbar,.substatrow,.substathead,.prompt,.qeyebrow,.weaknm,.fb,.lede,.slogan,.note,.brand,.margin-note){
     transition:background-color .45s var(--ease),border-color .45s var(--ease),color .45s var(--ease);
   }
   /* Le logo (SVG) : ses couleurs sont des strokes, pas du color/background. */
@@ -2736,9 +2735,9 @@ function renderHome(){
             `</div>`;
         }).join("")+
         `</section>`;
-    }else{
-      html+=`<p class="margeline" data-rv style="--d:1.42s">Lance quelques entraînements : tes points faibles apparaîtront ici.</p>`;
     }
+    /* Aucun point faible = slot vide (0 hauteur) : la marge n'affiche plus
+       qu'un blanc — le bloc apparaît d'office après les premiers entraînements. */
     extra.innerHTML=html;
     extra.querySelectorAll("[data-weak]").forEach(b=>b.addEventListener("click",()=>{
       const p=b.dataset.weak.split(":");trainWeak(p[0],p[1]);
