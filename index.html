@@ -215,9 +215,12 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .panel{
   background:var(--surface);border:1px solid var(--line);
   border-radius:var(--radius);box-shadow:var(--shadow);
-  padding:24px 26px;margin-bottom:20px;
+  padding:24px;margin-bottom:16px;
 }
-.panel h2{margin:0 0 14px;font:600 20px var(--f-display)}
+.panel.lead{padding:28px}
+.panel.second{padding:20px}
+.panel h2{margin:0 0 16px;font:600 20px var(--f-display)}
+.margeline{font:italic 500 12.5px/1.5 var(--f-body);color:var(--muted);margin:0}
 /* Trait de stylo du prof sous le titre de section */
 .panel h2::after{
   content:"";display:block;width:34px;height:3px;border-radius:2px;
@@ -240,7 +243,7 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
   transition:color .16s var(--ease),background .16s var(--ease),box-shadow .16s var(--ease);
 }
 .theme-btn.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px rgba(31,46,71,.14)}
-.subgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;margin:10px 0 16px}
+.subgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;margin:8px 0 16px}
 .subcard{
   appearance:none;text-align:left;cursor:pointer;
   background:var(--surface);border:1px solid var(--line);border-radius:10px;
@@ -408,7 +411,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
    Spécificité html.theming > .btn/.subcard/… → écrase les transitions
    habituelles (hover) uniquement pendant cette courte fenêtre. */
 @media (prefers-reduced-motion: no-preference){
-  html.theming :is(.panel,.subcard,.btn,.chip,.stat,.seg,.seg-btn,.theme-btn,.opt,.ans input,.explain,.qcard,.weakbar,.substatrow,.substathead,.prompt,.qeyebrow,.weaknm,.fb,.lede,.slogan,.note,.brand,.margin-note){
+  html.theming :is(.panel,.subcard,.btn,.chip,.stat,.seg,.seg-btn,.theme-btn,.opt,.ans input,.explain,.qcard,.weakbar,.substatrow,.substathead,.prompt,.qeyebrow,.weaknm,.fb,.lede,.slogan,.margeline,.note,.brand,.margin-note){
     transition:background-color .45s var(--ease),border-color .45s var(--ease),color .45s var(--ease);
   }
   /* Les éléments dont la COULEUR (pas le fond) lit var(--accent) : eyebrow,
@@ -497,9 +500,9 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
     </p>
     <p class="lede" data-rv style="--d:.78s" id="heroLede">Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.</p>
 
-    <section class="panel" aria-labelledby="hFree" data-rv style="--d:.9s">
+    <section class="panel lead" aria-labelledby="hFree" data-rv style="--d:.9s">
       <h2 id="hFree">Entraînement libre</h2>
-      <div class="row space-between wrap-row" style="margin-bottom:14px">
+      <div class="row space-between wrap-row" style="margin-bottom:16px">
         <span class="lbl">Niveau</span>
         <div class="seg" role="group" aria-label="Niveau">
           <button class="seg-btn" data-lvl="facile">Facile</button>
@@ -507,7 +510,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
           <button class="seg-btn" data-lvl="difficile">Difficile</button>
         </div>
       </div>
-      <p class="lbl" style="margin:0 0 4px">Thème</p>
+      <p class="lbl" style="margin:0 0 8px">Thème</p>
       <div class="subgrid" id="subGrid"></div>
       <div class="row">
         <button class="btn btn-primary" id="btnFree">Commencer l'entraînement</button>
@@ -515,12 +518,12 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
       <p class="note">Astuce : <b>Passer</b> (ou la touche Échap) met la question de côté — elle revient juste après la question suivante. Si tu la passes 2 fois, on t'aide avec la méthode.</p>
     </section>
 
-    <section id="secSprint" class="panel" aria-labelledby="hSprint" data-rv style="--d:1.02s">
+    <section id="secSprint" class="panel second" aria-labelledby="hSprint" data-rv style="--d:1.02s">
       <h2 id="hSprint">Sprint 60 s</h2>
       <p class="muted" style="margin:0 0 14px">Tous les thèmes mélangés, réponses rapides, sans temps mort. Le chrono ne s'arrête pas entre deux questions.</p>
       <div class="row space-between wrap-row">
-        <button class="btn btn-primary" id="btnSprint">Lancer le sprint</button>
-        <span class="muted mono" id="bestSprint" style="font-size:13.5px">Record : —</span>
+        <button class="btn btn-ghost" id="btnSprint">Lancer le sprint</button>
+        <span class="chip" id="bestSprint">Record : —</span>
       </div>
     </section>
 
@@ -2620,6 +2623,8 @@ function renderHome(){
             `</div>`;
         }).join("")+
         `</section>`;
+    }else{
+      html+=`<p class="margeline" data-rv style="--d:1.42s">Lance quelques entraînements : tes points faibles apparaîtront ici.</p>`;
     }
     if(activeSubjects().some(s=>{const st=stats.bySub[s.id];return st&&st.ans>0;})){
       html+=`<section class="panel" aria-labelledby="hBySub" data-rv style="--d:1.52s">`+
@@ -2632,6 +2637,8 @@ function renderHome(){
           return `<div class="substatrow"><b>${s.name}</b><span>${st.ans||0}</span><span>${pct}</span><span>${stk>0?"🔥"+stk:"—"}</span></div>`;
         }).join("")+
         `</section>`;
+    }else{
+      html+=`<p class="margeline" data-rv style="--d:1.52s">Tes résultats par thème apparaîtront ici.</p>`;
     }
     extra.innerHTML=html;
     extra.querySelectorAll("[data-weak]").forEach(b=>b.addEventListener("click",()=>{
