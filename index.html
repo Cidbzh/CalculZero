@@ -180,18 +180,24 @@ h1 em{font-style:italic;color:var(--accent)}
 /* Trait de plume sous « tu sais. » — l'app écrit la page, comme le prof gribouille en marge */
 .slogan .sai .pen{position:absolute;left:2%;bottom:-8px;width:96%;height:10px;overflow:visible;pointer-events:none}
 .slogan .sai .pen path{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;opacity:.85}
-/* Le trait se trace (pathLength="1"). Hors "prefers-reduced-motion" :
-   aucune dasharray → trait visible d'emblée. */
+/* Le trait se trace (pathLength="1") dans la cascade html.boot → il se
+   rejoue à chaque bascule de matière ; état de base = trait visible
+   (sécurité JS éteint). Hors "prefers-reduced-motion" : jamais masqué. */
 @media (prefers-reduced-motion: no-preference){
-  .slogan .sai .pen path{stroke-dasharray:1;stroke-dashoffset:1;animation:penIn .55s var(--ease) 1.15s forwards}
+  html.boot .slogan .sai .pen path{stroke-dasharray:1;stroke-dashoffset:1;animation:penIn .55s var(--ease) 1.15s forwards}
 }
 @keyframes penIn{to{stroke-dashoffset:0}}
 /* Révélation mot à mot (masque de ligne) — titre, puis slogan ; le dernier
-   mot « saute » sans masque, sinon le trait de plume serait rogné */
+   mot « saute » sans masque, sinon le trait de plume serait rogné.
+   Même principe que [data-rv] : VISIBLES par défaut (sécurité JS éteint),
+   l'animation est posée sous html.boot → rearmBoot() rejoue tout à chaque
+   bascule de matière (la bascule masque le changement de contenu). */
 h1 .wr,.slogan .wr{display:inline-block;overflow:hidden;vertical-align:bottom}
-h1 .wr>span,.slogan .wr>span{display:inline-block;transform:translateY(108%);animation:wrIn .9s var(--ease) both;animation-delay:var(--d,0s)}
+h1 .wr>span,.slogan .wr>span{display:inline-block}
+html.boot h1 .wr>span,html.boot .slogan .wr>span{transform:translateY(108%);animation:wrIn .9s var(--ease) both;animation-delay:var(--d,0s)}
 @keyframes wrIn{to{transform:none}}
-.slogan .soft{display:inline-block;opacity:0;animation:saiIn .5s var(--ease) both;animation-delay:var(--d,0s)}
+.slogan .soft{display:inline-block}
+html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation-delay:var(--d,0s)}
 @keyframes saiIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .lede{margin:0 0 34px;max-width:58ch;color:var(--muted);font-size:17.5px}
 /* Formule « gribouillée en marge », comme un prof qui laisse une trace au coin de la page */
@@ -2495,9 +2501,10 @@ function setMatiere(m){
   state.subject="mix";               /* réinitialise la tuile sélectionnée */
   /* Accent matière (violet PC / vert DE) : data-mat sur <html> → variables d'accent. La bascule est
      IMMÉDIATE, sans temps mort : le swap et la cascade démarrent au clic, la
-     cascade masquant elle-même le changement de contenu (tous les [data-rv]
-     repartent de l'opacité 0 dans la même frame). .theming couvre les éléments
-     persistants (h1 em, eyebrow) pendant la transition couleur. Sous
+     cascade masquant elle-même le changement de contenu (titre, slogan et
+     [data-rv] repartent de leur état initial dans la même frame). .theming
+     couvre les couleurs d'accent restantes (eyebrow, « tu sais. »,
+     noms de chapitre) pendant la transition couleur. Sous
      prefers-reduced-motion : idem, et la cascade est neutralisée par les
      règles CSS globales. */
   const r=document.documentElement;
