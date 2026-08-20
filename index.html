@@ -1,4 +1,7 @@
 <title>Quizio</title>
+<!-- Favicon : le « Q à la plume » (source : logo.svg). Data: URI pour garder
+     l'app en fichier unique ; la plume change d'accent avec la matière (setFavicon). -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cg%20fill='none'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='29'%20cy='28'%20r='19'%20stroke='%2316233D'%20stroke-width='7'/%3E%3Cpath%20d='M23%2033%20C31%2044,%2045%2047,%2055%2035'%20stroke='%232563EB'%20stroke-width='7'/%3E%3C/g%3E%3C/svg%3E">
 <script>/* Thème + matière appliqués AVANT le premier rendu (anti-flash).
    Lit le choix sauvegardé (clé qz_theme, ancienne clé cz_* en secours — la migration
    complète vit dans le gros script) et pose l'attribut data-theme sur <html>,
@@ -150,7 +153,10 @@ body{
 }
 @keyframes barIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 .topbar .wrap{padding-top:12px;padding-bottom:12px}
-.brand{font:700 21px var(--f-display);letter-spacing:.01em}
+.brand{display:inline-flex;align-items:center;font:700 21px var(--f-display);letter-spacing:.01em}
+/* Pas de gap sur le conteneur : « Quiz » et « io » seraient deux items flex
+   séparés de 9 px. L'espacement logo→texte vit sur la marque elle-même. */
+.brand .brandmark{flex:none;transform:translateY(1px);margin-right:9px}
 .brand span{font-style:italic;color:var(--pen)}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{
@@ -201,7 +207,7 @@ html.boot h1 .wr>span,html.boot .slogan .wr>span{transform:translateY(108%);anim
 .slogan .soft{display:inline-block}
 html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation-delay:calc(var(--d,0s)*var(--boot-k,1))}
 @keyframes saiIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.lede{margin:0 0 34px;max-width:58ch;color:var(--muted);font-size:17.5px}
+.lede{margin:0;max-width:58ch;color:var(--muted);font-size:17.5px}
 /* Formule « gribouillée en marge », comme un prof qui laisse une trace au coin de la page */
 .margin-note{
   margin:30px 0 0;max-width:max-content;margin-left:auto;
@@ -277,6 +283,9 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
 .btn-ghost:hover{transform:translateY(-1px);border-color:var(--accent);color:var(--accent)}
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
+/* Stats en rangée horizontale sous le bloc Sprint (colonne principale) :
+   le panneau précédent apporte déjà les 16 px d'espacement. */
+.home-main .statgrid{margin-top:0}
 .stat{border:1px solid var(--line);border-radius:10px;padding:15px 16px;background:var(--surface);transition:border-color .16s var(--ease),transform .16s var(--ease),box-shadow .16s var(--ease)}
 .stat:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
 .stat .v{font:600 24px var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
@@ -296,21 +305,22 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .revcta{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent)}
 .revcta p b{color:var(--ink)}
 /* ---------- « cahier avec marge » : accueil en 2 colonnes (spec §3.2) ---------- */
-#home{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px}
-.home-main{min-width:0}
-.marge{min-width:0}
+#home{display:grid;grid-template-areas:"hero hero" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:40px}
+.hero{grid-area:hero;min-width:0}
+.home-main{grid-area:main;min-width:0}
+.marge{grid-area:marge;min-width:0}
 .margewrap{position:sticky;top:88px;display:grid;gap:24px}
 .margewrap .margin-note{margin:0;margin-left:auto}
 /* Marge v2 — notes manuscrites : zéro carton, hiérarchie typographique */
 #noteTop{display:none}
-.marge .statgrid{grid-template-columns:repeat(3,1fr);gap:16px 14px;margin-top:0}
-.marge .stat{border:0;background:transparent;padding:0;box-shadow:none}
-.marge .stat:hover{transform:none;box-shadow:none;border-color:var(--line)}
-.marge .stat .v{font-size:18px}
-.marge .stat .k{font-size:11.5px;line-height:1.35;margin-top:3px}
 .marge .panel{padding:0;margin-bottom:0;background:transparent;border:0;box-shadow:none}
 .marge .panel h2{font:700 12.5px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 10px}
 #statsExtra{display:contents}
+/* Ordre de la marge : À réviser → Par thème → Points faibles.
+   Les enfants de #statsExtra sont des items de la grid .margewrap
+   (display:contents) → order les décale sans toucher au DOM/JS. */
+#statsExtra .revcta{order:-2}
+#statsExtra .bysub{order:-1}
 .marge .weakrow{display:grid;grid-template-columns:1fr auto;row-gap:8px;align-items:center}
 .marge .weakrow .weaknm{grid-area:1/1}
 .marge .weakrow .weakpct{grid-area:1/2}
@@ -319,7 +329,6 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 @media (max-width:1024px){
   #home{display:block}
   .margewrap{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
-  .marge .statgrid{grid-template-columns:repeat(2,1fr);gap:16px 14px}
 }
 @media (max-width:600px){
   .margewrap{grid-template-columns:1fr}
@@ -424,6 +433,8 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
   html.theming :is(.panel,.subcard,.btn,.chip,.stat,.seg,.seg-btn,.theme-btn,.opt,.ans input,.explain,.qcard,.weakbar,.substatrow,.substathead,.prompt,.qeyebrow,.weaknm,.fb,.lede,.slogan,.margeline,.note,.brand,.margin-note){
     transition:background-color .45s var(--ease),border-color .45s var(--ease),color .45s var(--ease);
   }
+  /* Le logo (SVG) : ses couleurs sont des strokes, pas du color/background. */
+  html.theming .brandmark *{transition:stroke .45s var(--ease)}
   /* Les éléments dont la COULEUR (pas le fond) lit var(--accent) : eyebrow,
      mot en italique du titre, noms de chapitre — ajoutés pour la bascule
      de matière (violet PC) et les changements de thème. */
@@ -471,7 +482,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
 
 <header class="topbar">
   <div class="wrap row space-between">
-    <div class="brand">Quiz<span>io</span></div>
+    <div class="brand"><svg class="brandmark" width="25" height="25" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="29" cy="28" r="19" stroke="var(--ink)" stroke-width="7"/><path d="M23 33 C31 44, 45 47, 55 35" stroke="var(--pen)" stroke-width="7"/></g></svg>Quiz<span>io</span></div>
     <div class="row wrap-row" style="gap:12px">
       <div class="seg" role="group" aria-label="Matière">
         <button type="button" class="seg-btn on" data-mat="maths">Maths</button>
@@ -496,7 +507,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
 
 <main class="wrap">
   <section id="home">
-    <div class="home-main">
+    <div class="hero">
     <p class="eyebrow" data-rv style="--d:.24s" id="heroEyebrow">Première · spécialité maths</p>
     <h1>
       <span class="wr"><span style="--d:.34s">Quizio</span></span>
@@ -509,7 +520,9 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
       <span class="soft" style="--d:.80s"><span class="sai">tu&nbsp;sais.<svg class="pen" viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M3 8C26 3 55 10 82 6S114 7 117 5" pathLength="1" vector-effect="non-scaling-stroke"/></svg></span></span>
     </p>
     <p class="lede" data-rv style="--d:.78s" id="heroLede">Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.</p>
+    </div>
 
+    <div class="home-main">
     <section class="panel lead" aria-labelledby="hFree" data-rv style="--d:.9s">
       <h2 id="hFree">Entraînement libre</h2>
       <div class="row space-between wrap-row" style="margin-bottom:16px">
@@ -537,12 +550,13 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
       </div>
     </section>
 
+    <div class="statgrid" id="statGrid" data-rv style="--d:1.14s"></div>
+
     </div>
 
     <aside class="marge">
       <div class="margewrap">
         <p class="margin-note" aria-hidden="true" data-rv style="--d:.15s" id="noteTop">e<sup>iπ</sup> + 1 = 0</p>
-        <div class="statgrid" id="statGrid" data-rv style="--d:1.14s"></div>
         <div id="statsExtra"></div>
         <p class="margin-note end" aria-hidden="true" data-rv style="--d:1.62s" id="noteBottom">Δ = b² − 4ac — à connaître par cœur ✎</p>
       </div>
@@ -2527,6 +2541,18 @@ function weakPoints(){
   out.sort((a,b)=>a.acc-b.acc||b.ans-a.ans);
   return out.slice(0,5);
 }
+/* Favicon : le « Q à la plume » (source : logo.svg) en data: URI — l'app reste
+   fichier unique. La plume suit l'accent de la matière (bleu maths / violet PC
+   / vert allemand) ; l'anneau reste en encre. Défensif : sans <link>, le
+   favicon statique de tête est conservé tel quel. */
+function setFavicon(){
+  try{
+    const pen={maths:"#2563EB",pc:"#7C3AED",de:"#047857"}[state.matiere]||"#2563EB";
+    const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="29" cy="28" r="19" stroke="#16233D" stroke-width="7"/><path d="M23 33 C31 44, 45 47, 55 35" stroke="'+pen+'" stroke-width="7"/></g></svg>';
+    const l=document.querySelector('link[rel="icon"]');
+    if(l)l.href="data:image/svg+xml,"+encodeURIComponent(svg);
+  }catch(e){}
+}
 /* Bascule de matière : persiste le choix, échange la variable stats
    (une seule variable — tout le moteur passe déjà par stats),
    réinitialise la tuile sélectionnée et re-rend l'accueil. */
@@ -2546,6 +2572,7 @@ function setMatiere(m){
      règles CSS globales. */
   const r=document.documentElement;
   if(m==="pc")r.setAttribute("data-mat","pc");else if(m==="de")r.setAttribute("data-mat","de");else r.removeAttribute("data-mat");
+  setFavicon(); /* la plume du Q suit l'accent de la matière */
   r.classList.add("theming");
   clearTimeout(setMatiere._t);
   setMatiere._t=setTimeout(function(){r.classList.remove("theming");},520);
@@ -2637,7 +2664,7 @@ function renderHome(){
       html+=`<p class="margeline" data-rv style="--d:1.42s">Lance quelques entraînements : tes points faibles apparaîtront ici.</p>`;
     }
     if(activeSubjects().some(s=>{const st=stats.bySub[s.id];return st&&st.ans>0;})){
-      html+=`<section class="panel" aria-labelledby="hBySub" data-rv style="--d:1.52s">`+
+      html+=`<section class="panel bysub" aria-labelledby="hBySub" data-rv style="--d:1.52s">`+
         `<h2 id="hBySub">Par thème</h2>`+
         `<div class="substathead"><span>thème</span><span>q</span><span>précision</span><span>série</span></div>`+
         activeSubjects().map(s=>{
