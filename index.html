@@ -786,9 +786,9 @@ const G_VECT=[
  {lvl:"moyen",make(){
    const base=[pick([1,2,3]),pick([1,2,3])],k=pick([-3,-2,2,3]);
    const u=base,v=[k*base[0],k*base[1]];
-   return{prompt:`Les vecteurs u(${u[0]} ; ${u[1]}) et v(${v[0]} ; ${v[1]}) sont-ils colinéaires ?`,
-     type:"choice",options:["Oui, ils sont colinéaires","Non, ils ne sont pas colinéaires"],correct:0,
-     explain:`v = ${k} × u (chaque composante est multipliée par ${k}), donc <b>oui, ils sont colinéaires</b>.`};
+   return qcm(`Les vecteurs u(${u[0]} ; ${u[1]}) et v(${v[0]} ; ${v[1]}) sont-ils colinéaires ?`,
+     "Oui, ils sont colinéaires",["Non, ils ne sont pas colinéaires"],
+     `v = ${k} × u (chaque composante est multipliée par ${k}), donc <b>oui, ils sont colinéaires</b>.`);
  }},
  {lvl:"difficile",make(){
    const u=[Ri(-5,5),Ri(-5,5)],v=[Ri(-5,5),Ri(-5,5)];
@@ -835,14 +835,12 @@ const G_AFF=[
 /* ---------- Limites ---------- */
 const G_LIM=[
  {lvl:"facile",make(){
-   return{prompt:"Calcule la limite de eˣ quand x tend vers +∞.",
-     type:"choice",options:["+∞","−∞","0","La limite ne existe pas"],correct:0,
-     explain:"Quand x → +∞, eˣ croît sans limite : eˣ → <b>+∞</b>."};
+   return qcm("Calcule la limite de eˣ quand x tend vers +∞.","+∞",["−∞","0","La limite ne existe pas"],
+     "Quand x → +∞, eˣ croît sans limite : eˣ → <b>+∞</b>.");
  }},
  {lvl:"facile",make(){
-   return{prompt:"Calcule la limite de ln(x) quand x tend vers 0 par la droite (x → 0⁺).",
-     type:"choice",options:["−∞","+∞","0","La limite ne existe pas"],correct:0,
-     explain:"Quand x → 0⁺, ln(x) descend sans limite : ln(x) → <b>−∞</b>."};
+   return qcm("Calcule la limite de ln(x) quand x tend vers 0 par la droite (x → 0⁺).","−∞",["+∞","0","La limite ne existe pas"],
+     "Quand x → 0⁺, ln(x) descend sans limite : ln(x) → <b>−∞</b>.");
  }},
  {lvl:"facile",make(){
    return{prompt:"Calcule la limite de 1/x quand x tend vers +∞.",
@@ -884,10 +882,10 @@ const G_LIM=[
 const G_VAR=[
  {lvl:"facile",make(){
    const a=pick([-6,-4,-3,-2,2,3,4,6]),b=Ri(-9,9),inc=a>0;
-   return{prompt:`Soit f(x) = ${a}x ${b<0?"− "+(-b):"+ "+b}. Est-elle croissante ou décroissante sur ℝ ?`,
-     type:"choice",options:["Croissante sur ℝ","Décroissante sur ℝ"],correct:inc?0:1,
-     viz:{kind:"var",f:"lin",a:a,b:b,arrows:[[ -8,8,inc?1:-1]],ex:[]},
-     explain:`f est affine de coefficient a = ${a} ${a>0?"> 0":"< 0"}.<br>Donc f est <b>${inc?"croissante":"décroissante"}</b> sur ℝ.`};
+   return{...qcm(`Soit f(x) = ${a}x ${b<0?"− "+(-b):"+ "+b}. Est-elle croissante ou décroissante sur ℝ ?`,
+     inc?"Croissante sur ℝ":"Décroissante sur ℝ",inc?["Décroissante sur ℝ"]:["Croissante sur ℝ"],
+     `f est affine de coefficient a = ${a} ${a>0?"> 0":"< 0"}.<br>Donc f est <b>${inc?"croissante":"décroissante"}</b> sur ℝ.`),
+     viz:{kind:"var",f:"lin",a:a,b:b,arrows:[[ -8,8,inc?1:-1]],ex:[]}};
  }},
  {lvl:"facile",make(){
    const a=pick([2,3,4,-2,-3]),b=Ri(-6,6),c=Ri(-6,6);
@@ -902,21 +900,20 @@ const G_VAR=[
  {lvl:"moyen",make(){
    const a=pick([2,3,-2,-3]),h=pick([-3,-2,-1,1,2,3]);
    const b=-2*a*h,c=Ri(-6,6),fh=a*h*h+b*h+c;
-   return{prompt:`Soit f(x) = ${a<0?"− ":""}${Math.abs(a)>1?Math.abs(a)+" ":""}x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c}. Sur quel intervalle f est-elle décroissante ?`,
-     type:"choice",
-     options:[`(−∞ ; ${h}]`,`[${h} ; +∞)`,`Sur tout ℝ`],
-     correct:a>0?0:1,
+   return{...qcm(`Soit f(x) = ${a<0?"− ":""}${Math.abs(a)>1?Math.abs(a)+" ":""}x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c}. Sur quel intervalle f est-elle décroissante ?`,
+     a>0?`(−∞ ; ${h}]`:`[${h} ; +∞)`,
+     [a>0?`[${h} ; +∞)`:`(−∞ ; ${h}]`,`Sur tout ℝ`],
+     `f′(x) = ${2*a}x ${b<0?"− "+(-b):"+ "+b}. Le signe de f′ change en x = ${h} (sommet).<br>Donc f est <b>décroissante sur ${a>0?"(−∞ ; "+h+"]":"["+h+" ; +∞)"}</b>.`),
      viz:{kind:"var",f:"quad",a:a,b:b,c:c,
        arrows:a>0?[[-8,h,-1],[h,8,1]]:[[-8,h,1],[h,8,-1]],
-       ex:[[h,fh,a>0?"min":"max"]]},
-     explain:`f′(x) = ${2*a}x ${b<0?"− "+(-b):"+ "+b}. Le signe de f′ change en x = ${h} (sommet).<br>Donc f est <b>décroissante sur ${a>0?"(−∞ ; "+h+"]":"["+h+" ; +∞)"}</b>.`};
+       ex:[[h,fh,a>0?"min":"max"]]}};
  }},
  {lvl:"moyen",make(){
    const a=pick([1,2,3]);
-   return{prompt:`Soit f(x) = ${a>1?a+" ":""}eˣ ${a>1?"− "+a:"− 1"}. Sur quel intervalle f est-elle décroissante ?`,
-     type:"choice",options:["(−∞ ; 0]","[0 ; +∞)","Sur tout ℝ"],correct:0,
-     viz:{kind:"var",f:"expx",a:a,b:-a,arrows:[[-8,0,-1],[0,8,1]],ex:[[0,0,"min"]]},
-    explain:`f′(x) = ${a}·eˣ − ${a}, donc f′(x) a le signe de (eˣ − 1) car ${a} > 0.<br>eˣ − 1 < 0 ⇔ x < 0 : f est <b>décroissante sur (−∞ ; 0]</b> (le minimum est en x = 0).`};
+   return{...qcm(`Soit f(x) = ${a>1?a+" ":""}eˣ ${a>1?"− "+a:"− 1"}. Sur quel intervalle f est-elle décroissante ?`,
+     "(−∞ ; 0]",["[0 ; +∞)","Sur tout ℝ"],
+     `f′(x) = ${a}·eˣ − ${a}, donc f′(x) a le signe de (eˣ − 1) car ${a} > 0.<br>eˣ − 1 < 0 ⇔ x < 0 : f est <b>décroissante sur (−∞ ; 0]</b> (le minimum est en x = 0).`),
+     viz:{kind:"var",f:"expx",a:a,b:-a,arrows:[[-8,0,-1],[0,8,1]],ex:[[0,0,"min"]]}};
  }},
  {lvl:"moyen",make(){
    const a=pick([1,2,3]);
@@ -1016,11 +1013,10 @@ const G_NEWTON=[
      explain:`Chute libre : v = g·t = ${g} × ${t} = <b>${v} m/s</b>.`};
  }},
  {lvl:"facile",make(){
-   return{prompt:`Une voiture roule à vitesse constante en ligne droite. Que peut-on affirmer sur la somme des forces qui s'exercent sur elle ?`,
-     type:"choice",
-     options:["La somme des forces est nulle (ΣF = 0)","La somme des forces est dirigée vers l'avant","La somme des forces est dirigée vers l'arrière","La voiture ne subit aucune force"],
-     correct:0,
-     explain:`1ʳᵉ loi de Newton : vitesse constante → mouvement rectiligne uniforme → la résultante des forces est nulle, <b>ΣF = 0</b>. (Les forces qui s'exercent s'annulent deux à deux.)`};
+   return qcm(`Une voiture roule à vitesse constante en ligne droite. Que peut-on affirmer sur la somme des forces qui s'exercent sur elle ?`,
+     "La somme des forces est nulle (ΣF = 0)",
+     ["La somme des forces est dirigée vers l'avant","La somme des forces est dirigée vers l'arrière","La voiture ne subit aucune force"],
+     `1ʳᵉ loi de Newton : vitesse constante → mouvement rectiligne uniforme → la résultante des forces est nulle, <b>ΣF = 0</b>. (Les forces qui s'exercent s'annulent deux à deux.)`);
  }},
  {lvl:"moyen",make(){
    const t=pick([1,2,3,4]),g=10,h=5*t*t;
@@ -1050,11 +1046,10 @@ const G_NEWTON=[
      explain:`Temps de vol : t = √(2h/g) = √(${2*h}/${g}) = ${t} s.<br>Portée : x = v₀·t = ${v0} × ${t} = <b>${x} m</b>.`};
  }},
  {lvl:"difficile",make(){
-   return{prompt:`Un livre posé sur une table subit le poids P de la Terre, dirigé vers le bas. Quelle est la force de réaction au poids du livre (3ᵉ loi de Newton) ?`,
-     type:"choice",
-     options:["La force du livre sur la Terre (égale et opposée à P)","La force de la table sur le livre (la normale N)","La force du livre sur la table (la pression)","Il n'y a pas de force de réaction"],
-     correct:0,
-     explain:`3ᵉ loi : la force de réaction à « la Terre tire le livre vers le bas (P) » est « <b>le livre tire la Terre vers le haut</b> », de même intensité et de sens opposé. (La normale N équilibre le poids — c'est la 1ʳᵉ loi, pas la réaction du poids.)`};
+   return qcm(`Un livre posé sur une table subit le poids P de la Terre, dirigé vers le bas. Quelle est la force de réaction au poids du livre (3ᵉ loi de Newton) ?`,
+     "La force du livre sur la Terre (égale et opposée à P)",
+     ["La force de la table sur le livre (la normale N)","La force du livre sur la table (la pression)","Il n'y a pas de force de réaction"],
+     `3ᵉ loi : la force de réaction à « la Terre tire le livre vers le bas (P) » est « <b>le livre tire la Terre vers le haut</b> », de même intensité et de sens opposé. (La normale N équilibre le poids — c'est la 1ʳᵉ loi, pas la réaction du poids.)`);
  }}
 ];
 /* ---------- PC (forces) : forces & champs ---------- */
@@ -1067,11 +1062,10 @@ const G_FORCES=[
      explain:`P = m·g = ${m} × ${String(g).replace(".",",")} = <b>${String(P).replace(".",",")} N</b>.`};
  }},
  {lvl:"facile",make(){
-   return{prompt:`Le poids d'un objet est une force de champ. Qu'est-ce que cela signifie ?`,
-     type:"choice",
-     options:["C'est une interaction à distance : la Terre attire l'objet sans être en contact avec lui","C'est une force de contact exercée par le support (comme la normale)","C'est une poussée d'Archimède exercée par l'air","C'est une force qui ne s'exerce que si l'objet repose au sol"],
-     correct:0,
-     explain:`Le poids P est la force d'attraction gravitationnelle exercée par la Terre sur l'objet : c'est une <b>force de champ (action à distance)</b>. Elle s'exerce même en l'air (en chute libre) et sans aucun contact. Les forces de contact (normale, frottement) sont d'une autre nature.`};
+   return qcm(`Le poids d'un objet est une force de champ. Qu'est-ce que cela signifie ?`,
+     "C'est une interaction à distance : la Terre attire l'objet sans être en contact avec lui",
+     ["C'est une force de contact exercée par le support (comme la normale)","C'est une poussée d'Archimède exercée par l'air","C'est une force qui ne s'exerce que si l'objet repose au sol"],
+     `Le poids P est la force d'attraction gravitationnelle exercée par la Terre sur l'objet : c'est une <b>force de champ (action à distance)</b>. Elle s'exerce même en l'air (en chute libre) et sans aucun contact. Les forces de contact (normale, frottement) sont d'une autre nature.`);
  }},
  {lvl:"moyen",make(){
    const ans=Math.round(6.67*6/Math.pow(6.4,2)*10*100)/100; /* ×10 : exposants 10⁻¹¹⁺²⁴⁻¹² */
@@ -1102,11 +1096,10 @@ const G_FORCES=[
      explain:`F = G·M·m/r² = 6,67 × 10⁻¹¹ × 6 × 10²⁴ × ${m} / (${rs} × 10⁶)² ≈ <b>${F} N</b>. (À cette distance, c'est le poids du satellite : c'est lui qui le maintient en orbite.)`};
  }},
  {lvl:"difficile",make(){
-   return{prompt:`Une charge négative est placée dans un champ électrique uniforme qui pointe vers la droite. Dans quel sens s'exerce la force électrique F = q·E sur cette charge ?`,
-     type:"choice",
-     options:["Vers la gauche : q étant négative, F est de sens opposé à E","Vers la droite : F est toujours dans le sens du champ E","Vers le bas : F est perpendiculaire au champ","Aucune force ne s'exerce, le champ ne fait qu'orienter la charge"],
-     correct:0,
-     explain:`F = q·E : si q > 0, F a le <b>même sens</b> que E ; si q < 0, F est <b>opposé à E</b>. Ici la charge est négative et E pointe vers la droite → la force est dirigée vers la gauche.`};
+   return qcm(`Une charge négative est placée dans un champ électrique uniforme qui pointe vers la droite. Dans quel sens s'exerce la force électrique F = q·E sur cette charge ?`,
+     "Vers la gauche : q étant négative, F est de sens opposé à E",
+     ["Vers la droite : F est toujours dans le sens du champ E","Vers le bas : F est perpendiculaire au champ","Aucune force ne s'exerce, le champ ne fait qu'orienter la charge"],
+     `F = q·E : si q > 0, F a le <b>même sens</b> que E ; si q < 0, F est <b>opposé à E</b>. Ici la charge est négative et E pointe vers la droite → la force est dirigée vers la gauche.`);
  }},
  {lvl:"facile",make(){
    const p=pick([[10,2],[10,3],[5,3]]),q=p[0],r=p[1];
@@ -1117,11 +1110,10 @@ const G_FORCES=[
      explain:`F = k·q²/r² = (9 × 10⁹) × (${q} × 10⁻⁶)² / ${r}² = ${String(9*q*q/1000).replace(".",",")}/${r*r} = <b>${String(F).replace(".",",")} N</b>. (Même loi en 1/r² que la gravitation !)`};
  }},
  {lvl:"facile",make(){
-   return{prompt:`Deux charges s'attirent avec une force F. Si on double la distance entre elles, la force devient…`,
-     type:"choice",
-     options:["F/4 : la force est proportionnelle à 1/r²","F/2 : la force est proportionnelle à 1/r","2F : la force est proportionnelle à r","4F : la force est proportionnelle à r²"],
-     correct:0,
-     explain:`F = k·q₁q₂/r² : r → 2r ⇒ F → F/2² = <b>F/4</b>. Loi en inverse du carré — exactement la même structure que la gravitation F = G·M·m/d².`};
+   return qcm(`Deux charges s'attirent avec une force F. Si on double la distance entre elles, la force devient…`,
+     "F/4 : la force est proportionnelle à 1/r²",
+     ["F/2 : la force est proportionnelle à 1/r","2F : la force est proportionnelle à r","4F : la force est proportionnelle à r²"],
+     `F = k·q₁q₂/r² : r → 2r ⇒ F → F/2² = <b>F/4</b>. Loi en inverse du carré — exactement la même structure que la gravitation F = G·M·m/d².`);
  }},
  {lvl:"moyen",make(){
    return{prompt:`Deux charges q₁ = 6 µC et q₂ = 4 µC sont distantes de r = 2 m. Avec F = k·q₁q₂/r² et k = 9 × 10⁹ N·m²/C², quelle est l'intensité F ? (en N)`,
@@ -1130,12 +1122,11 @@ const G_FORCES=[
      explain:`F = k·q₁q₂/r² = (9 × 10⁹) × (6 × 10⁻⁶) × (4 × 10⁻⁶) / 4 = 0,216/4 = <b>0,054 N</b>. (Les puissances de 10 : 10⁹ × 10⁻⁶ × 10⁻⁶ = 10⁻³.)`};
  }},
  {lvl:"moyen",make(){
-   return{prompt:`Deux charges q₁ = +3 µC et q₂ = −3 µC sont proches l'une de l'autre. La force électrique qui s'exerce entre elles est…`,
-     type:"choice",
-     options:["attractive : des charges de signes opposés s'attirent","répulsive : des charges de signes opposés se repoussent","nulle : les charges s'annulent mutuellement","imprévisible sans connaître la distance"],
-     correct:0,
-     viz:{kind:"charges",attr:true},
-     explain:`Charges de <b>signes opposés</b> → <b>attraction</b> ; même signe → répulsion. La distance ne change que l'intensité, jamais le sens.`};
+   return{...qcm(`Deux charges q₁ = +3 µC et q₂ = −3 µC sont proches l'une de l'autre. La force électrique qui s'exerce entre elles est…`,
+     "attractive : des charges de signes opposés s'attirent",
+     ["répulsive : des charges de signes opposés se repoussent","nulle : les charges s'annulent mutuellement","imprévisible sans connaître la distance"],
+     `Charges de <b>signes opposés</b> → <b>attraction</b> ; même signe → répulsion. La distance ne change que l'intensité, jamais le sens.`),
+     viz:{kind:"charges",attr:true}};
  }}
 ];
 /* ---------- PC (energie) : conversions et bilans d'énergie ---------- */
@@ -1155,11 +1146,10 @@ const G_ENERGIE=[
      explain:`Eₚ = m·g·h = ${m} × 10 × ${h} = <b>${ep} J</b>.`};
  }},
  {lvl:"facile",make(){
-   return{prompt:`Lors d'une chute sans frottements, quelle énergie augmente ?`,
-     type:"choice",
-     options:["L'énergie cinétique : la vitesse augmente","L'énergie de pesanteur : la hauteur augmente","L'énergie mécanique totale : elle augmente pendant la chute","Aucune : toutes les énergies restent constantes"],
-     correct:0,
-     explain:`La hauteur diminue → Eₚ diminue ; la vitesse augmente → <b>E꜀ augmente</b>. L'énergie mécanique Eₘ = E꜀ + Eₚ reste constante : c'est une conversion d'Eₚ en E꜀, pas une création d'énergie.`};
+   return qcm(`Lors d'une chute sans frottements, quelle énergie augmente ?`,
+     "L'énergie cinétique : la vitesse augmente",
+     ["L'énergie de pesanteur : la hauteur augmente","L'énergie mécanique totale : elle augmente pendant la chute","Aucune : toutes les énergies restent constantes"],
+     `La hauteur diminue → Eₚ diminue ; la vitesse augmente → <b>E꜀ augmente</b>. L'énergie mécanique Eₘ = E꜀ + Eₚ reste constante : c'est une conversion d'Eₚ en E꜀, pas une création d'énergie.`);
  }},
  {lvl:"moyen",make(){
    const k=pick([2,4,8,12]),x=pick([1,2,3,4]),e=k*x*x/2;
@@ -1201,11 +1191,10 @@ const G_ENERGIE=[
      explain:`W = F·d = ${F} × ${d} = <b>${W} J</b>. Force dans le sens du déplacement (α = 0°) → travail <b>moteur</b>, positif.`};
  }},
  {lvl:"facile",make(){
-   return{prompt:`Une force perpendiculaire au déplacement (comme la pesanteur d'un objet qui glisse horizontalement) effectue…`,
-     type:"choice",
-     options:["un travail nul : W = F·d·cos 90° = 0","le travail maximal : W = F·d","un travail négatif : W = −F·d","un travail qui ne dépend pas de l'angle"],
-     correct:0,
-     explain:`W = F·d·cos α : si α = 90° alors cos 90° = <b>0</b> → W = 0. Une force perpendiculaire ne modifie ni la vitesse ni l'énergie cinétique.`};
+   return qcm(`Une force perpendiculaire au déplacement (comme la pesanteur d'un objet qui glisse horizontalement) effectue…`,
+     "un travail nul : W = F·d·cos 90° = 0",
+     ["le travail maximal : W = F·d","un travail négatif : W = −F·d","un travail qui ne dépend pas de l'angle"],
+     `W = F·d·cos α : si α = 90° alors cos 90° = <b>0</b> → W = 0. Une force perpendiculaire ne modifie ni la vitesse ni l'énergie cinétique.`);
  }},
  {lvl:"moyen",make(){
    const f=pick([2,3]),d=pick([4,5]);
@@ -1298,14 +1287,14 @@ const G_STOICH=[
    const ts=String(t).replace(".",",");
    if(pick([0,1])===0){
      const nA=t,nB=b*t+ex,nb=String(nB).replace(".",",");
-     return{prompt:`Réaction : A + ${b}B → C. On mélange n(A) = ${ts} mol et n(B) = ${nb} mol. Quel est le réactif limitant ?`,
-       type:"choice",options:["A","B","Aucun (proportions stœchiométriques)"],correct:0,
-       explain:`n(A)/1 = ${ts} < n(B)/${b} = ${nb}/${b} : le rapport le plus petit est celui de A, qui s'épuise en premier.<br>Le réactif limitant est <b>A</b>.`};
+     return qcm(`Réaction : A + ${b}B → C. On mélange n(A) = ${ts} mol et n(B) = ${nb} mol. Quel est le réactif limitant ?`,
+       "A",["B","Aucun (proportions stœchiométriques)"],
+       `n(A)/1 = ${ts} < n(B)/${b} = ${nb}/${b} : le rapport le plus petit est celui de A, qui s'épuise en premier.<br>Le réactif limitant est <b>A</b>.`);
    }
    const nA=b*t+ex,nB=t,ns=String(nA).replace(".",",");
-   return{prompt:`Réaction : A + ${b}B → C. On mélange n(A) = ${ns} mol et n(B) = ${ts} mol. Quel est le réactif limitant ?`,
-     type:"choice",options:["B","A","Aucun (proportions stœchiométriques)"],correct:0,
-     explain:`n(B)/${b} = ${ts}/${b} < n(A)/1 = ${ns} : le rapport le plus petit est celui de B, qui s'épuise en premier.<br>Le réactif limitant est <b>B</b>.`};
+   return qcm(`Réaction : A + ${b}B → C. On mélange n(A) = ${ns} mol et n(B) = ${ts} mol. Quel est le réactif limitant ?`,
+     "B",["A","Aucun (proportions stœchiométriques)"],
+     `n(B)/${b} = ${ts}/${b} < n(A)/1 = ${ns} : le rapport le plus petit est celui de B, qui s'épuise en premier.<br>Le réactif limitant est <b>B</b>.`);
  }},
  {lvl:"moyen",make(){
    const b=pick([2,3]),t=pick([0.5,1,1.5,2]),ex=pick([1,2,3]);
@@ -1338,11 +1327,9 @@ const G_STOICH=[
    const nA=t,nB=b*t+ex; /* A est limitant : état final (0 ; ex) */
    const ts=String(t).replace(".",","),nb=String(nB).replace(".",","),bc=String(b*t).replace(".",",");
    const cpl=(x,y)=>`(${x} mol ; ${y} mol)`;
-   return{prompt:`Réaction : A + ${b}B → C. On mélange n(A) = ${ts} mol et n(B) = ${nb} mol. Quel couple (n(A), n(B)) correspond à l'état final ?`,
-     type:"choice",
-     options:[cpl(0,ex),cpl(0,nb),cpl(ts,nb),cpl(ts,ex)],
-     correct:0,
-     explain:`A est limitant (n(A)/1 = ${ts} < n(B)/${b} = ${nb}/${b}) : il disparaît entièrement.<br>B consommé : ${b} × τ = ${b} × ${ts} = ${bc} mol → il reste ${nb} − ${bc} = ${ex} mol.<br>État final : <b>${cpl(0,ex)}</b>.`};
+   return qcm(`Réaction : A + ${b}B → C. On mélange n(A) = ${ts} mol et n(B) = ${nb} mol. Quel couple (n(A), n(B)) correspond à l'état final ?`,
+     cpl(0,ex),[cpl(0,nb),cpl(ts,nb),cpl(ts,ex)],
+     `A est limitant (n(A)/1 = ${ts} < n(B)/${b} = ${nb}/${b}) : il disparaît entièrement.<br>B consommé : ${b} × τ = ${b} × ${ts} = ${bc} mol → il reste ${nb} − ${bc} = ${ex} mol.<br>État final : <b>${cpl(0,ex)}</b>.`);
  }}
 ];
 /* ---------- PC (cinet) : cinétique — vitesse moyenne, t(95 %), catalyseur ---------- */
@@ -1365,28 +1352,23 @@ const G_CINET=[
    const n0=pick([2,4,5,8,10,20]),th=Math.round(n0*0.05*1000)/1000,t=pick([1,2,3,5,8,10]);
    const tf=String(th).replace(".",",");
    if(pick([0,1])===0){
-     return{prompt:`n(A) = ${n0} mmol à l'initiale ; n(A) = ${tf} mmol au bout de ${t} min. La durée de la réaction, t(95 %), est-elle atteinte ?`,
-       type:"choice",
-       options:["Oui, t(95 %) est atteint","Non, t(95 %) n'est pas atteint"],
-       correct:0,
-       explain:`À t(95 %), il reste 5 % de A : 0,05 × ${n0} = ${tf} mmol.<br>Or n(A) = ${tf} mmol, exactement 5 % de n₀ : <b>oui</b>, t(95 %) est atteint.`};
+     return qcm(`n(A) = ${n0} mmol à l'initiale ; n(A) = ${tf} mmol au bout de ${t} min. La durée de la réaction, t(95 %), est-elle atteinte ?`,
+       "Oui, t(95 %) est atteint",["Non, t(95 %) n'est pas atteint"],
+       `À t(95 %), il reste 5 % de A : 0,05 × ${n0} = ${tf} mmol.<br>Or n(A) = ${tf} mmol, exactement 5 % de n₀ : <b>oui</b>, t(95 %) est atteint.`);
    }
    const nt=pick([0.5,1,2,4,5,10].filter(x=>x>th&&x<n0));
    const nf=String(nt).replace(".",",");
-   return{prompt:`n(A) = ${n0} mmol à l'initiale ; n(A) = ${nf} mmol au bout de ${t} min. La durée de la réaction, t(95 %), est-elle atteinte ?`,
-     type:"choice",
-     options:["Non, t(95 %) n'est pas atteint","Oui, t(95 %) est atteint"],
-     correct:0,
-     explain:`À t(95 %), il resterait 5 % de A : 0,05 × ${n0} = ${tf} mmol.<br>Or n(A) = ${nf} mmol > ${tf} mmol : <b>non</b>, t(95 %) n'est pas encore atteint.`};
+   return qcm(`n(A) = ${n0} mmol à l'initiale ; n(A) = ${nf} mmol au bout de ${t} min. La durée de la réaction, t(95 %), est-elle atteinte ?`,
+     "Non, t(95 %) n'est pas atteint",["Oui, t(95 %) est atteint"],
+     `À t(95 %), il resterait 5 % de A : 0,05 × ${n0} = ${tf} mmol.<br>Or n(A) = ${nf} mmol > ${tf} mmol : <b>non</b>, t(95 %) n'est pas encore atteint.`);
  }},
  {lvl:"moyen",make(){
    const prompt=pick(["On ajoute un catalyseur dans un mélange réactionnel. Quelle est sa conséquence ?",
                       "Un catalyseur est ajouté à un système réactionnel. Quel est son effet ?"]);
-   return{prompt:prompt,
-     type:"choice",
-     options:["Il accélère la réaction sans modifier l'état final","Il modifie l'état final sans changer la vitesse","Il ralentit la réaction sans modifier l'état final"],
-     correct:0,
-     explain:`Un catalyseur abaisse l'énergie d'activation : la réaction est <b>plus rapide</b>, mais les quantités de matière à l'état final restent <b>inchangées</b> (le réactif limitant est toujours épuisé).`};
+   return qcm(prompt,
+     "Il accélère la réaction sans modifier l'état final",
+     ["Il modifie l'état final sans changer la vitesse","Il ralentit la réaction sans modifier l'état final"],
+     `Un catalyseur abaisse l'énergie d'activation : la réaction est <b>plus rapide</b>, mais les quantités de matière à l'état final restent <b>inchangées</b> (le réactif limitant est toujours épuisé).`);
  }},
  {lvl:"moyen",make(){
    const v=pick([1,2,3,5]),t1=pick([1,2,3,5]),dt=pick([2,5,10]),n2=pick([1,2,3,5,10,20]);
@@ -1448,11 +1430,10 @@ const G_ONDES=[
      explain:`t = d/c = (1,5 × 10¹¹)/(3 × 10⁸) = 0,5 × 10³ = <b>500 s</b> (≈ 8 min 20 s) : la lumière du Soleil « date » d'environ 8 minutes.`};
  }},
  {lvl:"facile",make(){
-   return{prompt:`Une onde électromagnétique (lumière, radio, micro-ondes…) est une onde…`,
-     type:"choice",
-     options:["transverse, qui se propage dans le vide comme dans un milieu","longitudinale, qui a besoin d'un milieu matériel pour se propager","mécanique, analogue au son"],
-     correct:0,
-     explain:`Les ondes électromagnétiques sont des ondes <b>transverses</b> (les champs oscillent perpendiculairement à la direction de propagation) et, contrairement au son, elles se propagent <b>dans le vide</b>.`};
+   return qcm(`Une onde électromagnétique (lumière, radio, micro-ondes…) est une onde…`,
+     "transverse, qui se propage dans le vide comme dans un milieu",
+     ["longitudinale, qui a besoin d'un milieu matériel pour se propager","mécanique, analogue au son"],
+     `Les ondes électromagnétiques sont des ondes <b>transverses</b> (les champs oscillent perpendiculairement à la direction de propagation) et, contrairement au son, elles se propagent <b>dans le vide</b>.`);
  }},
  {lvl:"moyen",make(){
    const p=pick([[10,20],[10,30],[10,15],[15,30]]),f=p[0],u=p[1];
@@ -1471,11 +1452,9 @@ const G_ONDES=[
      explain:`γ = −OM′/OM = −${v}/(−${u}) = <b>${gs}</b> : l'image est ${g<1?"réduite":"agrandie"} (${String(g<1?1/g:g).replace(".",",")} fois ${g<1?"plus petite":"plus grande"} que l'objet).`};
  }},
  {lvl:"moyen",make(){
-   return{prompt:`Dans le vide, toutes les ondes électromagnétiques (radio, visible, rayons X…) partagent la même…`,
-     type:"choice",
-     options:["vitesse c = 3 × 10⁸ m/s","longueur d'onde","fréquence"],
-     correct:0,
-     explain:`Dans le vide, toutes les ondes électromagnétiques se propagent à la même vitesse <b>c = 3 × 10⁸ m/s</b>. Ce qui les distingue, c'est leur <b>fréquence</b> (et donc leur longueur d'onde λ = c/ν).`};
+   return qcm(`Dans le vide, toutes les ondes électromagnétiques (radio, visible, rayons X…) partagent la même…`,
+     "vitesse c = 3 × 10⁸ m/s",["longueur d'onde","fréquence"],
+     `Dans le vide, toutes les ondes électromagnétiques se propagent à la même vitesse <b>c = 3 × 10⁸ m/s</b>. Ce qui les distingue, c'est leur <b>fréquence</b> (et donc leur longueur d'onde λ = c/ν).`);
  }},
  {lvl:"difficile",make(){
    const E=6.62*6*Math.pow(10,-20);
@@ -1543,11 +1522,9 @@ const G_ELECTRICITE=[
      explain:`η = P_utile/P_in = ${Pu}/${Pin} = ${String(Pu/Pin).replace(".",",")}, soit <b>${eta} %</b>.`};
  }},
  {lvl:"moyen",make(){
-   return{prompt:`Quelle est la bonne relation entre l'unité de puissance et l'unité d'énergie ?`,
-     type:"choice",
-     options:["1 W = 1 J/s","1 W = 1 J·s","1 J = 1 W/s"],
-     correct:0,
-     explain:`La puissance est une énergie par unité de temps : 1 W = <b>1 J/s</b>. C'est pourquoi E = P·t, et pas E = P/t.`};
+   return qcm(`Quelle est la bonne relation entre l'unité de puissance et l'unité d'énergie ?`,
+     "1 W = 1 J/s",["1 W = 1 J·s","1 J = 1 W/s"],
+     `La puissance est une énergie par unité de temps : 1 W = <b>1 J/s</b>. C'est pourquoi E = P·t, et pas E = P/t.`);
  }},
  {lvl:"difficile",make(){
    const R=pick([2,4]),U=pick([12,24]);
