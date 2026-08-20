@@ -153,6 +153,14 @@ body{
 }
 @keyframes barIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 .topbar .wrap{padding-top:12px;padding-bottom:12px}
+/* Écrans larges : l'accueil est en 2 colonnes (marge 320 px + gap 40 px). Les
+   sélecteurs (matière + thème) ne doivent plus « flotter » au-dessus de la
+   colonne de la marge — où vit « À réviser » : leur bord droit s'arrête au
+   bord droit de la colonne principale (360 px = 320 + 40). Hors accueil
+   (écran d'exercice, pleine largeur), la topbar reprend toute sa largeur. */
+@media (min-width:1025px){
+  body:has(#home:not([hidden])) .topbar .wrap{padding-right:360px}
+}
 .brand{display:inline-flex;align-items:center;font:700 21px var(--f-display);letter-spacing:.01em}
 /* Pas de gap sur le conteneur : « Quiz » et « io » seraient deux items flex
    séparés de 9 px. L'espacement logo→texte vit sur la marque elle-même. */
@@ -280,9 +288,10 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
 .btn-ghost:hover{transform:translateY(-1px);border-color:var(--accent);color:var(--accent)}
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
-/* Stats en rangée horizontale sous le bloc Sprint (colonne principale) :
-   le panneau précédent apporte déjà les 16 px d'espacement. */
-.home-main .statgrid{margin-top:0}
+/* Stats en TÊTE de colonne principale (au-dessus d'« Entraînement libre ») :
+   le gap 40 px de la grid #home couvre l'espacement avec le hero, et les
+   16 px vers le bas tiennent le même rythme que .panel{margin-bottom:16px}. */
+.home-main .statgrid{margin-top:0;margin-bottom:16px}
 .stat{border:1px solid var(--line);border-radius:10px;padding:15px 16px;background:var(--surface);transition:border-color .16s var(--ease),transform .16s var(--ease),box-shadow .16s var(--ease)}
 .stat:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
 .stat .v{font:600 24px var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
@@ -308,20 +317,14 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .marge{grid-area:marge;min-width:0}
 .margewrap{position:sticky;top:88px;display:grid;gap:24px}
 .margewrap .margin-note{margin:0;margin-left:auto}
-/* Marge v2 — notes manuscrites : zéro carton, hiérarchie typographique */
 #noteTop{display:none}
-.marge .panel{padding:0;margin-bottom:0;background:transparent;border:0;box-shadow:none}
-.marge .panel h2{font:700 12.5px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 10px}
-#statsExtra{display:contents}
-/* Ordre de la marge : À réviser → Points faibles, donné par l'ordre du DOM
-   (#revSlot placé avant #statsExtra dans .margewrap). Les enfants de
-   #statsExtra sont des items de la grid .margewrap (display:contents).
-   « Par thème » vit en colonne principale sous les stats — voir #bySubSlot. */
-.marge .weakrow{display:grid;grid-template-columns:1fr auto;row-gap:8px;align-items:center}
-.marge .weakrow .weaknm{grid-area:1/1}
-.marge .weakrow .weakpct{grid-area:1/2}
-.marge .weakrow .weakbar{grid-area:2/1;width:100%}
-.marge .weakrow .btn{grid-area:2/2;justify-self:end}
+/* La marge ne porte plus qu'« À réviser » — une CARTE voyante (.revcta),
+   volontairement exclue du « décartonnage » .marge .panel qui reste en place
+   pour tout autre bloc neutre qu'on y replacerait un jour. Points faibles
+   (enfants de #statsExtra) et « Par thème » (#bySubSlot) vivent désormais en
+   colonne principale, sous le sprint — l'ordre y est donné par le DOM. */
+.marge .panel:not(.revcta){padding:0;margin-bottom:0;background:transparent;border:0;box-shadow:none}
+.marge .panel:not(.revcta) h2{font:700 12.5px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 10px}
 @media (max-width:1024px){
   #home{display:block}
   .margewrap{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
@@ -407,6 +410,14 @@ html.boot [data-rv]{animation:rvIn .85s var(--ease) both;animation-delay:calc(va
 @keyframes rvIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 /* Les tuiles de thèmes défilent à leur tour pendant le premier chargement */
 html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95s + var(--cd,0ms))*var(--boot-k,1))}
+/* Changement de niveau (Facile/Moyen/Difficile) : seules les tuiles des
+   CHAPITRES rejouent leur entrée — pas de cascade globale ni fenêtre .theming,
+   le niveau ne change que la difficulté derrière les mêmes chapitres.
+   --cd (i*60 ms) est posé par renderHome ; c'est setNiveau qui pose/repousse
+   la classe (reflow forcé → l'animation redémarre à chaque clic). */
+@media (prefers-reduced-motion: no-preference){
+  .subgrid.lvlswap .subcard{animation:rvIn .55s var(--ease) both;animation-delay:var(--cd,0ms)}
+}
 /* Transition douce entre l'accueil et l'écran d'exercice */
 #home.screen-in,#play.screen-in{animation:screenIn .4s var(--ease) both}
 @keyframes screenIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -519,6 +530,8 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
     </div>
 
     <div class="home-main">
+    <div class="statgrid" id="statGrid" data-rv style="--d:.84s"></div>
+
     <section class="panel lead" aria-labelledby="hFree" data-rv style="--d:.9s">
       <h2 id="hFree">Entraînement libre</h2>
       <div class="row space-between wrap-row" style="margin-bottom:16px">
@@ -546,9 +559,9 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
       </div>
     </section>
 
-    <div class="statgrid" id="statGrid" data-rv style="--d:1.14s"></div>
-
     <div id="bySubSlot"></div>
+
+    <div id="statsExtra"></div>
 
     </div>
 
@@ -556,7 +569,6 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
       <div class="margewrap">
         <p class="margin-note" aria-hidden="true" data-rv style="--d:.15s" id="noteTop">e<sup>iπ</sup> + 1 = 0</p>
         <div id="revSlot"></div>
-        <div id="statsExtra"></div>
       </div>
     </aside>
   </section>
@@ -2628,10 +2640,11 @@ function renderHome(){
     state.subject=(state.subject===b.dataset.sub)?"mix":b.dataset.sub;
     renderHome();
   }));
-  /* ---- v2 : « À réviser » + points faibles (marge) / par thème (colonne) ---- */
-  /* « À réviser » : CTA de relance dans la marge, au-dessus des points faibles.
-     Le slot est un simple <div> (vide = 0 hauteur, pas de vide parasite) ; son
-     bouton #btnReview est câblé ici, le slot étant rempli/vidé à chaque rendu. */
+  /* ---- v2 : « À réviser » (marge) / « Par thème » + points faibles (colonne) ---- */
+  /* « À réviser » : CTA de relance, SEUL bloc de la marge — carte voyante
+     .revcta (exclue du décartonnage .marge .panel via :not()). Le slot est un
+     simple <div> (vide = 0 hauteur, pas de vide parasite) ; son bouton
+     #btnReview est câblé ici, le slot étant rempli/vidé à chaque rendu. */
   const revSlot=$("#revSlot");
   if(revSlot){
     revSlot.innerHTML=stats.review.length>0?
@@ -2644,8 +2657,9 @@ function renderHome(){
     if(br)br.addEventListener("click",startReview);
   }
   /* « Par thème » : tableau des résultats par thème, en colonne principale
-     sous les stats. Slot simple <div> : vide = 0 hauteur, pas de vide
-     parasite tant qu'aucune question n'a été répondue. */
+     sous le sprint, juste au-dessus des points faibles. Slot simple <div> :
+     vide = 0 hauteur, pas de vide parasite tant qu'aucune question n'a été
+     répondue. */
   const bySlot=$("#bySubSlot");
   if(bySlot){
     bySlot.innerHTML=activeSubjects().some(s=>{const st=stats.bySub[s.id];return st&&st.ans>0;})?
@@ -2660,6 +2674,8 @@ function renderHome(){
         }).join("")+
       `</section>`:"";
   }
+  /* Points faibles : en colonne principale, sous « Par thème » (slot simple
+     <div>, enfants en flux normal — plus besoin de display:contents). */
   const extra=$("#statsExtra");
   if(extra){
     let html="";
@@ -3008,21 +3024,25 @@ function confetti(){
 }
 
 /* ---------- Câblage ---------- */
-/* Changement de niveau : même chorégraphie que la bascule de matière —
-   fenêtre .theming (couleurs) pendant 520 ms + cascade d'arrivée rearmée en
-   mode rapide (rearmBoot(true)). Le niveau ne change ni texte ni accent :
-   la transition est le "souffle" de ré-entrée, comme après un changement de
-   matière. Le guard évite de rejouer la cascade en reclickant le niveau actif. */
+/* Changement de niveau : l'animation n'affecte QUE les tuiles des chapitres
+   (#subGrid) — pas de cascade globale (rearmBoot) ni de fenêtre .theming,
+   car le niveau ne change ni texte ni accent, seulement la difficulté des
+   questions derrière les mêmes chapitres. Mécanique : .lvlswap retirée,
+   reflow forcé, ré-ajoutée → l'animation CSS redémarre (même technique que
+   rearmBoot, circonscrite à #subGrid). Le guard évite de rejouer la tuile en
+   reclickant le niveau actif. Sous prefers-reduced-motion : la règle CSS est
+   inexistante → changement instantané, sans effet. */
 function setNiveau(l){
   if(state.level===l)return;
   state.level=l;
   document.querySelectorAll(".seg-btn[data-lvl]").forEach(x=>x.classList.toggle("on",x.dataset.lvl===l));
-  const r=document.documentElement;
-  r.classList.add("theming");
-  clearTimeout(setNiveau._t);
-  setNiveau._t=setTimeout(function(){r.classList.remove("theming");},520);
   renderHome();
-  rearmBoot(true);
+  const g=$("#subGrid");
+  if(g){
+    g.classList.remove("lvlswap");
+    void g.offsetWidth;      /* reflow forcé : le ré-ajout suivant redémarre l'animation */
+    g.classList.add("lvlswap");
+  }
 }
 document.querySelectorAll(".seg-btn[data-lvl]").forEach(b=>b.addEventListener("click",()=>setNiveau(b.dataset.lvl)));
 /* Ciblée sur .seg-btn : [data-mat] seul inclurait <html> (data-mat="pc" en mode
