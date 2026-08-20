@@ -311,8 +311,11 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .marge .panel{padding:0;margin-bottom:0;background:transparent;border:0;box-shadow:none}
 .marge .panel h2{font:700 12.5px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 10px}
 #statsExtra{display:contents}
-.marge .weakrow{flex-wrap:wrap;row-gap:8px}
-.marge .weakrow .weakbar{width:auto;flex:1 1 120px}
+.marge .weakrow{display:grid;grid-template-columns:1fr auto;row-gap:8px;align-items:center}
+.marge .weakrow .weaknm{grid-area:1/1}
+.marge .weakrow .weakpct{grid-area:1/2}
+.marge .weakrow .weakbar{grid-area:2/1;width:100%}
+.marge .weakrow .btn{grid-area:2/2;justify-self:end}
 @media (max-width:1024px){
   #home{display:block}
   .margewrap{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
