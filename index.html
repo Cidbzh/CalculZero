@@ -247,6 +247,17 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
   border-radius:7px;padding:6px 13px;
 }
 .seg-btn.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px rgba(31,46,71,.14)}
+/* Boutons de NIVEAU (Facile/Moyen/Difficile) : chaque appui « répond ».
+   Circonscrit à .seg-lvl pour ne pas faire « pop » les boutons de MATIÈRE
+   (même .seg, même .seg-btn). :active = press tactile ; .lvlpick (posée par
+   setNiveau au clic) = petit rebond sur le bouton sélectionné. Press + pop
+   désactivés sous prefers-reduced-motion ; la transition de couleurs reste. */
+.seg-lvl .seg-btn{transition:background-color .18s var(--ease),color .18s var(--ease),box-shadow .18s var(--ease),transform .12s var(--ease)}
+@keyframes lvlPop{0%,100%{transform:scale(1)}45%{transform:scale(1.06)}}
+@media (prefers-reduced-motion: no-preference){
+  .seg-lvl .seg-btn:active{transform:scale(.95)}
+  .seg-lvl .seg-btn.lvlpick{animation:lvlPop .32s var(--ease)}
+}
 .theme-seg{display:inline-flex;background:var(--accent-soft);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
 .theme-btn{
   appearance:none;border:0;background:transparent;cursor:pointer;
@@ -311,18 +322,23 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .revcta{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent)}
 .revcta p b{color:var(--ink)}
 /* ---------- « cahier avec marge » : accueil en 2 colonnes (spec §3.2) ---------- */
-#home{display:grid;grid-template-areas:"hero hero" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:40px}
+#home{display:grid;grid-template-areas:"hero rev" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:40px}
 .hero{grid-area:hero;min-width:0}
+/* « À réviser » : colonne droite de la rangée du hero (à droite du titre, au-dessus
+   des stats). align-self:start → la carte reste en haut, non étirée sur la hauteur
+   du hero. Slot vide (0 question à refaire) = 0 hauteur, pas de vide parasite. */
+#revSlot{grid-area:rev;min-width:0;align-self:start}
 .home-main{grid-area:main;min-width:0}
 .marge{grid-area:marge;min-width:0}
 .margewrap{position:sticky;top:88px;display:grid;gap:24px}
 .margewrap .margin-note{margin:0;margin-left:auto}
 #noteTop{display:none}
-/* La marge ne porte plus qu'« À réviser » — une CARTE voyante (.revcta),
-   volontairement exclue du « décartonnage » .marge .panel qui reste en place
-   pour tout autre bloc neutre qu'on y replacerait un jour. Points faibles
-   (enfants de #statsExtra) et « Par thème » (#bySubSlot) vivent désormais en
-   colonne principale, sous le sprint — l'ordre y est donné par le DOM. */
+/* La marge porte « Points faibles » (#statsExtra) en « notes manuscrites » :
+   le « décartonnage » retire carton/bordure/ombre et réduit le titre en petit
+   label majuscule. L'exclusion :not(.revcta) reste comme garde-fou au cas où
+   une CARTE voyante reviendrait un jour en marge. « À réviser » (#revSlot) a
+   quitté la marge pour la rangée du hero ; « Par thème » (#bySubSlot) reste en
+   colonne principale sous le sprint. */
 .marge .panel:not(.revcta){padding:0;margin-bottom:0;background:transparent;border:0;box-shadow:none}
 .marge .panel:not(.revcta) h2{font:700 12.5px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 10px}
 @media (max-width:1024px){
@@ -410,14 +426,6 @@ html.boot [data-rv]{animation:rvIn .85s var(--ease) both;animation-delay:calc(va
 @keyframes rvIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 /* Les tuiles de thèmes défilent à leur tour pendant le premier chargement */
 html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95s + var(--cd,0ms))*var(--boot-k,1))}
-/* Changement de niveau (Facile/Moyen/Difficile) : seules les tuiles des
-   CHAPITRES rejouent leur entrée — pas de cascade globale ni fenêtre .theming,
-   le niveau ne change que la difficulté derrière les mêmes chapitres.
-   --cd (i*60 ms) est posé par renderHome ; c'est setNiveau qui pose/repousse
-   la classe (reflow forcé → l'animation redémarre à chaque clic). */
-@media (prefers-reduced-motion: no-preference){
-  .subgrid.lvlswap .subcard{animation:rvIn .55s var(--ease) both;animation-delay:var(--cd,0ms)}
-}
 /* Transition douce entre l'accueil et l'écran d'exercice */
 #home.screen-in,#play.screen-in{animation:screenIn .4s var(--ease) both}
 @keyframes screenIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -529,6 +537,8 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
     <p class="lede" data-rv style="--d:.78s" id="heroLede">Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.</p>
     </div>
 
+    <div id="revSlot"></div>
+
     <div class="home-main">
     <div class="statgrid" id="statGrid" data-rv style="--d:.84s"></div>
 
@@ -536,7 +546,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
       <h2 id="hFree">Entraînement libre</h2>
       <div class="row space-between wrap-row" style="margin-bottom:16px">
         <span class="lbl">Niveau</span>
-        <div class="seg" role="group" aria-label="Niveau">
+        <div class="seg seg-lvl" role="group" aria-label="Niveau">
           <button class="seg-btn" data-lvl="facile">Facile</button>
           <button class="seg-btn on" data-lvl="moyen">Moyen</button>
           <button class="seg-btn" data-lvl="difficile">Difficile</button>
@@ -561,14 +571,12 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
 
     <div id="bySubSlot"></div>
 
-    <div id="statsExtra"></div>
-
     </div>
 
     <aside class="marge">
       <div class="margewrap">
         <p class="margin-note" aria-hidden="true" data-rv style="--d:.15s" id="noteTop">e<sup>iπ</sup> + 1 = 0</p>
-        <div id="revSlot"></div>
+        <div id="statsExtra"></div>
       </div>
     </aside>
   </section>
@@ -2640,11 +2648,13 @@ function renderHome(){
     state.subject=(state.subject===b.dataset.sub)?"mix":b.dataset.sub;
     renderHome();
   }));
-  /* ---- v2 : « À réviser » (marge) / « Par thème » + points faibles (colonne) ---- */
-  /* « À réviser » : CTA de relance, SEUL bloc de la marge — carte voyante
-     .revcta (exclue du décartonnage .marge .panel via :not()). Le slot est un
-     simple <div> (vide = 0 hauteur, pas de vide parasite) ; son bouton
-     #btnReview est câblé ici, le slot étant rempli/vidé à chaque rendu. */
+  /* ---- v2 : « À réviser » (rangée du hero) / « Par thème » (colonne) / points
+     faibles (marge) ---- */
+  /* « À réviser » : CTA de relance — carte voyante .revcta, colonne droite de la
+     rangée du hero (#revSlot, hors de la marge → conserve sa carte, le
+     décartonnage .marge .panel ne la touche plus). Le slot est un simple <div>
+     (vide = 0 hauteur, pas de vide parasite) ; son bouton #btnReview est câblé
+     ici, le slot étant rempli/vidé à chaque rendu. */
   const revSlot=$("#revSlot");
   if(revSlot){
     revSlot.innerHTML=stats.review.length>0?
@@ -2674,8 +2684,9 @@ function renderHome(){
         }).join("")+
       `</section>`:"";
   }
-  /* Points faibles : en colonne principale, sous « Par thème » (slot simple
-     <div>, enfants en flux normal — plus besoin de display:contents). */
+  /* Points faibles : dans la MARGE (slot #statsExtra dans .margewrap) — le
+     décartonnage .marge .panel l'affiche en « notes manuscrites » (titre en
+     petit label, sans carton). Slot simple <div>, vide = 0 hauteur. */
   const extra=$("#statsExtra");
   if(extra){
     let html="";
@@ -2739,9 +2750,9 @@ function pickQ(){
   let gens=sub.gens;
   if(state.mode==="free")gens=gens.filter(g=>g.lvl===state.level);
   if(!gens.length)gens=sub.gens;
-  let q=pick(gens).make();
-  if(state.mode==="sprint"){let i=0;while(q.type==="choice"&&i++<100)q=pick(gens).make();}
-  return{q,sub,lvl:state.level};
+  let g=pick(gens);let q=g.make();
+  if(state.mode==="sprint"){let i=0;while(q.type==="choice"&&i++<100){g=pick(gens);q=g.make();}}
+  return{q,sub,lvl:g.lvl};   /* vrai niveau de la QUESTION (g.lvl) — en sprint les niveaux sont mélangés */
 }
 function renderQ(){
   state.answered=false;
@@ -2837,9 +2848,14 @@ function submit(){
   state.answered=true;
   afterAnswer(res,state.q,res?"":"La bonne réponse était : <b>"+fmtAns(state.q)+"</b>. ");
 }
+/* Points par bonne réponse selon la DIFFICULTÉ de la question : facile 5 ·
+   moyen 10 · difficile 15. On lit le niveau de la QUESTION (state.curLvl), pas
+   le réglage global — en sprint les niveaux sont mélangés. + bonus de série de
+   5 dès la 3ᵉ bonne d'affilée (inchangé). */
+const PTS_LVL={facile:5,moyen:10,difficile:15};
 function afterAnswer(ok,q,extra){
   let pts=0;
-  if(ok){state.streak++;pts=10+(state.streak>=3?5:0);state.score+=pts;state.good++;stats.good++;}
+  if(ok){state.streak++;const base=PTS_LVL[state.curLvl]!==undefined?PTS_LVL[state.curLvl]:10;pts=base+(state.streak>=3?5:0);state.score+=pts;state.good++;stats.good++;}
   else state.streak=0;
   state.maxStreak=Math.max(state.maxStreak,state.streak);
   state.n++;stats.ans++;
@@ -3024,25 +3040,19 @@ function confetti(){
 }
 
 /* ---------- Câblage ---------- */
-/* Changement de niveau : l'animation n'affecte QUE les tuiles des chapitres
-   (#subGrid) — pas de cascade globale (rearmBoot) ni de fenêtre .theming,
-   car le niveau ne change ni texte ni accent, seulement la difficulté des
-   questions derrière les mêmes chapitres. Mécanique : .lvlswap retirée,
-   reflow forcé, ré-ajoutée → l'animation CSS redémarre (même technique que
-   rearmBoot, circonscrite à #subGrid). Le guard évite de rejouer la tuile en
-   reclickant le niveau actif. Sous prefers-reduced-motion : la règle CSS est
-   inexistante → changement instantané, sans effet. */
+/* Changement de niveau : PLUS d'animation sur les tuiles (l'ancienne .lvlswap
+   est retirée) — à la place, le BOUTON cliqué réagit : press tactile CSS
+   (:active) + petit rebond (.lvlpick posé ici, retiré à la fin). Le pop est
+   posé AVANT le guard → il se joue même si on reclicque le niveau actif.
+   Sous prefers-reduced-motion : press + pop inexistants (CSS) → seul le
+   changement de couleur de sélection reste, sans mouvement. */
 function setNiveau(l){
+  const b=document.querySelector('.seg-btn[data-lvl="'+l+'"]');
+  if(b){b.classList.add("lvlpick");setTimeout(function(){b.classList.remove("lvlpick");},340);}
   if(state.level===l)return;
   state.level=l;
   document.querySelectorAll(".seg-btn[data-lvl]").forEach(x=>x.classList.toggle("on",x.dataset.lvl===l));
   renderHome();
-  const g=$("#subGrid");
-  if(g){
-    g.classList.remove("lvlswap");
-    void g.offsetWidth;      /* reflow forcé : le ré-ajout suivant redémarre l'animation */
-    g.classList.add("lvlswap");
-  }
 }
 document.querySelectorAll(".seg-btn[data-lvl]").forEach(b=>b.addEventListener("click",()=>setNiveau(b.dataset.lvl)));
 /* Ciblée sur .seg-btn : [data-mat] seul inclurait <html> (data-mat="pc" en mode
