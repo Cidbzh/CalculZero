@@ -316,11 +316,11 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .marge .panel{padding:0;margin-bottom:0;background:transparent;border:0;box-shadow:none}
 .marge .panel h2{font:700 12.5px var(--f-body);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:0 0 10px}
 #statsExtra{display:contents}
-/* Ordre de la marge : À réviser → Par thème → Points faibles.
+/* Ordre de la marge : Par thème → À réviser → Points faibles.
    Les enfants de #statsExtra sont des items de la grid .margewrap
    (display:contents) → order les décale sans toucher au DOM/JS. */
-#statsExtra .revcta{order:-2}
-#statsExtra .bysub{order:-1}
+#statsExtra .bysub{order:-2}
+#statsExtra .revcta{order:-1}
 .marge .weakrow{display:grid;grid-template-columns:1fr auto;row-gap:8px;align-items:center}
 .marge .weakrow .weaknm{grid-area:1/1}
 .marge .weakrow .weakpct{grid-area:1/2}
