@@ -292,6 +292,26 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .substatrow b{font:700 15.5px var(--f-display);color:var(--accent)}
 .revcta{background:linear-gradient(135deg,var(--accent-soft),var(--surface));border-color:var(--accent)}
 .revcta p b{color:var(--ink)}
+/* ---------- « cahier avec marge » : accueil en 2 colonnes (spec §3.2) ---------- */
+#home{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px}
+.home-main{min-width:0}
+.marge{min-width:0}
+.margewrap{position:sticky;top:88px;display:grid;gap:16px}
+.margewrap .margin-note{margin:0;margin-left:auto}
+.marge .statgrid{grid-template-columns:repeat(2,1fr);gap:8px;margin-top:0}
+.marge .stat{padding:12px}
+.marge .stat .v{font-size:18px}
+.marge .panel{padding:16px;margin-bottom:0}
+#statsExtra{display:contents}
+.marge .weakrow{flex-wrap:wrap;row-gap:8px}
+.marge .weakrow .weakbar{width:auto;flex:1 1 120px}
+@media (max-width:1024px){
+  #home{display:block}
+  .margewrap{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
+}
+@media (max-width:600px){
+  .margewrap{grid-template-columns:1fr}
+}
 .playhead{margin:22px 0 14px}
 .qcard{
   background:var(--surface);border:1px solid var(--line);
@@ -463,7 +483,7 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
 
 <main class="wrap">
   <section id="home">
-    <p class="margin-note" aria-hidden="true" data-rv style="--d:.15s" id="noteTop">e<sup>iπ</sup> + 1 = 0</p>
+    <div class="home-main">
     <p class="eyebrow" data-rv style="--d:.24s" id="heroEyebrow">Première · spécialité maths</p>
     <h1>
       <span class="wr"><span style="--d:.34s">Quizio</span></span>
@@ -504,14 +524,16 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
       </div>
     </section>
 
-    <section class="panel" aria-labelledby="hStats" data-rv style="--d:1.14s">
-      <h2 id="hStats">Mes statistiques</h2>
-      <div class="statgrid" id="statGrid"></div>
-    </section>
+    </div>
 
-    <div id="statsExtra"></div>
-
-    <p class="margin-note end" aria-hidden="true" data-rv style="--d:1.26s" id="noteBottom">Δ = b² − 4ac — à connaître par cœur ✎</p>
+    <aside class="marge">
+      <div class="margewrap">
+        <p class="margin-note" aria-hidden="true" data-rv style="--d:.15s" id="noteTop">e<sup>iπ</sup> + 1 = 0</p>
+        <div class="statgrid" id="statGrid" data-rv style="--d:1.14s"></div>
+        <div id="statsExtra"></div>
+        <p class="margin-note end" aria-hidden="true" data-rv style="--d:1.62s" id="noteBottom">Δ = b² − 4ac — à connaître par cœur ✎</p>
+      </div>
+    </aside>
   </section>
 
   <section id="play" hidden>
@@ -2576,9 +2598,16 @@ function renderHome(){
   const extra=$("#statsExtra");
   if(extra){
     let html="";
+    if(stats.review.length>0){
+      html+=`<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.32s">`+
+        `<h2 id="hRev">À réviser</h2>`+
+        `<p class="muted" style="margin:0 0 16px"><b>${stats.review.length} question${stats.review.length>1?"s":""}</b> à refaire — celles que tu as ratées (et, en révision, celles que tu as passées).</p>`+
+        `<button type="button" class="btn btn-primary" id="btnReview">Reviser maintenant →</button>`+
+        `</section>`;
+    }
     const weak=weakPoints();
     if(weak.length){
-      html+=`<section class="panel" aria-labelledby="hWeak" data-rv style="--d:1.32s">`+
+      html+=`<section class="panel" aria-labelledby="hWeak" data-rv style="--d:1.42s">`+
         `<h2 id="hWeak">Tes points faibles</h2>`+
         `<p class="muted" style="margin:0 0 6px">Les thèmes qui résistent le plus, sur tes 100 dernières réponses.</p>`+
         weak.map(w=>{
@@ -2593,7 +2622,7 @@ function renderHome(){
         `</section>`;
     }
     if(activeSubjects().some(s=>{const st=stats.bySub[s.id];return st&&st.ans>0;})){
-      html+=`<section class="panel" aria-labelledby="hBySub" data-rv style="--d:1.42s">`+
+      html+=`<section class="panel" aria-labelledby="hBySub" data-rv style="--d:1.52s">`+
         `<h2 id="hBySub">Par thème</h2>`+
         `<div class="substathead"><span>thème</span><span>q</span><span>précision</span><span>série</span></div>`+
         activeSubjects().map(s=>{
@@ -2602,13 +2631,6 @@ function renderHome(){
           const stk=stats.streakBySub[s.id]||0;
           return `<div class="substatrow"><b>${s.name}</b><span>${st.ans||0}</span><span>${pct}</span><span>${stk>0?"🔥"+stk:"—"}</span></div>`;
         }).join("")+
-        `</section>`;
-    }
-    if(stats.review.length>0){
-      html+=`<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.52s">`+
-        `<h2 id="hRev">À réviser</h2>`+
-        `<p class="muted" style="margin:0 0 16px"><b>${stats.review.length} question${stats.review.length>1?"s":""}</b> à refaire — celles que tu as ratées (et, en révision, celles que tu as passées).</p>`+
-        `<button type="button" class="btn btn-primary" id="btnReview">Reviser maintenant →</button>`+
         `</section>`;
     }
     extra.innerHTML=html;
