@@ -46,7 +46,7 @@ Quizey repère aussi tes **points faibles** (thème × niveau, sur tes 100 derni
 - **Physique-chimie** — 8 thèmes : mécanique & Newton, forces & champs, énergie, quantités de matière, stœchiométrie & état final, cinétique, ondes & lumière, électricité
 - **Allemand A2** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres · dates · heures, phrases utiles, mini-traductions
 
-Les statistiques de chaque matière sont indépendantes : ta précision en maths n'interfère jamais avec ton allemand.
+Les statistiques de chaque matière sont indépendantes.
 
 ![Le mode allemand A2 — 100 % QCM](img/accueil-allemand.png)
 
