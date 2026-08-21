@@ -2,7 +2,7 @@
 
 **Plus tu quiz, plus tu sais.**
 
-Quizey c'est un fichier `.html` tout court pour réviser sa Première : maths (spécialité), physique-chimie, allemand A2. Aucune installation, aucun compte, aucun internet — tu l'ouvres et tu t'entraînes.
+Quizey c'est un fichier `.html` pour réviser sa Première : maths (spécialité), physique-chimie, allemand A2. Aucune installation, aucun compte, aucun internet — tu l'ouvres et tu t'entraînes.
 
 Ce qui le change : chaque question est générée au moment où tu la vois, donc tu ne vois jamais deux fois les mêmes nombres. Et chaque réponse arrive avec la méthode, pas juste « c'est la B ».
 
