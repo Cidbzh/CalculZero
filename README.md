@@ -28,7 +28,7 @@ Une fois le fichier en main, il t'appartient : sur une clé USB, à la médiath�
 
 **Entraînement libre** — tu choisis le thème et le niveau (facile, moyen, difficile) et tu avances à ton rythme.
 
-**Sprint 60 s** — les questions s'enchaînent, les séries montent, le record s'écrit. Pas dispo en allemand.
+**Sprint 60 s** — les questions s'enchaînent, les séries montent, le record s'écrit.
 
 **À réviser** — uniquement les questions que tu as ratées, jusqu'à ce que la liste soit vide. Chacune que tu réussis disparaît.
 
@@ -46,7 +46,7 @@ Quizey repère aussi tes **points faibles** (thème × niveau, sur tes 100 derni
 - **Physique-chimie** — 8 thèmes : mécanique & Newton, forces & champs, énergie, quantités de matière, stœchiométrie & état final, cinétique, ondes & lumière, électricité
 - **Allemand A2** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres · dates · heures, phrases utiles, mini-traductions
 
-Les statistiques de chaque matière sont indépendantes : ta précision en maths n'interfère jamais avec ton allemand.
+Les statistiques de chaque matière sont indépendantes.
 
 ![Le mode allemand A2 — 100 % QCM](img/accueil-allemand.png)
 
