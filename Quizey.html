@@ -2,12 +2,13 @@
 <!-- Favicon : le « Q à la plume » (source : logo.svg). Data: URI pour garder
      l'app en fichier unique ; la plume change d'accent avec la matière (setFavicon). -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cg%20fill='none'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='29'%20cy='28'%20r='19'%20stroke='%2316233D'%20stroke-width='7'/%3E%3Cpath%20d='M23%2033%20C31%2044,%2045%2047,%2055%2035'%20stroke='%232563EB'%20stroke-width='7'/%3E%3C/g%3E%3C/svg%3E">
-<script>/* Thème + matière appliqués AVANT le premier rendu (anti-flash).
-   Lit le choix sauvegardé (clé qz_theme, ancienne clé cz_* en secours — la migration
-   complète vit dans le gros script) et pose l'attribut data-theme sur <html>,
-   lit la matière (clé qz_subject) et pose data-mat sur <html> (violet PC / vert DE).
-   Le gros script en bas ne fait que brancher les boutons. */
-(function(){var r=document.documentElement;function K(n){try{var v=localStorage.getItem("qz_"+n);if(v===null)v=localStorage.getItem("cz_"+n);return v;}catch(e){return null;}}try{var v=K("theme");var t=v?JSON.parse(v):"auto";if(t==="light"||t==="dark"){r.setAttribute("data-theme",t);}else{r.removeAttribute("data-theme");}}catch(e){}try{var m=JSON.parse(K("subject"));if(m==="pc"){r.setAttribute("data-mat","pc");}else if(m==="de"){r.setAttribute("data-mat","de");}}catch(e){}})();</script>
+<script>/* Thème + matière + VERSION D'INTERFACE appliqués AVANT le premier rendu (anti-flash).
+   Lit les choix sauvegardés (clés qz_theme / qz_subject / qz_ui, anciennes clés cz_* en
+   secours — la migration complète vit dans le gros script) et pose sur <html> les
+   attributs data-theme, data-mat (violet PC / vert DE) et data-ui="m" (version
+   téléphone — le CSS html[data-ui="m"] fait le reste). Le gros script en bas ne fait
+   que brancher les boutons. */
+(function(){var r=document.documentElement;function K(n){try{var v=localStorage.getItem("qz_"+n);if(v===null)v=localStorage.getItem("cz_"+n);return v;}catch(e){return null;}}try{var v=K("theme");var t=v?JSON.parse(v):"auto";if(t==="light"||t==="dark"){r.setAttribute("data-theme",t);}else{r.removeAttribute("data-theme");}}catch(e){}try{var m=JSON.parse(K("subject"));if(m==="pc"){r.setAttribute("data-mat","pc");}else if(m==="de"){r.setAttribute("data-mat","de");}}catch(e){}try{var u=JSON.parse(K("ui"));if(u==="m"){r.setAttribute("data-ui","m");}}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
@@ -576,6 +577,61 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
   .viz .vz-curve{stroke-dasharray:1;stroke-dashoffset:1;animation:vzDraw .9s var(--ease) .12s forwards}
 }
 @keyframes vzDraw{to{stroke-dashoffset:0}}
+/* ===== Version TÉLÉPHONE (html[data-ui="m"]) =====
+   Mode EXPLICITE (détection au 1er passage ou bascule topbar 🖥/📱),
+   indépendant de la largeur de la fenêtre : le même rendu que sur un vrai
+   téléphone, même en paysage. Posé en FIN de <style> + attribut
+   [data-ui="m"] = plus de spécificité que le reste du fichier → ces règles
+   gagnent sans !important (même celles des @media ci-dessus).
+   Moteur, stats, matières : INCHANGÉS — seul l'affichage change. */
+html[data-ui="m"] body{font-size:17px}
+/* Bannière « version téléphone » (1er passage auto) : fine, discrète, fermable. */
+#uiBanner{background:var(--surface);border-bottom:1px solid var(--line)}
+#uiBanner .ui-banner{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+#uiBanner .ui-banner-txt{font-size:14px;color:var(--muted)}
+#uiBanner .ui-banner-txt b{color:var(--ink)}
+#uiBanner .ui-x{padding:7px 11px;font-size:16px;line-height:1.2}
+/* Bouton de bascule 🖥/📱 (même pilule que les boutons de thème). */
+.ui-btn{
+  appearance:none;border:0;background:transparent;cursor:pointer;
+  font:600 14px/1 var(--f-body);color:var(--muted);border-radius:999px;padding:4px 10px;
+  transition:color .16s var(--ease),background .16s var(--ease),box-shadow .16s var(--ease);
+}
+.ui-btn.on{background:var(--surface);color:var(--accent);box-shadow:0 1px 2px rgba(31,46,71,.14)}
+/* ---- Topbar : basculeur matière sur sa ligne, en 3 GROS boutons ---- */
+html[data-ui="m"] .topbar .wrap{flex-wrap:wrap;row-gap:10px}
+html[data-ui="m"] body:has(#home:not([hidden])) .topbar .wrap{padding-right:20px}
+html[data-ui="m"] .topbar .seg{display:flex;width:100%}
+html[data-ui="m"] .topbar .seg .seg-btn{flex:1 1 0;padding:11px 8px;font-size:15px}
+html[data-ui="m"] .theme-btn{padding:7px 12px}
+html[data-ui="m"] .ui-btn{padding:7px 11px;font-size:15px}
+/* ---- Accueil : TOUJOURS une colonne (même ≥1025 px : le mode est explicite) ---- */
+html[data-ui="m"] #home{display:block}
+html[data-ui="m"] #revSlot{width:100%}
+html[data-ui="m"] .margewrap{position:static;display:grid;grid-template-columns:1fr;gap:16px;align-items:start;margin-top:0}
+/* Hero un peu plus resserré pour une main de poche. */
+html[data-ui="m"] .eyebrow{margin-top:24px}
+html[data-ui="m"] h1{font-size:clamp(34px,9vw,44px)}
+html[data-ui="m"] .slogan{font-size:clamp(18px,4.6vw,21px)}
+html[data-ui="m"] .lede{font-size:16px}
+/* Stats en grille 2×3 (6 stats) plutôt qu'en auto-fit. */
+html[data-ui="m"] .statgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* Tuiles de thèmes : 2 colonnes larges, plus hautes à toucher. */
+html[data-ui="m"] .subgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+html[data-ui="m"] .subcard{padding:14px}
+/* Boutons : cibles ≥48 px, texte plus lisible. */
+html[data-ui="m"] .btn{padding:14px 22px;font-size:16.5px}
+html[data-ui="m"] .btn.small{padding:10px 14px;font-size:14.5px}
+html[data-ui="m"] .seg-btn{padding:10px 14px;font-size:15px}
+/* « À réviser » : cellules empilées, séparateurs plume masqués, bouton pleine largeur. */
+html[data-ui="m"] .hero .revcta{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:12px}
+html[data-ui="m"] .hero .revcta .revsep{display:none}
+html[data-ui="m"] .hero .revcta .btn{width:100%}
+/* ---- Écran de question : agrandi pour le pouce ---- */
+html[data-ui="m"] .prompt{font-size:clamp(22px,4.6vw,26px)}
+html[data-ui="m"] .ans input{height:48px;width:100%;font-size:18px}
+html[data-ui="m"] .ans .btn{height:48px;padding:0 20px;font-size:16px}
+html[data-ui="m"] .opt{padding:14px 16px}
 </style>
 <noscript><style>[data-rv]{opacity:1;transform:none}h1 .wr>span,.slogan .wr>span{transform:none;opacity:1}.slogan .soft{opacity:1;transform:none}</style></noscript>
 
@@ -594,6 +650,11 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
         <button type="button" class="theme-btn" data-theme-pick="light" title="Thème clair">Clair</button>
         <button type="button" class="theme-btn" data-theme-pick="dark" title="Thème sombre">Sombre</button>
       </div>
+      <span class="divider" aria-hidden="true"></span>
+      <div class="theme-seg" role="group" aria-label="Version (appareil)">
+        <button type="button" class="ui-btn" data-ui-pick="d" title="Version ordinateur" aria-label="Version ordinateur">PC</button>
+        <button type="button" class="ui-btn" data-ui-pick="m" title="Version téléphone" aria-label="Version téléphone">Mobile</button>
+      </div>
       <div class="chips" id="topStats" hidden>
         <span class="chip">score <b id="tScore">0</b></span>
         <span class="chip">série <b id="tStreak">0</b></span>
@@ -603,6 +664,16 @@ html.boot .subcard{animation:rvIn .7s var(--ease) both;animation-delay:calc((.95
     </div>
   </div>
 </header>
+
+<div id="uiBanner" hidden>
+  <div class="wrap ui-banner">
+    <span class="ui-banner-txt">📱 <b>Version téléphone activée</b> — l'interface est adaptée à un écran tactile. Tu peux revenir à la version ordinateur à tout moment.</span>
+    <div class="row" style="flex:none">
+      <button type="button" class="btn btn-ghost small" id="uiBannerSwitch">Version ordinateur</button>
+      <button type="button" class="btn btn-ghost small ui-x" id="uiBannerClose" aria-label="Fermer ce message">×</button>
+    </div>
+  </div>
+</div>
 
 <main class="wrap">
   <section id="home">
@@ -3465,6 +3536,55 @@ function applyTheme(t,animate){
   if(v==="light"||v==="dark"||v==="auto")t=v;
   applyTheme(t,false);
   document.querySelectorAll(".theme-btn").forEach(b=>b.addEventListener("click",()=>applyTheme(b.dataset.themePick,true)));
+})();
+/* ---------- Version d'interface : ordinateur / téléphone ----------
+   Même patron que le thème : attribut data-ui sur <html> (posé AVANT le
+   premier rendu par l'anti-flash → pas de flash de « mauvaise » version au
+   chargement), clé qz_ui persistée, bascule IMMÉDIATE sans rechargement.
+   Tout l'affichage vit dans le CSS html[data-ui="m"] (fin du <style>) ;
+   ici on détecte, on applique, on branche la bascule 🖥/📱 de la topbar.
+   Détection = HEURISTIQUE, pas de fièvre de user-agent : « téléphone » si
+   pointer:coarse (le toucher est l'entrée principale) ET écran étroit
+   (<900 px), OU user-agent mobile. Un vrai téléphone passe toujours l'un
+   des deux ; une tablette large (≥900 px) sans UA mobile, ou un ordinateur
+   tactile avec souris, restent en version ordinateur.
+   Le CHOIX de l'utilisateur gagne toujours : qz_ui présente = détecté. */
+const UI_KEY="qz_ui";
+function detectUI(){
+  try{
+    const ua=typeof navigator!=="undefined"?(navigator.userAgent||""):"";
+    const mobileUA=/Android|iPhone|iPod|Mobile|Opera Mini/i.test(ua);
+    const coarse=typeof matchMedia==="function"&&matchMedia("(pointer:coarse)").matches;
+    const small=window.innerWidth<900;
+    return (coarse&&small)||mobileUA?"m":"d";
+  }catch(e){return "d";}
+}
+function setUI(u){
+  if(u!=="m"&&u!=="d")u="d";
+  const r=document.documentElement;
+  if(u==="m")r.setAttribute("data-ui","m");
+  else r.removeAttribute("data-ui");
+  store.set(UI_KEY,u);
+  document.querySelectorAll(".ui-btn").forEach(b=>b.classList.toggle("on",b.dataset.uiPick===u));
+}
+(function initUI(){
+  const saved=store.get(UI_KEY,null);
+  let first=false;
+  if(saved==="m"||saved==="d")setUI(saved);
+  else{setUI(detectUI());first=true;}
+  /* Bannière « version téléphone » : UNE SEULE fois, et seulement si la
+     détection a appliqué « m » tout seule (premier passage) — jamais après
+     un choix explicite de l'utilisateur, jamais en version ordinateur.
+     #uiBanner est [hidden] dans le HTML : sans JS, ou après un choix déjà
+     fait, elle reste invisible (le .btn y est donc branché uniquement ici). */
+  const b=document.querySelector("#uiBanner");
+  if(b&&first&&document.documentElement.getAttribute("data-ui")==="m"){
+    b.hidden=false;
+    const close=()=>{b.hidden=true;};
+    document.querySelector("#uiBannerClose").addEventListener("click",close);
+    document.querySelector("#uiBannerSwitch").addEventListener("click",()=>{setUI("d");close();});
+  }
+  document.querySelectorAll(".ui-btn").forEach(x=>x.addEventListener("click",()=>setUI(x.dataset.uiPick)));
 })();
 /* ---------- Révélation en cascade (haut → bas) ----------
    La chorégraphie est 100 % CSS (bloc html.boot [data-rv]) : elle se joue
