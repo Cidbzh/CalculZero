@@ -742,6 +742,27 @@ const G_DERIV=[
      viz:{kind:"tan",f:"sq",a:a,b:b,k:k,m:2*a*(a*k+b)},
      explain:`Règle de la chaîne : la dérivée de (ax+b)² est 2(ax+b) × ${a}.<br>Donc f′(${k}) = ${2*a} × (${a}×${k} + ${b}) = ${2*a} × ${a*k+b} = <b>${ans}</b>.`};
  }},
+ {lvl:"facile",make(){
+   const a=pick([1,2]),x0=pick([1,2,3]);let b;do{b=Ri(-5,5);}while(b===0);
+   const m=2*a*x0+b;
+   return{prompt:`Soit f(x) = ${a>1?a+" ":""}x² ${b<0?"− "+(-b):"+ "+b}x. Pour quelle valeur x₀ de x la tangente à la courbe a-t-elle une pente de ${m} ?`,
+     type:"number",answer:x0,
+     explain:`La pente de la tangente en x₀ vaut f′(x₀) = ${2*a}·x₀ ${b<0?"− ":"+ "}${Math.abs(b)}.<br>On résout ${2*a}·x₀ ${b<0?"− ":"+ "}${Math.abs(b)} = ${m} → x₀ = <b>${x0}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   let a,b,c,x0,m,q,y0;
+   do{
+     a=pick([1,2]); b=Ri(-5,5); c=Ri(-4,4); x0=pick([1,2]);
+     m=2*a*x0+b; y0=a*x0*x0+b*x0+c; q=y0-m*x0;
+   }while(b===0 || m===0 || y0===m || y0===-m || x0===q);
+   const eq=(mm,qq)=>`y = ${mm}x ${qq<0?"− "+(-qq):"+ "+qq}`;
+   const good=eq(m,q);
+   const opts=shuf([good, eq(y0,q), eq(m,x0), eq(-m,q)]);
+   return{prompt:`Soit f(x) = ${a>1?a+" ":""}x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c}. Quelle est l'équation de la tangente à la courbe au point d'abscisse ${x0} ?`,
+     type:"choice",options:opts,correct:opts.indexOf(good),
+     viz:{kind:"tan",f:"quad",a:a,b:b,c:c,k:x0,m:m},
+     explain:`Pente de la tangente = f′(${x0}) = 2×${a}×${x0} ${b<0?"− ":"+ "}${Math.abs(b)} = ${m}.<br>Le point de contact est T(${x0} ; ${y0}).<br>Ordonnée à l'origine : q = y₀ − m·x₀ = ${y0} − ${m}×${x0} = ${q}.<br>Équation de la tangente : <b>${good}</b>.`};
+ }}
 ];
 
 /* ---------- Suites ---------- */
@@ -814,6 +835,20 @@ const G_LOGEXP=[
      type:"number",answer:Math.round(Math.log(a)*100)/100,tol:0.011,
      explain:`e^{2x} = (eˣ)² = ${a}², donc eˣ = ${a} (car eˣ > 0 et ${a} > 0).<br>x = ln(${a}) ≈ <b>${Math.round(Math.log(a)*100)/100}</b>.`};
  }},
+ {lvl:"facile",make(){
+   const a=pick([3,4,5,6,8,10]);
+   const x=a-1;
+   return{prompt:`Résous : e^{x+1} = e^{${a}}.`,
+     type:"number",answer:x,
+     explain:`Même base e : les exposants sont égaux → x + 1 = ${a} → x = ${a} − 1 = <b>${x}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const a=pick([2,3,4,5]),b=pick([2,3,4,6]);
+   const x=a*b;
+   return{prompt:`Résous : ln(x) = ln(${a}) + ln(${b}).`,
+     type:"number",answer:x,
+     explain:`Règle : ln(a) + ln(b) = ln(a·b).<br>Donc ln(x) = ln(${a}×${b}) = ln(${x}).<br>Même fonction → x = <b>${x}</b>.`};
+ }}
 ];
 
 /* ---------- Équations du 2e degré ---------- */
@@ -858,6 +893,25 @@ const G_EQ2=[
      viz:{kind:"par",a:a,b:b,c:c,r1:r1,r2:r2},
      explain:`Δ = ${b*b-4*a*c} > 0, √Δ = ${Math.abs(r1-r2)*a}.<br>x = (${b>0?"−":"+"} ${Math.abs(b)} ± ${Math.abs(r1-r2)*a}) / ${2*a} → x = ${r1} ou x = ${r2}.<br>La plus grande est <b>${Math.max(r1,r2)}</b>.`};
  }},
+ {lvl:"facile",make(){
+   let r1,r2;do{r1=Ri(-6,6);r2=Ri(-6,6);}while(r1===r2||r1===0||r2===0||r1+r2===0);
+   const b=-(r1+r2),c=r1*r2,s=r1+r2;
+   const bs=b<0?"− "+(-b):"+ "+b,cs=c<0?"− "+(-c):"+ "+c;
+   return{prompt:`Le trinôme x² ${bs}x ${cs} = 0 admet deux racines réelles. Quelle est la somme de ces racines ?`,
+     type:"number",answer:s,
+     explain:`Règle de Viète : la somme des racines vaut −b (ici a = 1).<br>−b = −(${b}) = <b>${s}</b>.<br>(Vérif : racines ${r1} et ${r2}, somme ${r1}+${r2} = ${s}.)`};
+ }},
+ {lvl:"moyen",make(){
+   let r1;do{r1=Ri(-5,2);}while(r1===0);
+   let r2;do{r2=Ri(r1+3,5);}while(r2===0);
+   const xt=r1+1;
+   const pf=r=>"(x "+(r>0?"− "+r:"+ "+(-r))+")";
+   const pt=(xt-r1)*(xt-r2);
+   const opts=shuf(["négatif","positif","nul"]);
+   return{prompt:`Soit P(x) = ${pf(r1)} ${pf(r2)}. Que vaut le signe de P(${xt}) ?`,
+     type:"choice",options:opts,correct:opts.indexOf("négatif"),
+     explain:`${xt} est strictement entre ${r1} et ${r2}.<br>P(${xt}) = ${xt-r1} × ${xt-r2} = ${pt} < 0.<br>Entre ses deux racines, un trinôme de tête a > 0 est <b>négatif</b>.`};
+ }}
 ];
 /* ---------- Trigonométrie ---------- */
 /* Valeurs exactes affichées en fractions empilées (1/2 → ½ verticalement, √2/2, √3/2) */
@@ -947,6 +1001,23 @@ const G_PROBA=[
      type:"frac",answer:fr(num,den),
      explain:`P(A∩B) = ${FR(pN,pD)} × ${FR(qN,qD)} = ${FR(pN*qN,pD*qD)}.<br>P(B) = ${FR(pN*qN,pD*qD)} + ${FR((pD-pN)*q2N,pD*qD)}.<br>P(A|B) = P(A∩B) ÷ P(B) = <b>${F(num,den)}</b>.`};
  }},
+ {lvl:"facile",make(){
+   let f1,f2;do{f1=pick([1,2,3,4,5,6]);f2=pick([1,2,3,4,5,6]);}while(f2===f1);
+   return{prompt:`On lance un dé équilibré à 6 faces. A = « la face ${f1} », B = « la face ${f2} ». Quelle est P(A ou B) ?`,
+     type:"frac",answer:fa(1,3),
+     explain:`A et B sont disjoints (on ne peut pas avoir les deux faces à la fois).<br>P(A ou B) = P(A) + P(B) = ${FR(1,6)} + ${FR(1,6)} = ${FR(2,6)} = <b>${F(1,3)}</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const P=[
+     {A:"le nombre est pair",B:"le nombre est un multiple de 3",Ain:"{2,4,6}",Bin:"{3,6}",I:"{6}",sa:3,sb:2,si:1},
+     {A:"le nombre est supérieur à 3",B:"le nombre est pair",Ain:"{4,5,6}",Bin:"{2,4,6}",I:"{4,6}",sa:3,sb:3,si:2},
+     {A:"le nombre est pair",B:"le nombre est supérieur à 4",Ain:"{2,4,6}",Bin:"{5,6}",I:"{6}",sa:3,sb:2,si:1}
+   ];
+   const e=pick(P),union=e.sa+e.sb-e.si;
+   return{prompt:`On lance un dé à 6 faces. A = « ${e.A} », B = « ${e.B} ». Quelle est P(A ou B) ?`,
+     type:"frac",answer:fr(union,6),
+     explain:`A = ${e.Ain}, B = ${e.Bin} → A∩B = ${e.I} (non vide, ${e.si} élément${e.si>1?"s":""}).<br>P(A ou B) = P(A)+P(B)−P(A∩B) = ${FR(e.sa,6)}+${FR(e.sb,6)}−${FR(e.si,6)} = ${FR(union,6)} = <b>${F(union,6)}</b>.`};
+ }}
 ];
 
 /* ---------- Vecteurs & produit scalaire ---------- */
@@ -1356,6 +1427,22 @@ const G_ENERGIE=[
      type:"number",answer:2,
      viz:{kind:"work"},
      explain:`ΔEc = ½ × 1 × (2² − 4²) = ½ × (4 − 16) = −6 J ⇒ W_frot = −6 J. Or W_frot = −f·d = −3f, donc −3f = −6 ⇒ f = <b>2 N</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const m=pick([1,2,4]),v=pick([2,4]),h=pick([3,5]);
+   const Ec=0.5*m*v*v,Ep=m*10*h,Em=Ec+Ep;
+   return{prompt:`Un objet de m = ${m} kg se déplace à v = ${v} m/s et se trouve à h = ${h} m du sol. Quelle est son énergie mécanique totale Eₘ = E꜀ + Eₚ ? (en J, g = 10 m/s²)`,
+     type:"number",answer:Em,
+     viz:{kind:"work"},
+     explain:`E꜀ = ½·m·v² = ½ × ${m} × ${v}² = ${Ec} J.<br>Eₚ = m·g·h = ${m} × 10 × ${h} = ${Ep} J.<br>Eₘ = E꜀ + Eₚ = ${Ec} + ${Ep} = <b>${Em} J</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const v0=pick([4,6,8,10]),m=pick([1,2,3]);
+   const h=v0*v0/20;
+   return{prompt:`Une balle de m = ${m} kg est lancée verticalement vers le haut à v₀ = ${v0} m/s. Quelle est la hauteur maximale qu'elle atteint ? (en m, g = 10 m/s², sans frottement)`,
+     type:"number",answer:h,
+     viz:{kind:"work"},
+     explain:`Sans frottement, l'énergie mécanique est conservée : au sommet, toute l'énergie cinétique est devenue de l'énergie de pesanteur.<br>½·m·v₀² = m·g·h → h = v₀²/(2g) = ${v0}²/20 = <b>${h} m</b>.<br>(La hauteur ne dépend pas de la masse m.)`};
  }}
 ];
 /* ---------- PC (moles) : quantités de matière ---------- */
@@ -1410,6 +1497,25 @@ const G_MOLES=[
      type:"number",answer:V,
      viz:{kind:"soln",n:n,V:V},
      explain:`V = n·Vₘ = ${ns} × 24 = <b>${V} L</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const c=pick([0.5,1,2]),V=pick([0.1,0.2,0.5]),M=pick([20,40,50,80]);
+   const n=c*V,m=n*M;
+   const cs=String(c).replace(".",","),Vs=String(V).replace(".",",");
+   return{prompt:`On prépare ${Vs} L de solution à c = ${cs} mol/L. La masse molaire du soluté vaut M = ${M} g/mol. Quelle masse de soluté (en g) faut-il ?`,
+     type:"number",answer:m,
+     viz:{kind:"soln",n:n,c:c},
+     explain:`n = c·V = ${cs} × ${Vs} = ${n} mol.<br>m = n·M = ${n} × ${M} = <b>${m} g</b>.`};
+ }},
+ {lvl:"difficile",make(){
+   const pairs=[[0.5,0.2],[1,0.2],[2,0.2],[1,0.5],[2,0.5]];
+   const [c,V]=pick(pairs);
+   const n=c*V,N=n*6;
+   const cs=String(c).replace(".",","),Vs=String(V).replace(".",",");
+   return{prompt:`Une solution de volume ${Vs} L a une concentration c = ${cs} mol/L. Combien d'entités contient-elle ? (Nₐ = 6 × 10²³ /mol — répondre en unités de 10²³)`,
+     type:"number",answer:N,tol:0.011,
+     viz:{kind:"soln",n:n,c:c},
+     explain:`n = c·V = ${cs} × ${Vs} = ${n} mol.<br>N = n·Nₐ = ${n} × (6×10²³) = <b>${N} × 10²³</b> entités.`};
  }}
 ];
 /* ---------- PC (stoich) : stœchiométrie & état final ---------- */
@@ -1607,6 +1713,24 @@ const G_ONDES=[
    return{prompt:`Un photon ultraviolet a une fréquence ν = 2,0 × 10¹⁵ Hz. Avec E = h·ν et h = 6,62 × 10⁻³⁴ J·s, quelle est son énergie ? (en J)`,
      type:"number",answer:E,tol:0.011,
      explain:`E = h·ν = (6,62 × 10⁻³⁴) × (2,0 × 10¹⁵) = 13,24 × 10⁻¹⁹ = <b>1,32 × 10⁻¹⁸ J</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const T=pick([2,5,10,20]);
+   const f=1000/T;
+   return{prompt:`Une onde a une période T = ${T} ms. Quelle est sa fréquence f ? (en Hz)`,
+     type:"number",answer:f,
+     viz:{kind:"onde",n:2},
+     explain:`T = ${T} ms = ${T/1000} s.<br>f = 1/T = 1/${T/1000} = <b>${f} Hz</b>.<br>(Période et fréquence sont inversement proportionnelles.)`};
+ }},
+ {lvl:"moyen",make(){
+   const pairs=[[1,340],[2,170],[4,85],[0.5,680]];
+   const [l,f]=pick(pairs);
+   const v=l*f;
+   const ls=String(l).replace(".",",");
+   return{prompt:`Une onde sonore a une longueur d'onde λ = ${ls} m et une fréquence f = ${f} Hz. Quelle est sa célérité v ? (en m/s)`,
+     type:"number",answer:v,
+     viz:{kind:"onde",n:2},
+     explain:`v = λ·f = ${ls} × ${f} = <b>${v} m/s</b>.<br>(C'est la célérité du son dans l'air, ≈ 340 m/s.)`};
  }}
 ];
 /* ---------- Électricité (PC) ----------
@@ -1673,6 +1797,24 @@ const G_ELECTRICITE=[
      type:"number",answer:P,
      viz:{kind:"circuit"},
      explain:`I = U/R = ${U}/${R} = ${I} A → P = U·I = ${U} × ${I} = <b>${P} W</b>.`};
+ }},
+ {lvl:"facile",make(){
+   const pairs=[[2,5],[3,4],[5,6],[4,10],[6,3]];
+   const [I,t]=pick(pairs);
+   const Q=I*t;
+   return{prompt:`Un courant I = ${I} A circule pendant Δt = ${t} s. Quelle charge électrique Q (en C) passe-t-elle ?`,
+     type:"number",answer:Q,
+     viz:{kind:"circuit"},
+     explain:`Q = I·Δt = ${I} × ${t} = <b>${Q} C</b>.`};
+ }},
+ {lvl:"moyen",make(){
+   const pairs=[[10,20],[5,15],[8,12],[20,30],[10,30]];
+   const [r1,r2]=pick(pairs);
+   const R=r1+r2;
+   return{prompt:`Deux résistances R₁ = ${r1} Ω et R₂ = ${r2} Ω sont montées en série. Quelle est la résistance équivalente R ? (en Ω)`,
+     type:"number",answer:R,
+     viz:{kind:"circuit"},
+     explain:`En série, les résistances s'additionnent.<br>R = R₁ + R₂ = ${r1} + ${r2} = <b>${R} Ω</b>.`};
  }}
 ];
 /* ================= ALLEMAND A2 (contenu seul — branchement plus tard) =================
@@ -1749,6 +1891,34 @@ const G_VOCAB=[
    const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.de);
    return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,ds,
      `<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`);
+ }},
+ {lvl:"facile",make(){
+   const pool=[
+     {de:"Lehrer",fr:"le professeur",a:"der",f:"école",tip:"masculin"},
+     {de:"Lehrerin",fr:"la professeure",a:"die",f:"école",tip:"féminin — « -in » marque le féminin"},
+     {de:"Heft",fr:"le cahier",a:"das",f:"école",tip:"neutre"},
+     {de:"Stift",fr:"le stylo",a:"der",f:"école",tip:"masculin — le mot générique pour un stylo"},
+     {de:"Hausaufgaben",fr:"les devoirs",a:"die",f:"école",tip:"féminin, toujours pluriel : die Hausaufgaben"},
+     {de:"Stunde",fr:"l'heure de cours",a:"die",f:"école",tip:"féminin"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.de);
+   return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,ds,
+     `<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {de:"Arzt",fr:"le médecin",a:"der",f:"santé",tip:"masculin"},
+     {de:"Ärztin",fr:"la médecin",a:"die",f:"santé",tip:"féminin — « -in » marque le féminin"},
+     {de:"Termin",fr:"le rendez-vous",a:"der",f:"santé",tip:"masculin"},
+     {de:"Medikament",fr:"le médicament",a:"das",f:"santé",tip:"neutre"},
+     {de:"Tablette",fr:"le comprimé",a:"die",f:"santé",tip:"féminin"},
+     {de:"Schmerzen",fr:"les douleurs",a:"die",f:"santé",tip:"féminin, quasi toujours au pluriel"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.fr);
+   return qcm(`« ${e.de} », c'est ?`,e.fr,ds,
+     `<b>${e.a} ${e.de}</b> = ${e.fr} (nom ${e.tip}).`);
  }}
 ];
 /* ---------- Allemand : conjugaison ---------- */
@@ -1807,6 +1977,32 @@ const G_CONJ=[
    ];
    const e=pick(pool);
    return qcm(`Complète : « ${e.s} »`,e.ok,e.ws,
+     `<b>${e.ok}</b> — ${e.tip}.`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {s:"Ich ___ (essen) heute Pizza gegessen.",ok:"habe",ws:["hat","haben","bin"],tip:"Perfekt : auxiliaire avoir (haben) + participe passé en fin de phrase"},
+     {s:"Du ___ (fahren) nach Berlin gefahren.",ok:"bist",ws:["hast","ist","sind"],tip:"déplacement (fahren) → auxiliaire être (sein) : du bist … gefahren"},
+     {s:"Er ___ (kaufen) ein Buch gekauft.",ok:"hat",ws:["hast","haben","ist"],tip:"« kaufen » → Perfekt avec avoir (hat … gekauft)"},
+     {s:"Wir ___ (sehen) den Film gesehen.",ok:"haben",ws:["hat","hast","sind"],tip:"« sehen » → Perfekt avec avoir (haben … gesehen)"},
+     {s:"Ihr ___ (fliegen) nach Spanien geflogen.",ok:"seid",ws:["sind","haben","habt"],tip:"déplacement (fliegen) → sein : ihr seid … geflogen"},
+     {s:"Man ___ (kommen) zu spät gekommen.",ok:"ist",ws:["hat","haben","kommt"],tip:"« kommen » (déplacement) → sein : man ist … gekommen"}
+   ];
+   const e=pick(pool);
+   return qcm(`Complète (Perfekt) : « ${e.s} »`,e.ok,e.ws,
+     `<b>${e.ok}</b> — ${e.tip}.`);
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {s:"Ich ___ (sein) gestern krank.",ok:"war",ws:["warst","waren","bist"],tip:"Präteritum de sein : ich war, du warst, er war, wir waren, ihr wart"},
+     {s:"Du ___ (sein) gestern müde.",ok:"warst",ws:["war","waren","bist"],tip:"Präteritum de sein : du warst"},
+     {s:"Wir ___ (sein) im Urlaub.",ok:"waren",ws:["war","wart","warst"],tip:"Präteritum de sein : wir waren"},
+     {s:"Ich ___ (haben) viel Zeit.",ok:"hatte",ws:["hat","hast","hatten"],tip:"Präteritum de haben : ich hatte, du hattest, er hatte, wir hatten"},
+     {s:"Er ___ (machen) die Hausaufgaben.",ok:"machte",ws:["macht","machst","machten"],tip:"Präteritum faible : racine + -te (ich machte, du machtest, er machte)"},
+     {s:"Sie ___ (spielen) Fußball.",ok:"spielte",ws:["spielt","spielst","spielten"],tip:"Präteritum faible : sie spielte (3e personne du singulier)"}
+   ];
+   const e=pick(pool);
+   return qcm(`Complète (Präteritum) : « ${e.s} »`,e.ok,e.ws,
      `<b>${e.ok}</b> — ${e.tip}.`);
  }}
 ];
@@ -1870,6 +2066,24 @@ const G_ART=[
      {n:"Schiff",fr:"le bateau",a:"das",tip:"piège : das Schiff est neutre"},
      {n:"Auge",fr:"l'œil",a:"das",tip:"neutre"},
      {n:"Herz",fr:"le cœur",a:"das",tip:"neutre"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(["der","die","das"]).filter(x=>x!==e.a);
+   return qcm(`Quel article porte « ${e.n} » ?`,e.a,ds,
+     `<b>${e.a} ${e.n}</b> = « ${e.fr} » — ${e.tip}.`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {n:"Freiheit",fr:"la liberté",a:"die",tip:"les mots en « -heit » sont féminins"},
+     {n:"Gesundheit",fr:"la santé",a:"die",tip:"les mots en « -heit » sont féminins"},
+     {n:"Freundlichkeit",fr:"l'amabilité",a:"die",tip:"les mots en « -keit » sont féminins"},
+     {n:"Gesellschaft",fr:"la société / la compagnie",a:"die",tip:"les mots en « -schaft » sont féminins"},
+     {n:"Natur",fr:"la nature",a:"die",tip:"les mots en « -ur » sont féminins"},
+     {n:"Wärme",fr:"la chaleur",a:"die",tip:"féminin"},
+     {n:"Spielzeug",fr:"le jouet",a:"das",tip:"les mots en « -zeug » sont neutres"},
+     {n:"Ergebnis",fr:"le résultat",a:"das",tip:"les mots en « -nis » sont neutres"},
+     {n:"Wetter",fr:"la météo (le temps)",a:"das",tip:"piège : neutre (das Wetter), malgré la terminaison « -er »"},
+     {n:"Unterricht",fr:"le cours / l'enseignement",a:"der",tip:"piège : masculin (der Unterricht)"}
    ];
    const e=pick(pool);
    const ds=shuf(["der","die","das"]).filter(x=>x!==e.a);
@@ -1947,6 +2161,34 @@ const G_DATE=[
    const ds=shuf(pool.filter(x=>x.f==="date"&&x!==e)).slice(0,3).map(x=>x.de);
    return qcm(`« ${e.de} » = quelle date ?`,e.fr,ds,
      `<b>${e.de}</b> = ${e.fr} — ${e.tip}.`);
+ }},
+ {lvl:"facile",make(){
+   const pool=[
+     {de:"zweiundzwanzig",fr:"22",f:"nombre",tip:"de 21 à 99 : unité + dizaine (zwei + zwanzig)"},
+     {de:"fünfzig",fr:"50",f:"nombre",tip:"fünfzig = 50"},
+     {de:"siebenundachtzig",fr:"87",f:"nombre",tip:"7 + 80 (achtzig) : siebenundachtzig"},
+     {de:"einhundert",fr:"100",f:"nombre",tip:"einhundert = 100"},
+     {de:"zweihundert",fr:"200",f:"nombre",tip:"zweihundert = 200"},
+     {de:"dreihundertfünfzig",fr:"350",f:"nombre",tip:"300 + 50 : dreihundertfünfzig"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.de);
+   return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,ds,
+     `<b>${e.de}</b> = ${e.fr} — ${e.tip}.`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {de:"der erste",fr:"le 1er",f:"ordinal",tip:"1er = der erste"},
+     {de:"der zweite",fr:"le 2e",f:"ordinal",tip:"2e = der zweite"},
+     {de:"der dritte",fr:"le 3e",f:"ordinal",tip:"3e = der dritte (attention, pas « drei »)"},
+     {de:"der vierte",fr:"le 4e",f:"ordinal",tip:"4e = der vierte"},
+     {de:"der zwölfte",fr:"le 12e",f:"ordinal",tip:"12e = der zwölfte (zwölf → zwölft-)"},
+     {de:"der fünfzigste",fr:"le 50e",f:"ordinal",tip:"50e = der fünfzigste (dizaine + -e)"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.fr);
+   return qcm(`« ${e.de} » = quel numéro ?`,e.fr,ds,
+     `<b>${e.de}</b> = ${e.fr} — ${e.tip}.`);
  }}
 ];
 /* ---------- Allemand : phrases utiles ---------- */
@@ -1995,6 +2237,21 @@ const G_PHRASEN=[
    const e=pick(pool);
    return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,e.ws,
      `<b>${e.de}</b> — ${e.tip}.`);
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {fr:"Pourriez-vous répéter, s'il vous plaît ?",de:"Könnten Sie das bitte wiederholen ?",ws:["Können Sie bitte wiederholt ?","Könnten Sie bitte zu wiederholen ?","Können Sie mir bitte wiederholst ?"],tip:"courtoisie : « könnten » (Konjunktiv II) + objet « das » + infinitif en fin"},
+     {fr:"Je ne comprends pas beaucoup.",de:"Ich verstehe nicht viel.",ws:["Ich verstehen nicht viel.","Ich verstehe nicht viele.","Ich verstehe nicht viel ist."],tip:"« verstehen » : ich verstehe ; quantité : « viel » (pas « viele »)"},
+     {fr:"C'est très cher.",de:"Es ist sehr teuer.",ws:["Es ist sehr teure.","Es ist sehr teurer.","Es ist sehr teuer est."],tip:"adjectif invariable après « sein » : « sehr teuer »"},
+     {fr:"Je voudrais payer par carte.",de:"Ich möchte mit Karte bezahlen.",ws:["Ich möchte mit Karte zu bezahlen.","Ich möchte eine Karte bezahle.","Ich möchte in Karte bezahlen."],tip:"« mit » + datif ; modal + infinitif sans « zu »"},
+     {fr:"Je suis d'accord.",de:"Ich bin einverstanden.",ws:["Ich habe einverstanden.","Ich bin einverstanden bin.","Ich mache einverstanden."],tip:"« ich bin einverstanden » = je suis d'accord (avec « sein »)"},
+     {fr:"Ce n'est pas grave.",de:"Das ist nicht schlimm.",ws:["Das ist nicht schlecht.","Das ist nicht schwer.","Das ist nicht schlecht ist."],tip:"« nicht schlimm » = pas grave ; « nicht schlecht » = pas mal"},
+     {fr:"J'ai rendez-vous à 3 heures.",de:"Ich habe einen Termin um drei Uhr.",ws:["Ich habe ein Termin um drei Uhr.","Ich habe einen Termin auf drei Uhr.","Ich haben einen Termin um drei Uhr."],tip:"der Termin masculin (accusatif « einen ») ; heure : « um + heure »"},
+     {fr:"Je dois partir maintenant.",de:"Ich muss jetzt gehen.",ws:["Ich muss jetzt gehe.","Ich muss jetzt zu gehen.","Ich müssen jetzt gehen."],tip:"modal + infinitif (gehen) sans « zu » ; « ich muss »"}
+   ];
+   const e=pick(pool);
+   return qcm(`Comment dit-on « ${e.fr} » en allemand ?`,e.de,e.ws,
+     `<b>${e.de}</b> — ${e.tip}.`);
  }}
 ];
 /* ---------- Allemand : mini-traductions ---------- */
@@ -2033,6 +2290,21 @@ const G_TRAD=[
      {fr:"Je suis fatigué parce que je travaille beaucoup.",de:"Ich bin müde, weil ich viel arbeite.",ws:["Ich bin müde, weil arbeite ich viel.","Ich bin müde, weil ich arbeite viel.","Ich bin müde, weil ich viel arbeiten."],tip:"subordonnée en « weil » : le verbe est relégué en fin de clause"},
      {fr:"On peut dîner ensemble ce soir ?",de:"Können wir heute Abend zusammen essen ?",ws:["Können wir heute Abend zusammen zu essen ?","Können wir heute Abend zu essen ?","Könne wir heute Abend zusammen essen ?"],tip:"modal + infinitif, sans « zu »"},
      {fr:"Je voudrais réserver une chambre.",de:"Ich möchte ein Zimmer reservieren.",ws:["Ich möchte den Zimmer reservieren.","Ich möchte einen Zimmer reservieren.","Ich möchte ein Zimmer zu reservieren."],tip:"das Zimmer (neutre) ; infinitif sans « zu »"}
+   ];
+   const e=pick(pool);
+   return qcm(`Traduis : « ${e.fr} »`,e.de,e.ws,
+     `<b>${e.de}</b> — ${e.tip}.`);
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {fr:"Je me lève à 7 heures.",de:"Ich stehe um sieben Uhr auf.",ws:["Ich stehe um sieben Uhr aufstehen.","Ich stehe auf um sieben Uhr.","Ich stehe um sieben auf Uhr."],tip:"verbe séparable « aufstehen » : le préfixe « auf » va en fin de phrase"},
+     {fr:"Il m'appelle le soir.",de:"Er ruft mich abends an.",ws:["Er ruft an mich abends.","Er ruft mich abends anrufen.","Er anruft mich abends."],tip:"séparable « anrufen » : « an » en fin ; « mich » avant"},
+     {fr:"Je pars demain matin.",de:"Ich fahre morgen früh ab.",ws:["Ich fahre morgen früh abfahren.","Ich fahre ab morgen früh.","Ich abfahre morgen früh."],tip:"séparable « abfahren » : « ab » en fin"},
+     {fr:"Elle m'écrit souvent.",de:"Sie schreibt mir oft.",ws:["Sie schreibt oft mir.","Sie schreiben mir oft.","Sie mir schreibt oft."],tip:"« mir » (datif) ; verbe en 2e position"},
+     {fr:"Si je peux, je viens.",de:"Wenn ich kann, komme ich.",ws:["Wenn ich kann, ich komme.","Wenn ich kann, komme du.","Ich kann wenn, ich komme."],tip:"« wenn » : verbe en fin de subordonnée, puis verbe en 2e dans la principale"},
+     {fr:"Quand j'étais petit, je jouais au foot.",de:"Als ich klein war, spielte ich Fußball.",ws:["Als ich klein war, ich spielte Fußball.","Als ich klein war, spiele ich Fußball.","Ich war klein, als spiele ich Fußball."],tip:"« als » (passé, une fois) : verbe en fin de subordonnée"},
+     {fr:"Je donne le livre à Marie.",de:"Ich gebe der Marie das Buch.",ws:["Ich gebe die Marie das Buch.","Ich gebe das Buch der Marie geben.","Ich gebe dem Marie das Buch."],tip:"« geben » + datif (der Marie) ; la chose à l'accusatif (das Buch)"},
+     {fr:"Je vais au cinéma avec mon ami.",de:"Ich gehe mit meinem Freund ins Kino.",ws:["Ich gehe mit meiner Freund ins Kino.","Ich gehe meinem Freund in das Kino.","Ich gehe mit mein Freund in Kino."],tip:"« mit » + datif (meinem Freund) ; « ins » = in das (destination)"}
    ];
    const e=pick(pool);
    return qcm(`Traduis : « ${e.fr} »`,e.de,e.ws,
