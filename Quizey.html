@@ -352,40 +352,74 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .hero{grid-area:hero;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:24px}
 .herotxt{min-width:0}
 /* « À réviser » : #revSlot est un simple <div> rempli/vidé par renderHome ;
-   vide = display:none → pas de vide parasite. .revcta = panneau STANDARD,
-   pas plus voyant que les autres blocs (décision 2026-08-21), et sur UNE
-   ligne : [titre · N questions à refaire] … [noms de chapitres] [bouton].
-   2026-08-21 : carte sur sa propre ligne sous le texte, pleine largeur de
-   la colonne principale — alignée avec les blocs en dessous, sans jamais
+   vide = display:none → pas de vide parasite. .revcta = panneau STANDARD
+   (carton/bordure/ombre, pas plus voyant que les autres blocs), sur UNE
+   ligne en « cellules plume » (demande 2026-08-22) : [titre] | [N
+   questions] | [≈ N min] | [chapitres] | [bouton], un TRAIT DE PLUME
+   VERTICAL entre chaque partie — le jumeau vertical du trait sous les
+   titres (.panel h2::after), plus fin et plus doux.
+   La carte reste sur sa propre ligne sous le texte du hero, pleine largeur
+   de la colonne principale — alignée avec les blocs en dessous, sans jamais
    les dépasser ; son écart avec les blocs sous elle = 16 px, le rythme
    standard entre panneaux (row-gap de #home, même valeur que la marge des
    .panel). */
 #revSlot{min-width:0;width:calc(100% - 360px)}
 #revSlot:empty{display:none}
-.hero .revcta{display:flex;align-items:center;flex-wrap:wrap;gap:10px 22px;padding:20px 22px;margin-bottom:0}
-.hero .revcta h2{margin:0}
-/* Composition de la ligne (demande 2026-08-21) : [À réviser]
-   [N questions à refaire · ≈ N min] [chapitres, max 4 noms + « +N autres »] … [bouton]
-   — la ligne DOIT toujours tenir sur une ligne (sinon le bouton passe sur
-   une 2e ligne — d'où le plafond de 4 noms dans renderHome). Les
-   informations restent groupées à gauche (compteur, estimation « ≈ N min »
-   et chapitres collés, gap 22 px de la carte) et la marge auto du bouton
-   l'aligne sur le bord droit — l'estimation comble les espaces qui
-   entouraient le groupe centré (jugés trop larges, demande 2026-08-21). */
-.hero .revcta .revnum{margin:0}
-.hero .revcta .revtime{font:500 14px/1.3 var(--f-body);color:var(--muted)}
-.hero .revcta .revchaps{min-width:0;font:500 14px/1.3 var(--f-body);color:var(--muted)}
-.hero .revcta .btn{margin-left:auto}
+.hero .revcta{display:flex;align-items:center;flex-wrap:nowrap;gap:8px 10px;padding:17px 22px;margin-bottom:0;justify-content:space-between}
+.hero .revcta h2{margin:0;font-size:22px;flex:none}
+/* Cellules « plume » (2026-08-22) + contenu AGRANDI (demande 2026-08-21) :
+   le bloc ne change PAS de dimensions — la taille gagnée (titre, compteur,
+   chip, chapitres, bouton) est compensée par le gap et le padding vertical
+   ramené à 17 px (hauteur totale inchangée). Les barres .revsep ne
+   s'affichent qu'à ≥1280 px — sous cette largeur une barre risquerait de
+   rester orpheline en bout de ligne repliée → masquée.
+   Espacement (2026-08-21, 2e passe) : l'espace entre TOUTES les parties
+   (y compris avant le bouton) est toujours ÉGAL —
+   justify-content:space-between répartit l'espace libre à parts égales (le
+   gap 10 px n'est plus qu'un plancher minimum). Les parties fixes sont
+   flex:none ; SEUL .revchaps est rétrécissable (overflow:ellipsis) : quand
+   la fenêtre est étroite (bande 1025-1200 px), les chapitres rétrécissent
+   avec « … » au lieu de repousser le bouton → le bouton ne passe JAMAIS sur
+   une 2e ligne. IMPORTANT : flex-wrap:nowrap (pas « wrap » !) — avec wrap,
+   flexbox casse la ligne AVANT de rétrécir, le bouton tombe en 2e ligne et
+   .revchaps ne rétrécit jamais. Bouton au bord droit (dernier élément).
+   Vérifié .shots (1440 / 1280 / 1100). */
+.hero .revcta .revsep{display:none}
+@media (min-width:1280px){
+  .hero .revcta .revsep{display:inline-block;flex:none;width:2px;height:32px;border-radius:2px;background:var(--accent);opacity:.45}
+}
+.hero .revcta .revnum{margin:0;flex:none}
+.hero .revcta .revcount{font-size:30px}
+.hero .revcta .revsub{font-size:14px}
+/* « ≈ N min » = TEXTE SIMPLE, identique visuellement aux chapitres (unifié
+   2026-08-21) — plus de pastille : même typo 500 14 px/1.3 / --muted ;
+   largeur fixe (flex:none) : SEUL .revchaps peut se rétrécir. */
+.hero .revcta .revtime{font:500 14px/1.3 var(--f-body);color:var(--muted);white-space:nowrap;flex:none}
+.hero .revcta .revchaps{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 14px/1.3 var(--f-body);color:var(--muted)}
+/* Bouton de la carte élargi SEUL — surcharge scopée .hero .revcta, le
+   .btn global (15,5 px) reste intact partout ailleurs. */
+.hero .revcta .btn{padding:13px 22px;font-size:17px;flex:none}
 .home-main{grid-area:main;min-width:0}
 .marge{grid-area:marge;min-width:0}
 .margewrap{position:sticky;top:88px;display:grid;gap:24px}
+/* Remontée (2026-08-21, sur demande) : « Tes points faibles » s'aligne sur la
+   carte « À réviser » de la rangée du hero — margin-top NÉGATIF = hauteur de
+   la carte + gap de rangée 16 px, posé par liftMarge() via --revlift (0 si
+   pas de carte → marge alignée sur les stats, ancien comportement). Une
+   marge négative ne change PAS la hauteur de la rangée : les stats ne sont
+   jamais repoussées (contrairement à une grille "hero marge"/"main marge"
+   qui étirerait la rangée 1). ≥1025 px seulement — en dessous #home est
+   display:block et l'ordre du DOM suffit. */
+@media (min-width:1025px){.margewrap{margin-top:calc(-1 * var(--revlift,0px))}}
 .margewrap .margin-note{margin:0;margin-left:auto}
 #noteTop{display:none}
 /* La marge porte « Points faibles » (#statsExtra) en PANNEAU STANDARD —
    carton, bordure, ombre, h2 20 px + trait de plume, comme les autres blocs
    de l'accueil (plus de « décartonnage » en notes manuscrites : jugé trop
-   discret, 2026-08-22). « À réviser » (#revSlot) est dans la rangée du hero ;
-   « Par thème » (#bySubSlot) reste en colonne principale sous le sprint. */
+   discret, 2026-08-22) — REMONTÉ au niveau de « À réviser » (2026-08-21,
+   voir la règle .margewrap ci-dessus). « À réviser » (#revSlot) est dans la
+   rangée du hero ; « Par thème » (#bySubSlot) reste en colonne principale
+   sous le sprint. */
 @media (max-width:1024px){
   #home{display:block}
   /* Plus de colonne principale à ne pas dépasser (blocs empilés pleine
@@ -845,12 +879,16 @@ const G_TRIG=[
      explain:`Valeur exacte à connaître : ${d.f}(${d.t}) = <b>${TRIGV[d.v]}</b>.`};
  }},
  {lvl:"moyen",make(){
-   const trip=pick([[3,4],[4,3],[5,12],[12,5]]);
-   const sinN=trip[0],cosN=trip[1];
-   return{prompt:`Soit x dans [0 ; π/2] avec sin(x) = ${F(sinN,5)}. Calcule cos(x).`,
-     type:"frac",answer:fa(cosN,5),
-     viz:{kind:"unit",ang:Math.asin(sinN/5),angLabel:"x",leg:"cos",valLabel:F(cosN,5)},
-     explain:`sin²x + cos²x = 1 → cos²x = 1 − ${FR(2*sinN*sinN,25)} = ${FR(25-sinN*sinN,25)}.<br>Comme x ∈ [0 ; π/2], cos(x) > 0 : cos(x) = ${fracHTML("√"+(25-sinN*sinN),"5")} = <b>${F(cosN,5)}</b>.`};
+   /* Triplet pythagoricien [côté sin, côté cos, hypoténuse] — 3-4-5 et 5-12-13.
+      L'hypoténuse est celle du triplet (pas un 5 durci) : sin/cos sont sur celle-ci,
+      sinon [5,12]/[12,5] (côtés du 5-12-13) donnaient sin = 5/5 ou 12/5 → faux. */
+   const trip=pick([[3,4,5],[4,3,5],[5,12,13],[12,5,13]]);
+   const sinN=trip[0],cosN=trip[1],hyp=trip[2];
+   const s2=sinN*sinN,h2=hyp*hyp;
+   return{prompt:`Soit x dans [0 ; π/2] avec sin(x) = ${F(sinN,hyp)}. Calcule cos(x).`,
+     type:"frac",answer:fa(cosN,hyp),
+     viz:{kind:"unit",ang:Math.asin(sinN/hyp),angLabel:"x",leg:"cos",valLabel:F(cosN,hyp)},
+     explain:`sin²x + cos²x = 1 → cos²x = 1 − ${FR(s2,h2)} = ${FR(h2-s2,h2)}.<br>Comme x ∈ [0 ; π/2], cos(x) > 0 : cos(x) = ${fracHTML("√"+(h2-s2),hyp)} = <b>${F(cosN,hyp)}</b>.`};
  }},
  {lvl:"moyen",make(){
    const combos=[[0,"π/2"],["π/2",0]];
@@ -2680,11 +2718,13 @@ function renderHome(){
   const revSlot=$("#revSlot");
   if(revSlot){
     if(stats.review.length>0){
-      /* 2026-08-21 : ligne = [titre] [N questions à refaire · ≈ N min]
-         [chapitres, MAX 4 noms + « +N autres » sinon le bouton passe sur une
-         2e ligne] … [bouton aligné à droite]. Thèmes distincts de la liste,
-         ordre de première occurrence, noms résolus par THEME_BY_ID (toutes
-         matières confondues — loadStats ne garde que les ids résolus).
+      /* 2026-08-22 : cellules « plume » — [titre] | [N questions] | [≈ N min]
+         | [chapitres, MAX 4 noms + « +N autres » sinon le bouton passe sur une
+         2e ligne] | [bouton aligné à droite] : un séparateur .revsep (trait de
+         plume vertical, CSS — visible à ≥1280 px) entre chaque partie, absent
+         quand la partie l'est (estimation / chapitres). Thèmes distincts de la
+         liste, ordre de première occurrence, noms résolus par THEME_BY_ID
+         (toutes matières confondues — loadStats ne garde que les ids résolus).
          & échappé (« Log & exp », « Droites & affines »).
          « ≈ N min » (2026-08-21) : moyenne des temps de réponse du mode libre
          (stats.respTimes, chrono SILENCIEUX d'afterAnswer) × nombre de
@@ -2694,12 +2734,14 @@ function renderHome(){
         (chapsAll.length>4?` +${chapsAll.length-4} autre${chapsAll.length>5?"s":""}`:""):"";
       const n=stats.review.length;
       const est=(stats.respTimes.length>=3)?Math.max(1,Math.round(stats.respTimes.reduce((a,b)=>a+b,0)/stats.respTimes.length*n/60)):0;
+      const sep=`<span class="revsep" aria-hidden="true"></span>`;
       revSlot.innerHTML=
         `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.06s">`+
-        `<h2 id="hRev">À réviser</h2>`+
-        `<p class="revnum"><span class="revcount">${n}</span><span class="revsub">questions à refaire</span></p>`+
-        (est?`<span class="revtime">≈ ${est} min</span>`:"")+
-        (chaps?`<span class="revchaps">${chaps}</span>`:"")+
+        `<h2 id="hRev">À réviser</h2>`+sep+
+        `<p class="revnum"><span class="revcount">${n}</span><span class="revsub">questions</span></p>`+
+        (est?sep+`<span class="revtime">≈ ${est} min</span>`:"")+
+        (chaps?sep+`<span class="revchaps">${chaps}</span>`:"")+
+        sep+
         `<button type="button" class="btn btn-primary" id="btnReview">Réviser maintenant →</button>`+
         `</section>`;
     }else{
@@ -2755,6 +2797,16 @@ function renderHome(){
       const p=b.dataset.weak.split(":");trainWeak(p[0],p[1]);
     }));
   }
+  /* Marge alignée sur « À réviser » — voir la règle .margewrap (CSS). */
+  liftMarge();
+}
+function liftMarge(){
+  /* --revlift = hauteur de la carte « À réviser » + gap de rangée 16 px (0
+     sans carte). Mesurée sur le DOM réel : renderHome est le seul créateur /
+     destructeur de la carte → aucun écouteur resize nécessaire. */
+  const card=document.querySelector(".revcta");
+  const h=card?Math.round(card.getBoundingClientRect().height)+16:0;
+  $("#home").style.setProperty("--revlift",h+"px");
 }
 
 /* ---------- Navigation ---------- */
