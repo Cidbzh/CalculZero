@@ -153,14 +153,14 @@ body{
 }
 @keyframes barIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 .topbar .wrap{padding-top:12px;padding-bottom:12px}
-/* Écrans larges : l'accueil est en 2 colonnes (marge 320 px + gap 40 px). Les
+/* Écrans larges : l'accueil est en 2 colonnes (marge 320 px + gap 16 px). Les
    sélecteurs (matière + thème) ne doivent plus « flotter » au-dessus de la
    colonne de la marge — où vivent les « Points faibles » : leur bord droit
-   s'arrête au bord droit de la colonne principale (360 px = 320 + 40). Hors
+   s'arrête au bord droit de la colonne principale (336 px = 320 + 16). Hors
    accueil (écran d'exercice, pleine largeur), la topbar reprend toute sa
    largeur. */
 @media (min-width:1025px){
-  body:has(#home:not([hidden])) .topbar .wrap{padding-right:360px}
+  body:has(#home:not([hidden])) .topbar .wrap{padding-right:336px}
 }
 .brand{display:inline-flex;align-items:center;font:700 21px var(--f-display);letter-spacing:.01em}
 /* Pas de gap sur le conteneur : « Quiz » et « ey » seraient deux items flex
@@ -342,13 +342,15 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
    le texte, sur sa propre ligne, avec la MÊME LARGEUR que la colonne
    principale : ses DEUX bords sont calés sur les blocs en dessous (stats /
    entraînement / sprint) — ne les dépasse jamais. Largeur = 100% de la
-   rangée moins 360px (320 marge + 40 gap), le même décalage que les
+   rangée moins 336px (320 marge + 16 gap), le même décalage que les
    sélecteurs de la topbar. Écart description↔carte = 24 px : le rythme
    standard entre blocs (16 px) « légèrement augmenté » — demande 2026-08-21. */
 /* row-gap 16 px = rythme standard entre panneaux (marge des .panel) —
    l'écart « À réviser » → blocs en dessous est le même que partout
-   (demande 2026-08-21) ; column-gap 40 px = écart entre colonnes. */
-#home{display:grid;grid-template-areas:"hero hero" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:16px 40px}
+   (demande 2026-08-21) ; column-gap 16 px AUSSI (demande 2026-08-21, 2e
+   passe) : l'écart entre la colonne « Points faibles » et les blocs de la
+   colonne principale = le même 16 px que partout → rythme unique. */
+#home{display:grid;grid-template-areas:"hero hero" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:16px}
 .hero{grid-area:hero;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:24px}
 .herotxt{min-width:0}
 /* « À réviser » : #revSlot est un simple <div> rempli/vidé par renderHome ;
@@ -363,7 +365,7 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
    les dépasser ; son écart avec les blocs sous elle = 16 px, le rythme
    standard entre panneaux (row-gap de #home, même valeur que la marge des
    .panel). */
-#revSlot{min-width:0;width:calc(100% - 360px)}
+#revSlot{min-width:0;width:calc(100% - 336px)}
 #revSlot:empty{display:none}
 .hero .revcta{display:flex;align-items:center;flex-wrap:nowrap;gap:8px 10px;padding:17px 22px;margin-bottom:0;justify-content:space-between}
 .hero .revcta h2{margin:0;font-size:22px;flex:none}
