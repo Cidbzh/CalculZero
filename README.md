@@ -51,3 +51,7 @@ Les statistiques de chaque matière sont indépendantes : ta précision en maths
 ![Le mode allemand A2 — 100 % QCM](img/accueil-allemand.png)
 
 Note : Quizey est Open Source (Gratuit et sans contrainte d'utilisation)
+
+## Licence
+
+MIT — voir le fichier `LICENSE`.
