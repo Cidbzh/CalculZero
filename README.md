@@ -10,7 +10,7 @@ Tes progrès, tes points faibles, tes records : tout reste sur ta machine. Perso
 
 ![L'accueil — matière maths : la carte « À réviser », les stats, les points faibles](img/accueil-maths.png)
 
-## L'installer — deux choix
+## Installation — 2 choix
 
 **Choix 1 · le terminal.** Dans ta console :
 
@@ -24,7 +24,7 @@ Double-clique sur `Quizey/Quizey.html`.
 
 Une fois le fichier en main, il t'appartient : sur une clé USB, à la médiathèque, au labo du lycée, sur n'importe quel PC, avec ou sans internet.
 
-## Comment on s'entraîne
+## Comment s'entraîner
 
 **Entraînement libre** — tu choisis le thème et le niveau (facile, moyen, difficile) et tu avances à ton rythme.
 
@@ -40,7 +40,7 @@ La correction montre la méthode, pas seulement le résultat — et quand la que
 
 Quizey repère aussi tes **points faibles** (thème × niveau, sur tes 100 dernières réponses) et te propose un entraînement ciblé sur chacun.
 
-## Ce qu'il y a dedans
+## Contenu
 
 - **Maths** (spécialité) — 10 thèmes : dérivées, suites, log & exp, 2ᵉ degré, trigonométrie, probabilités, vecteurs, droites & affines, limites, variations
 - **Physique-chimie** — 8 thèmes : mécanique & Newton, forces & champs, énergie, quantités de matière, stœchiométrie & état final, cinétique, ondes & lumière, électricité
