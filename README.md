@@ -28,7 +28,7 @@ Une fois le fichier en main, il t'appartient : sur une clé USB, à la médiath�
 
 **Entraînement libre** — tu choisis le thème et le niveau (facile, moyen, difficile) et tu avances à ton rythme.
 
-**Sprint 60 s** — les questions s'enchaînent, les séries montent, le record s'écrit. Pas dispo en allemand.
+**Sprint 60 s** — les questions s'enchaînent, les séries montent, le record s'écrit.
 
 **À réviser** — uniquement les questions que tu as ratées, jusqu'à ce que la liste soit vide. Chacune que tu réussis disparaît.
 
