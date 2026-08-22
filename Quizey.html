@@ -799,7 +799,7 @@ const G_DERIV=[
    return{prompt:`Soit f(x) = ${a}x² ${bs}x ${cs}. Calcule f′(${k}).`,
      type:"number",answer:2*a*k+b,
      viz:{kind:"tan",f:"quad",a:a,b:b,c:c,k:k,m:2*a*k+b},
-     explain:`La dérivée de f(x) = ${a}x² + ${b}x + ${c} est f′(x) = ${2*a}x + ${b}.<br>Donc f′(${k}) = ${2*a} × ${k} + (${b}) = <b>${2*a*k+b}</b>.`};
+     explain:`La dérivée de f(x) = ${a}x² ${bs}x ${cs} est f′(x) = ${2*a}x ${b<0?"− "+(-b):"+ "+b}.<br>Donc f′(${k}) = ${2*a} × ${k} + (${b}) = <b>${2*a*k+b}</b>.`};
  }},
  {lvl:"facile",make(){
    const a=pick([1,2,3,4,5,6,8,9]),k=pick([2,3,4]);
@@ -810,33 +810,33 @@ const G_DERIV=[
  }},
  {lvl:"moyen",make(){
    const a=Ri(1,4),b=pick([-9,-6,-4,-3,3,4,6,9]),k=Ri(1,4);
-   return{prompt:`Soit f(x) = ${a}x³ + ${b}x. Calcule f′(${k}).`,
+   return{prompt:`Soit f(x) = ${a}x³ ${b<0?"− "+(-b):"+ "+b}x. Calcule f′(${k}).`,
      type:"number",answer:3*a*k*k+b,
      viz:{kind:"tan",f:"cub",a:a,b:b,k:k,m:3*a*k*k+b},
-     explain:`f′(x) = ${3*a}x² + ${b}.<br>Donc f′(${k}) = ${3*a} × ${k*k} + (${b}) = <b>${3*a*k*k+b}</b>.`};
+     explain:`f′(x) = ${3*a}x² ${b<0?"− "+(-b):"+ "+b}.<br>Donc f′(${k}) = ${3*a} × ${k*k} + (${b}) = <b>${3*a*k*k+b}</b>.`};
  }},
  {lvl:"moyen",make(){
    const a=Ri(1,4),b=Ri(-9,9),k=Ri(1,2);
    const ans=a*Math.exp(k)+b;
-   return{prompt:`Soit f(x) = ${a}·eˣ + ${b}x. Calcule f′(${k}), arrondi au centième.`,
+   return{prompt:`Soit f(x) = ${a}·eˣ ${b<0?"− "+(-b):"+ "+b}x. Calcule f′(${k}), arrondi au centième.`,
      type:"number",answer:Math.round(ans*100)/100,tol:0.011,
      viz:{kind:"tan",f:"exp",a:a,b:b,k:k,m:a*Math.exp(k)+b},
-     explain:`f′(x) = ${a}·eˣ + ${b} (la dérivée de eˣ est eˣ).<br>f′(${k}) = ${a} × ${Math.exp(k).toFixed(4)} + (${b}) ≈ <b>${Math.round(ans*100)/100}</b>.`};
+     explain:`f′(x) = ${a}·eˣ ${b<0?"− "+(-b):"+ "+b} (la dérivée de eˣ est eˣ).<br>f′(${k}) = ${a} × ${Math.exp(k).toFixed(4)} + (${b}) ≈ <b>${Math.round(ans*100)/100}</b>.`};
  }},
  {lvl:"difficile",make(){
    const a=pick([2,3,4,5,6]),b=Ri(-5,5),k=pick([2,3,4]);
-   return{prompt:`Soit f(x) = ${a}·ln(x) + ${b}x. Calcule f′(${k}).`,
+   return{prompt:`Soit f(x) = ${a}·ln(x) ${b<0?"− "+(-b):"+ "+b}x. Calcule f′(${k}).`,
      type:"frac",answer:fr(a+b*k,k),
      viz:{kind:"tan",f:"ln",a:a,b:b,k:k,m:a/k+b},
-     explain:`f′(x) = ${a}/x + ${b}.<br>f′(${k}) = ${FR(a,k)} + ${b} = ${FR(a+b*k,k)} = <b>${F(a+b*k,k)}</b>.`};
+     explain:`f′(x) = ${a}/x ${b<0?"− "+(-b):"+ "+b}.<br>f′(${k}) = ${FR(a,k)} ${b<0?"− "+Math.abs(b):"+ "+b} = ${FR(a+b*k,k)} = <b>${F(a+b*k,k)}</b>.`};
  }},
  {lvl:"difficile",make(){
    const a=Ri(2,5),b=Ri(-6,6),k=Ri(1,3);
    const ans=2*a*(a*k+b);
-   return{prompt:`Soit f(x) = (${a}x + ${b})². Calcule f′(${k}).`,
+   return{prompt:`Soit f(x) = (${a}x ${b<0?"− "+(-b):"+ "+b})². Calcule f′(${k}).`,
      type:"number",answer:ans,
      viz:{kind:"tan",f:"sq",a:a,b:b,k:k,m:2*a*(a*k+b)},
-     explain:`Règle de la chaîne : la dérivée de (ax+b)² est 2(ax+b) × ${a}.<br>Donc f′(${k}) = ${2*a} × (${a}×${k} + ${b}) = ${2*a} × ${a*k+b} = <b>${ans}</b>.`};
+     explain:`Règle de la chaîne : la dérivée de (ax+b)² est 2(ax+b) × ${a}.<br>Donc f′(${k}) = ${2*a} × (${a}×${k} ${b<0?"− "+(-b):"+ "+b}) = ${2*a} × (${a*k+b}) = <b>${ans}</b>.`};
  }},
  {lvl:"facile",make(){
    const a=pick([1,2]),x0=pick([1,2,3]);let b;do{b=Ri(-5,5);}while(b===0);
@@ -857,7 +857,7 @@ const G_DERIV=[
    return{prompt:`Soit f(x) = ${a>1?a+" ":""}x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c}. Quelle est l'équation de la tangente à la courbe au point d'abscisse ${x0} ?`,
      type:"choice",options:opts,correct:opts.indexOf(good),
      viz:{kind:"tan",f:"quad",a:a,b:b,c:c,k:x0,m:m},
-     explain:`Pente de la tangente = f′(${x0}) = 2×${a}×${x0} ${b<0?"− ":"+ "}${Math.abs(b)} = ${m}.<br>Le point de contact est T(${x0} ; ${y0}).<br>Ordonnée à l'origine : q = y₀ − m·x₀ = ${y0} − ${m}×${x0} = ${q}.<br>Équation de la tangente : <b>${good}</b>.`};
+     explain:`Pente de la tangente = f′(${x0}) = 2×${a}×${x0} ${b<0?"− ":"+ "}${Math.abs(b)} = ${m}.<br>Le point de contact est T(${x0} ; ${y0}).<br>Ordonnée à l'origine : q = y₀ − m·x₀ = ${y0} ${m*x0<0?"+ ":"− "}${Math.abs(m)}×${x0} = ${q}.<br>Équation de la tangente : <b>${good}</b>.`};
  }}
 ];
 
@@ -873,7 +873,7 @@ const G_SUITES=[
    const u0=pick([1,2,3,-1,-2]),q=pick([-3,-2,2,3]),n=Ri(2,5);
    return{prompt:`Soit (uₙ) géométrique de raison ${q} avec u₀ = ${u0}. Calcule u${n}.`,
      type:"number",answer:u0*Math.pow(q,n),
-     explain:`uₙ = u₀ × qⁿ = ${u0} × ${q}^${n} = <b>${u0*Math.pow(q,n)}</b>.`};
+     explain:`uₙ = u₀ × qⁿ = ${u0<0?"("+u0+")":u0} × ${q<0?"("+q+")":q}^${n} = <b>${u0*Math.pow(q,n)}</b>.`};
  }},
  {lvl:"moyen",make(){
    const u0=Ri(-6,6),r=pick([-3,-2,2,3]),n=Ri(3,7);
@@ -881,14 +881,14 @@ const G_SUITES=[
    const ans=Number.isInteger(S)?fa(S,1):fa(2*S,2);
    return{prompt:`Soit (uₙ) arithmétique de raison ${r}, u₀ = ${u0}. Calcule S = u₀ + u₁ + … + u${n-1} (somme des ${n} premiers termes).`,
      type:"frac",answer:ans,
-     explain:`S = n/2 × (2u₀ + (n−1)r) = ${FR(n,2)} × (${2*u0} + ${(n-1)}×${r}) = <b>${Number.isInteger(S)?S:F(2*S,2)}</b>.`};
+     explain:`S = n/2 × (2u₀ + (n−1)r) = ${FR(n,2)} × (${2*u0} ${(n-1)*r<0?"− "+(-(n-1)*r):"+ "+((n-1)*r)}) = <b>${Number.isInteger(S)?S:F(2*S,2)}</b>.`};
  }},
  {lvl:"difficile",make(){
    const u0=pick([1,2,-1,-2]),q=pick([2,3,-2]),n=Ri(3,4);
    const num=u0*(1-Math.pow(q,n)),den=1-q;
    return{prompt:`Soit (uₙ) géométrique de raison ${q}, u₀ = ${u0}. Calcule S = u₀ + u₁ + … + u${n-1}.`,
      type:"frac",answer:fr(num,den),
-     explain:`S = u₀ × (1 − qⁿ)/(1 − q) = ${u0} × (1 − ${Math.pow(q,n)})/(1 − ${q}) = <b>${F(num,den)}</b>.`};
+     explain:`S = u₀ × (1 − qⁿ)/(1 − q) = ${u0} × (1 ${Math.pow(q,n)<0?"+ "+(-Math.pow(q,n)):"− "+Math.pow(q,n)})/(1 ${q<0?"+ "+(-q):"− "+q}) = <b>${F(num,den)}</b>.`};
  }},
 ];
 
@@ -921,9 +921,9 @@ const G_LOGEXP=[
  {lvl:"difficile",make(){
    const a=Ri(2,7),b=pick([-3,-2,-1,1,2,3]);
    const ans=Math.round(Math.exp(a-b)*100)/100;
-   return{prompt:`Résous : ln(x) + ${b} = ${a}. (x ≈ ? , au centième)`,
+   return{prompt:`Résous : ln(x) ${b<0?"− "+(-b):"+ "+b} = ${a}. (x ≈ ? , au centième)`,
      type:"number",answer:ans,tol:0.011,
-     explain:`ln(x) = ${a} − ${b} = ${a-b}, donc x = e^${a-b} ≈ <b>${ans}</b>.`};
+     explain:`ln(x) = ${a} ${b<0?"+ "+(-b):"− "+b} = ${a-b}, donc x = e^${a-b} ≈ <b>${ans}</b>.`};
  }},
  {lvl:"difficile",make(){
    const a=Ri(3,12);
@@ -956,7 +956,7 @@ const G_EQ2=[
    return{prompt:`Calcule le discriminant Δ de : x² ${bs}x ${c<0?"− "+(-c):"+ "+c} = 0.`,
      type:"number",answer:D,
      viz:{kind:"par",a:1,b:b,c:c,r1:r1,r2:r2},
-     explain:`Δ = b² − 4ac = (${b})² − 4 × ${c} = ${b*b} − ${4*c} = <b>${D}</b>.<br>(Δ > 0 : deux solutions, x = ${r1} et x = ${r2}.)`};
+     explain:`Δ = b² − 4ac = (${b})² ${c<0?"+ ":"− "}4 × ${Math.abs(c)} = ${b*b} ${4*c<0?"+ ":"− "}${Math.abs(4*c)} = <b>${D}</b>.<br>(Δ > 0 : deux solutions, x = ${r1} et x = ${r2}.)`};
  }},
  {lvl:"moyen",make(){
    let r1=Ri(-6,6),r2;do{r2=Ri(-6,6);}while(r2===r1);
@@ -969,17 +969,13 @@ const G_EQ2=[
  {lvl:"moyen",make(){
    let r1,r2;do{r1=Ri(-5,5);r2=Ri(-5,5);}while(r1===r2||r1===-r2||r1===0||r2===0);
    const b=-(r1+r2),c=r1*r2;
-   const opts=shuf([
-     `(x ${r1>0?"− "+r1:"+ "+(-r1)}) (x ${r2>0?"− "+r2:"+ "+(-r2)})`,
-     `(x ${r1>0?"− "+r1:"+ "+(-r1)}) (x + ${r2})`,
-     `(x + ${r1}) (x ${r2>0?"− "+r2:"+ "+(-r2)})`,
-     `(x + ${r1}) (x + ${r2})`
-   ]);
-   const right=opts.indexOf(`(x ${r1>0?"− "+r1:"+ "+(-r1)}) (x ${r2>0?"− "+r2:"+ "+(-r2)})`);
+   const fac=r=>`(x ${r>0?"− "+r:"+ "+(-r)})`, leurre=r=>`(x ${r>0?"+ "+r:"− "+(-r)})`;
+   const opts=shuf([fac(r1)+" "+fac(r2), fac(r1)+" "+leurre(r2), leurre(r1)+" "+fac(r2), leurre(r1)+" "+leurre(r2)]);
+   const right=opts.indexOf(fac(r1)+" "+fac(r2));
    return{prompt:`Factorise : x² ${b<0?"− "+(-b):"+ "+b}x ${c<0?"− "+(-c):"+ "+c}.`,
      type:"choice",options:opts,correct:right,
      viz:{kind:"par",a:1,b:b,c:c,r1:r1,r2:r2},
-     explain:`Racines x = ${r1} et x = ${r2}, a = 1, donc la forme factorisée est (x − ${r1})(x − ${r2}).`};
+     explain:`Racines x = ${r1} et x = ${r2}, a = 1, donc la forme factorisée est (x ${r1>0?"− "+r1:"+ "+(-r1)})(x ${r2>0?"− "+r2:"+ "+(-r2)}).`};
  }},
  {lvl:"difficile",make(){
    let r1=Ri(-5,5),r2;do{r2=Ri(-5,5);}while(r2===r1);
@@ -995,7 +991,7 @@ const G_EQ2=[
    const bs=b<0?"− "+(-b):"+ "+b,cs=c<0?"− "+(-c):"+ "+c;
    return{prompt:`Le trinôme x² ${bs}x ${cs} = 0 admet deux racines réelles. Quelle est la somme de ces racines ?`,
      type:"number",answer:s,
-     explain:`Règle de Viète : la somme des racines vaut −b (ici a = 1).<br>−b = −(${b}) = <b>${s}</b>.<br>(Vérif : racines ${r1} et ${r2}, somme ${r1}+${r2} = ${s}.)`};
+     explain:`Règle de Viète : la somme des racines vaut −b (ici a = 1).<br>−b = −(${b}) = <b>${s}</b>.<br>(Vérif : racines ${r1} et ${r2}, somme ${r1} ${r2<0?"− ":"+ "}${Math.abs(r2)} = ${s}.)`};
  }},
  {lvl:"moyen",make(){
    let r1;do{r1=Ri(-5,2);}while(r1===0);
@@ -1006,7 +1002,7 @@ const G_EQ2=[
    const opts=shuf(["négatif","positif","nul"]);
    return{prompt:`Soit P(x) = ${pf(r1)} ${pf(r2)}. Que vaut le signe de P(${xt}) ?`,
      type:"choice",options:opts,correct:opts.indexOf("négatif"),
-     explain:`${xt} est strictement entre ${r1} et ${r2}.<br>P(${xt}) = ${xt-r1} × ${xt-r2} = ${pt} < 0.<br>Entre ses deux racines, un trinôme de tête a > 0 est <b>négatif</b>.`};
+     explain:`${xt} est strictement entre ${r1} et ${r2}.<br>P(${xt}) = ${xt-r1<0?"("+xt-r1+")":xt-r1} × ${xt-r2<0?"("+xt-r2+")":xt-r2} = ${pt} < 0.<br>Entre ses deux racines, un trinôme de tête a > 0 est <b>négatif</b>.`};
  }}
 ];
 /* ---------- Trigonométrie ---------- */
@@ -1123,14 +1119,14 @@ const G_VECT=[
    const dot=u[0]*v[0]+u[1]*v[1];
    return{prompt:`Soit u(${u[0]} ; ${u[1]}) et v(${v[0]} ; ${v[1]}). Calcule u·v (produit scalaire).`,
      type:"number",answer:dot,
-     explain:`u·v = x₁x₂ + y₁y₂ = ${u[0]}×${v[0]} + ${u[1]}×${v[1]} = ${u[0]*v[0]} + ${u[1]*v[1]} = <b>${dot}</b>.`};
+     explain:`u·v = x₁x₂ + y₁y₂ = ${u[0]<0?"("+u[0]+")":u[0]}×${v[0]<0?"("+v[0]+")":v[0]} ${u[1]*v[1]<0?"− ":"+ "}${Math.abs(u[1])}×${Math.abs(v[1])} = ${u[0]*v[0]} ${u[1]*v[1]<0?"− ":"+ "}${Math.abs(u[1]*v[1])} = <b>${dot}</b>.`};
  }},
  {lvl:"facile",make(){
    const A=[Ri(-5,5),Ri(-5,5)],dx=pick([-4,-3,-2,2,3,4]),dy=pick([-4,-3,-2,2,3,4]);
    const B=[A[0]+dx,A[1]+dy];
    return{prompt:`Soit A(${A[0]} ; ${A[1]}) et B(${B[0]} ; ${B[1]}). Quelle est la composante x du vecteur AB ?`,
      type:"number",answer:dx,
-     explain:`AB = (x_B − x_A ; y_B − y_A) = (${B[0]} − ${A[0]} ; ${B[1]} − ${A[1]}) = (${dx} ; ${dy}).<br>La composante x est <b>${dx}</b>.`};
+     explain:`AB = (x_B − x_A ; y_B − y_A) = (${B[0]} ${A[0]<0?"+ ":"− "}${Math.abs(A[0])} ; ${B[1]} ${A[1]<0?"+ ":"− "}${Math.abs(A[1])}) = (${dx} ; ${dy}).<br>La composante x est <b>${dx}</b>.`};
  }},
  {lvl:"moyen",make(){
    const trip=pick([[3,4],[4,3],[6,8],[8,6],[5,12],[12,5]]);
@@ -1151,7 +1147,7 @@ const G_VECT=[
    const det=Math.abs(u[0]*v[1]-u[1]*v[0]);
    return{prompt:`Soit u(${u[0]} ; ${u[1]}) et v(${v[0]} ; ${v[1]}). Calcule l'aire du triangle formé par les origines de ces vecteurs (aire = |det(u,v)|/2).`,
      type:"frac",answer:fa(det,2),
-     explain:`det(u,v) = x₁y₂ − y₁x₂ = ${u[0]}×${v[1]} − ${u[1]}×${v[0]} = ${u[0]*v[1]-u[1]*v[0]}.<br>Aire = ${FR(det,2)} = <b>${F(det,2)}</b>.`};
+     explain:`det(u,v) = x₁y₂ − y₁x₂ = ${u[0]<0?"("+u[0]+")":u[0]}×${v[1]<0?"("+v[1]+")":v[1]} ${u[1]*v[0]<0?"+ ":"− "}${Math.abs(u[1])}×${Math.abs(v[0])} = ${u[0]*v[1]-u[1]*v[0]}.<br>Aire = ${FR(det,2)} = <b>${F(det,2)}</b>.`};
  }},
 ];
 
@@ -1177,14 +1173,14 @@ const G_AFF=[
    const aN=dy,aD=dx,b0=A[1]-A[0]*dy/dx;
    return{prompt:`La droite (D) passe par A(${A[0]} ; ${A[1]}) et B(${B[0]} ; ${B[1]}). Déterminer l'ordonnée à l'origine b de sa forme y = ax + b.`,
      type:"frac",answer:fr(A[1]*dx-dy*A[0],dx),
-     explain:`a = ${FR(dy,dx)} = ${F(dy,dx)}.<br>b = y_A − a·x_A = ${A[1]} − ${F(dy,dx)} × ${A[0]} = <b>${F(A[1]*dx-dy*A[0],dx)}</b>.`};
+     explain:`a = ${FR(dy,dx)} = ${F(dy,dx)}.<br>b = y_A − a·x_A = ${A[1]} ${A[0]<0?"+ ":"− "}${F(dy,dx)} × ${Math.abs(A[0])} = <b>${F(A[1]*dx-dy*A[0],dx)}</b>.`};
  }},
  {lvl:"difficile",make(){
    const m=pick([-2,-1,1,2]),b=Ri(-5,5),C=[Ri(-4,4),Ri(-4,4)];
    const b2=C[1]-m*C[0];
    return{prompt:`La droite (d) a pour équation y = ${m}x ${b<0?"− "+(-b):"+ "+b}. La droite (d′) passe par C(${C[0]} ; ${C[1]}) et est parallèle à (d). Calcule l'ordonnée à l'origine de (d′).`,
      type:"number",answer:b2,
-     explain:`Parallèles → même coefficient directeur m = ${m}.<br>b′ = y_C − m·x_C = ${C[1]} − ${m}×${C[0]} = <b>${b2}</b>.`};
+     explain:`Parallèles → même coefficient directeur m = ${m}.<br>b′ = y_C − m·x_C = ${C[1]} ${C[0]<0?"+ ":"− "}${Math.abs(m)}×${Math.abs(C[0])} = <b>${b2}</b>.`};
  }},
 ];
 
@@ -1208,7 +1204,7 @@ const G_LIM=[
    const bs=b<0?"− "+(-b):"+ "+b,ds=d<0?"− "+(-d):"+ "+d;
    return{prompt:`Calcule la limite de (${a}x ${bs}) / (${c}x ${ds}) quand x tend vers +∞.`,
      type:"frac",answer:fa(a,c),
-     explain:`Divisons numérateur et dénominateur par x (x → +∞, donc 1/x → 0) :<br>= (${a} + ${b}/x) / (${c} + ${d}/x) → ${FR(a,c)} = <b>${F(a,c)}</b>.`};
+     explain:`Divisons numérateur et dénominateur par x (x → +∞, donc 1/x → 0) :<br>= (${a} ${b<0?"− ":"+ "}${Math.abs(b)}/x) / (${c} ${d<0?"− ":"+ "}${Math.abs(d)}/x) → ${FR(a,c)} = <b>${F(a,c)}</b>.`};
  }},
  {lvl:"moyen",make(){
    return{prompt:"Calcule la limite de sin(x)/x quand x tend vers 0.",

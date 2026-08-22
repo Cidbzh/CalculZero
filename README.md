@@ -10,20 +10,6 @@ Vos progrès, vos points faibles et vos records demeurent stockés sur votre mac
 
 ![L'accueil — matière maths : la carte « À réviser », les stats, les points faibles](img/accueil-maths.png)
 
-## Installation — deux possibilités
-
-**Option 1 · via le terminal.** Dans votre console :
-
-```bash
-git clone https://github.com/Cidbzh/Quizey.git
-```
-
-Puis double-cliquez sur `Quizey/Quizey.html`.
-
-**Option 2 · via le navigateur.** Accédez à la page [Releases](https://github.com/Cidbzh/Quizey/releases) et téléchargez le fichier (le `.html` direct s'il y figure, sinon « Source code (zip) »). Décompressez, puis double-cliquez sur `Quizey.html`.
-
-Une fois le fichier en votre possession, il vous appartient : sur une clé USB, à la médiathèque, au laboratoire du lycée, sur n'importe quel poste, avec ou sans connexion.
-
 ## Comment s'entraîner
 
 **Entraînement libre** — sélectionnez un thème et un niveau (facile, moyen, difficile), puis progressez à votre rythme. Le mode **Auto** (difficulté adaptative) ajuste automatiquement le niveau proposé en fonction de vos dernières réponses sur le chapitre, afin de vous servir un exercice exigeant sans être rédhibitoire.
@@ -47,7 +33,21 @@ Quizey identifie en outre vos **points faibles** (croisement thème × niveau, s
 - **Allemand A2** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres · dates · heures, phrases utiles, mini-traductions
 
 ![Le mode allemand A2 — 100 % QCM](img/accueil-allemand.png)
- 
+
+## Installation — deux possibilités
+
+**Option 1 · via le terminal.** Dans votre console :
+
+```bash
+git clone https://github.com/Cidbzh/Quizey.git
+```
+
+Puis double-cliquez sur `Quizey/Quizey.html`.
+
+**Option 2 · via le navigateur.** Accédez à la page [Releases](https://github.com/Cidbzh/Quizey/releases) et téléchargez le fichier (le `.html` direct s'il y figure, sinon « Source code (zip) »). Décompressez, puis double-cliquez sur `Quizey.html`.
+
+Une fois le fichier en votre possession, il vous appartient : sur une clé USB, à la médiathèque, au laboratoire du lycée, sur n'importe quel poste, avec ou sans connexion.
+
 ## Licence
 
 MIT — voir le fichier `LICENSE`.
