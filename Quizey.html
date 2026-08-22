@@ -16,12 +16,12 @@
 <script>/* Thème + matière + VERSION D'INTERFACE appliqués AVANT le premier rendu (anti-flash).
    Lit les choix sauvegardés (clés qz_theme / qz_subject / qz_ui, anciennes clés cz_* en
    secours — la migration complète vit dans le gros script) et pose sur <html> les
-   attributs data-theme, data-mat (violet PC / vert DE) et data-ui="m" (version
+   attributs data-theme, data-mat (violet PC / vert DE / rouge EN) et data-ui="m" (version
    téléphone — le CSS html[data-ui="m"] fait le reste). Le gros script en bas ne fait
    que brancher les boutons. Pose aussi lang="fr" sur <html> : le fichier est un
    fragment sans balise <html>, on ne restructure pas — l'attribut suffit pour les
    lecteurs d'écran. (Intentionnel : PAS de doctype — le CSS est calé en quirks mode.) */
-(function(){var r=document.documentElement;r.setAttribute("lang","fr");function K(n){try{var v=localStorage.getItem("qz_"+n);if(v===null)v=localStorage.getItem("cz_"+n);return v;}catch(e){return null;}}try{var v=K("theme");var t=v?JSON.parse(v):"auto";if(t==="light"||t==="dark"){r.setAttribute("data-theme",t);}else{r.removeAttribute("data-theme");}}catch(e){}try{var m=JSON.parse(K("subject"));if(m==="pc"){r.setAttribute("data-mat","pc");}else if(m==="de"){r.setAttribute("data-mat","de");}}catch(e){}try{var u=JSON.parse(K("ui"));if(u==="m"){r.setAttribute("data-ui","m");}}catch(e){}})();</script>
+(function(){var r=document.documentElement;r.setAttribute("lang","fr");function K(n){try{var v=localStorage.getItem("qz_"+n);if(v===null)v=localStorage.getItem("cz_"+n);return v;}catch(e){return null;}}try{var v=K("theme");var t=v?JSON.parse(v):"auto";if(t==="light"||t==="dark"){r.setAttribute("data-theme",t);}else{r.removeAttribute("data-theme");}}catch(e){}try{var m=JSON.parse(K("subject"));if(m==="pc"){r.setAttribute("data-mat","pc");}else if(m==="de"){r.setAttribute("data-mat","de");}else if(m==="en"){r.setAttribute("data-mat","en");}}catch(e){}try{var u=JSON.parse(K("ui"));if(u==="m"){r.setAttribute("data-ui","m");}}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
@@ -137,6 +137,33 @@
   --accent-soft:rgba(52,211,153,.15);
   --pen:#34D399;
   --glow:rgba(52,211,153,.06);
+}
+/* ---- Anglais : accent ROUGE (attribut data-mat="en" sur <html>, posé par
+   l'anti-flash et par setMatiere). Mêmes 3 niveaux que le vert DE → le rouge
+   gagne dans tous les cas ; la bascule s'anime via
+   .theming (cf. bas de fichier, désactivée sous prefers-reduced-motion). */
+:root[data-mat="en"]{
+  --accent:#DC2626;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#FEE2E2;
+  --pen:#DC2626;
+  --glow:rgba(220,38,38,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root[data-mat="en"]:not([data-theme="light"]){
+    --accent:#F87171;
+    --accent-ink:#0B1220;
+    --accent-soft:rgba(248,113,113,.15);
+    --pen:#F87171;
+    --glow:rgba(248,113,113,.06);
+  }
+}
+:root[data-theme="dark"][data-mat="en"]{
+  --accent:#F87171;
+  --accent-ink:#0B1220;
+  --accent-soft:rgba(248,113,113,.15);
+  --pen:#F87171;
+  --glow:rgba(248,113,113,.06);
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -669,6 +696,7 @@ html[data-ui="m"] button,html[data-ui="m"] input{touch-action:manipulation}
         <button type="button" class="seg-btn on" data-mat="maths">Maths</button>
         <button type="button" class="seg-btn" data-mat="pc">Physique-Chimie</button>
         <button type="button" class="seg-btn" data-mat="de">Allemand</button>
+        <button type="button" class="seg-btn" data-mat="en">Anglais</button>
       </div>
       <span class="divider" aria-hidden="true"></span>
       <div class="theme-seg" role="group" aria-label="Thème">
@@ -2405,6 +2433,268 @@ const G_TRAD=[
      `<b>${e.de}</b> — ${e.tip}.`);
  }}
 ];
+/* ================= ANGLAIS A2/B1 (contenu seul — branché via SUBJECTS_EN) =================
+   Toutes les questions sont des QCM via qcm(prompt, bonne, distracteurs, explain) →
+   {prompt, type:"choice", options, correct, explain} — options mélangées, correct = index
+   réel de la bonne option (jamais en position garantie). Distracteurs non ambigus, pools
+   de 5 à 11 entrées par make(), tirage via pick()/shuf(). Niveaux internes
+   facile/moyen/difficile = A2 / A2+ / B1 (libellés affichés — cf. lvlLabel).
+   Pas de viz, pas de tol. */
+/* ---------- Anglais : vocabulaire ---------- */
+const G_EN_VOCAB=[
+ {lvl:"facile",make(){
+   const pool=[
+     {en:"school",fr:"l'école",f:"scolaire",tip:"pas d'article dans « go to school »"},
+     {en:"teacher",fr:"le/la professeur(e)",f:"scolaire",tip:"un seul mot pour les deux genres"},
+     {en:"homework",fr:"les devoirs",f:"scolaire",tip:"singulier (invariable) en anglais"},
+     {en:"classroom",fr:"la salle de classe",f:"scolaire",tip:"un seul mot en anglais"},
+     {en:"pencil",fr:"le crayon (à papier)",f:"scolaire",tip:"« pen » = le stylo"},
+     {en:"notebook",fr:"le cahier",f:"scolaire",tip:"(scolaire)"},
+     {en:"mother",fr:"la mère",f:"famille",tip:"familier : « mum »"},
+     {en:"sister",fr:"la sœur",f:"famille",tip:"aînée ou cadette"},
+     {en:"brother",fr:"le frère",f:"famille",tip:"aîné ou cadet"},
+     {en:"cousin",fr:"le/la cousin(e)",f:"famille",tip:"même mot pour les deux genres"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.en);
+   return qcm(`Comment dit-on « ${e.fr} » en anglais ?`,e.en,ds,
+     `<b>${e.en}</b> = ${e.fr}. ${e.tip}.`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {en:"kitchen",fr:"la cuisine (pièce)",f:"maison",tip:"le repas = meal"},
+     {en:"bedroom",fr:"la chambre",f:"maison",tip:"« aller au lit » = go to bed"},
+     {en:"bathroom",fr:"la salle de bain",f:"maison",tip:"bain + lavabo"},
+     {en:"garage",fr:"le garage",f:"maison",tip:"même mot qu'en français"},
+     {en:"garden",fr:"le jardin",f:"maison",tip:"américain : the yard"},
+     {en:"balcony",fr:"le balcon",f:"maison",tip:"aussi dit « the balcony »"},
+     {en:"kettle",fr:"la bouilloire",f:"cuisine",tip:"« bouillir » = to boil"},
+     {en:"plate",fr:"l'assiette",f:"cuisine",tip:"(à manger)"},
+     {en:"spoon",fr:"la cuillère",f:"cuisine",tip:"« la petite cuillère » = teaspoon"},
+     {en:"fork",fr:"la fourchette",f:"cuisine",tip:"(à manger)"},
+     {en:"knife",fr:"le couteau",f:"cuisine",tip:"(à manger)"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x.f===e.f&&x!==e)).slice(0,3).map(x=>x.fr);
+   return qcm(`« ${e.en} », c'est ?`,e.fr,ds,
+     `<b>${e.en}</b> = ${e.fr}. ${e.tip}.`);
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {en:"responsibility",fr:"la responsabilité",tip:"souvent au pluriel : responsibilities"},
+     {en:"opinion",fr:"l'opinion",tip:"« à mon avis » = in my opinion"},
+     {en:"experience",fr:"l'expérience",tip:"comptable ici : an experience"},
+     {en:"opportunity",fr:"l'occasion",tip:"« une belle occasion » = a great opportunity"},
+     {en:"progress",fr:"la progression",tip:"non dénombrable : make progress"},
+     {en:"knowledge",fr:"le savoir",tip:"non dénombrable : gain knowledge"},
+     {en:"improvement",fr:"l'amélioration",tip:"verbe : improve"},
+     {en:"consequence",fr:"la conséquence",tip:"« en conséquence » = as a consequence"},
+     {en:"encouragement",fr:"l'encouragement",tip:"verbe : encourage"},
+     {en:"independence",fr:"l'indépendance",tip:"adjectif : independent"}
+   ];
+   const e=pick(pool);
+   const ds=shuf(pool.filter(x=>x!==e)).slice(0,3).map(x=>x.fr);
+   return qcm(`« ${e.en} », c'est ?`,e.fr,ds,
+     `<b>${e.en}</b> = ${e.fr}. ${e.tip}.`);
+ }}
+];
+/* ---------- Anglais : verbes & temps ---------- */
+const G_EN_VERBES=[
+ {lvl:"facile",make(){
+   const pool=[
+     {p:"She ___ to school every day.",a:"goes",ws:["go","gone","going"],tip:"she/it → verbe + s (goes)"},
+     {p:"They ___ football after school.",a:"play",ws:["plays","playing","played"],tip:"we/you/they → verbe sans -s"},
+     {p:"___ he like chocolate?",a:"Does",ws:["Do","Is","Are"],tip:"he → Does + verbe à la forme de base"},
+     {p:"We ___ TV in the evening.",a:"watch",ws:["watches","watching","watched"],tip:"we → verbe sans -s"},
+     {p:"___ you speak French?",a:"Do",ws:["Does","Are","Is"],tip:"you → Do + verbe à la forme de base"},
+     {p:"My mum ___ in a hospital.",a:"works",ws:["work","working","worked"],tip:"she → works (+ s)"},
+     {p:"I ___ my brother at weekends.",a:"see",ws:["sees","saw","seen"],tip:"présent simple : I see (sans -s)"}
+   ];
+   const e=pick(pool);
+   return qcm(e.p,e.a,e.ws,`<b>${e.a}</b> — ${e.tip}.`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {p:"Yesterday I ___ to the cinema.",a:"went",ws:["goed","gone","going"],tip:"go → went (irrégulier)"},
+     {p:"She ___ her homework last night.",a:"did",ws:["made","done","doing"],tip:"do → did (irrégulier)"},
+     {p:"We ___ a lot of ice cream at the party.",a:"ate",ws:["eated","eaten","eating"],tip:"eat → ate (irrégulier)"},
+     {p:"He ___ his keys this morning.",a:"lost",ws:["losted","lose","losing"],tip:"lose → lost (irrégulier)"},
+     {p:"They ___ a great match on TV.",a:"saw",ws:["seed","seen","seeing"],tip:"see → saw (irrégulier)"},
+     {p:"I ___ a new phone last week.",a:"bought",ws:["buyed","buying","buyed to"],tip:"buy → bought (double g)"}
+   ];
+   const e=pick(pool);
+   return qcm(e.p,e.a,e.ws,`<b>${e.a}</b> — ${e.tip}.`);
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {p:"I ___ my keys — I can't find them anywhere.",a:"have lost",ws:["lost","lose","losing"],tip:"présent perfect : action passée, conséquence présente"},
+     {p:"She has lived in Lyon ___ 2019.",a:"since",ws:["for","during","from"],tip:"since + point de départ (année)"},
+     {p:"We have known each other ___ five years.",a:"for",ws:["since","during","at"],tip:"for + durée"},
+     {p:"— ___ you ever been to London? — Yes, twice.",a:"Have",ws:["Did","Do","Were"],tip:"expériences de vie : Have you ever been… ?"},
+     {p:"I ___ him since we were at school.",a:"haven't seen",ws:["didn't see","don't see","don't saw"],tip:"since → présent perfect (haven't seen)"},
+     {p:"We ___ in Paris last summer.",a:"stayed",ws:["have stayed","staying","stays"],tip:"last summer → passé (stayed)"}
+   ];
+   const e=pick(pool);
+   return qcm(e.p,e.a,e.ws,`<b>${e.a}</b> — ${e.tip}.`);
+ }}
+];
+/* ---------- Anglais : articles & quantifieurs ---------- */
+const G_EN_ART=[
+ {lvl:"facile",make(){
+   const pool=[
+     {p:"Would you like ___ coffee?",a:"a",ws:["an","some","two"],tip:"a + consonne (a coffee)"},
+     {p:"He has ___ umbrella.",a:"an",ws:["a","some","two"],tip:"an + voyelle (an umbrella)"},
+     {p:"I'd like ___ hour of quiet, please.",a:"an",ws:["a","some","two"],tip:"an hour — le h muet = son de voyelle"},
+     {p:"It was ___ lovely day.",a:"a",ws:["an","some","two"],tip:"a + consonne (a lovely)"},
+     {p:"She's ___ university student.",a:"a",ws:["an","some","two"],tip:"a university — le u = /ju/, son de consonne"},
+     {p:"Can I have ___ orange, please?",a:"an",ws:["a","some","two"],tip:"an + voyelle (an orange)"}
+   ];
+   const e=pick(pool);
+   return qcm(e.p,e.a,e.ws,`<b>${e.a}</b> — ${e.tip}.`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {p:"We have ___ milk left — we can make coffee.",a:"some",ws:["any","no","all"],tip:"phrase affirmative → some"},
+     {p:"Do you have ___ brothers?",a:"any",ws:["some","no","a"],tip:"question → any"},
+     {p:"I don't have ___ money with me.",a:"any",ws:["some","a","no"],tip:"négation → any"},
+     {p:"There is ___ bread in the fridge.",a:"some",ws:["any","an","no"],tip:"phrase affirmative → some"},
+     {p:"She didn't buy ___ fruit.",a:"any",ws:["some","a","no"],tip:"négation → any"},
+     {p:"We have ___ time before the train.",a:"some",ws:["any","no","a"],tip:"phrase affirmative → some"}
+   ];
+   const e=pick(pool);
+   return qcm(e.p,e.a,e.ws,`<b>${e.a}</b> — ${e.tip}.`);
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {p:"There isn't ___ milk in the fridge.",a:"much",ws:["many","few","a"],tip:"milk = non dénombrable → much"},
+     {p:"There are ___ eggs left — only two.",a:"few",ws:["a few","little","much"],tip:"few = presque plus (idée négative)"},
+     {p:"I don't have ___ patience with homework!",a:"much",ws:["many","few","a lot of"],tip:"patience = non dénombrable → much"},
+     {p:"She has ___ experience — only one summer job.",a:"little",ws:["a little","few","many"],tip:"little = pas grand-chose (négatif), non dénombrable"},
+     {p:"We're lucky — there's still ___ water in the bottle.",a:"a little",ws:["little","few","much"],tip:"a little = un peu (idée positive)"},
+     {p:"He's got ___ friends here — he feels lonely.",a:"few",ws:["a few","much","little"],tip:"few + dénombrable, idée négative"}
+   ];
+   const e=pick(pool);
+   return qcm(e.p,e.a,e.ws,`<b>${e.a}</b> — ${e.tip}.`);
+ }}
+];
+/* ---------- Anglais : questions ---------- */
+const G_EN_Q=[
+ {lvl:"facile",make(){
+   const pool=[
+     {p:"___ is your name?",a:"What",ws:["Who","Where","When"],tip:"What is your name? = comment t'appelles-tu ?"},
+     {p:"___ are you from?",a:"Where",ws:["What","Who","Why"],tip:"Where are you from? = d'où viens-tu ?"},
+     {p:"___ old are you?",a:"How",ws:["What","Which","When"],tip:"How old… ? = quel âge… ?"},
+     {p:"___ is the school?",a:"Where",ws:["What","Who","How"],tip:"Where = où (lieu)"},
+     {p:"___ do you go to school?",a:"How",ws:["What","Where","Who"],tip:"How = comment (moyen)"}
+   ];
+   const e=pick(pool);
+   return qcm(e.p,e.a,e.ws,`<b>${e.a}</b> — ${e.tip}.`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {p:"___ you play tennis?",a:"Do",ws:["Does","Are","Is"],tip:"you → Do + base form"},
+     {p:"Where ___ he work?",a:"does",ws:["do","is","are"],tip:"he/it → does + base form"},
+     {p:"___ they like jazz?",a:"Do",ws:["Does","Are","Is"],tip:"they → Do + base form"},
+     {p:"What time ___ the film start?",a:"does",ws:["do","is","are"],tip:"the film (it) → does + base form"},
+     {p:"___ she your sister?",a:"Is",ws:["Are","Do","Does"],tip:"le verbe be se met directement en tête : Is she… ?"}
+   ];
+   const e=pick(pool);
+   return qcm(e.p,e.a,e.ws,`<b>${e.a}</b> — ${e.tip}.`);
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {p:"It's a cold day, ___?",a:"isn't it",ws:["is it","aren't they","don't you"],tip:"question tag : affirmation → tag négatif"},
+     {p:"___ I open the window?",a:"Can",ws:["Do","Am","Does"],tip:"Can I… ? = puis-je… ?"},
+     {p:"Where did you ___ the book?",a:"get",ws:["got","gotten","gets"],tip:"après did → verbe à la base (did you get)"},
+     {p:"He's never been to the sea, ___?",a:"has he",ws:["is he","doesn't he","isn't it"],tip:"négation (never) → tag affirmatif : has he"},
+     {p:"___ you ever tried sushi?",a:"Have",ws:["Did","Do","Were"],tip:"ever + présent perfect → Have you… ?"}
+   ];
+   const e=pick(pool);
+   return qcm(e.p,e.a,e.ws,`<b>${e.a}</b> — ${e.tip}.`);
+ }}
+];
+/* ---------- Anglais : phrases utiles ---------- */
+const G_EN_PHRASES=[
+ {lvl:"facile",make(){
+   const pool=[
+     {fr:"« enchanté(e) »",en:"Nice to meet you.",ws:["How do you do?","Hello, what's up?","See you soon!"],tip:"Nice to meet you. = enchanté(e) (première rencontre)"},
+     {fr:"« à demain ! »",en:"See you tomorrow!",ws:["See you soon!","Good morning!","Good night!"],tip:"tomorrow = demain (soon = bientôt)"},
+     {fr:"« bonne nuit ! »",en:"Good night!",ws:["Good morning!","Good evening!","Goodbye!"],tip:"Good night! = bonne nuit (avant de dormir)"},
+     {fr:"« au revoir ! »",en:"Goodbye!",ws:["Hello!","Welcome!","Sorry!"],tip:"Goodbye! = au revoir"},
+     {fr:"« excuse-moi ! »",en:"Excuse me!",ws:["Sorry!","Goodbye!","Cheers!"],tip:"Excuse me! = excuse-moi (attirer l'attention)"},
+     {fr:"« salut ! »",en:"Hi!",ws:["Good morning!","Goodbye!","Welcome!"],tip:"Hi! = salut (familier)"}
+   ];
+   const e=pick(pool);
+   return qcm(`Comment dit-on ${e.fr} en anglais ?`,e.en,e.ws,
+     `<b>${e.en}</b> — ${e.tip}.`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {fr:"« tu peux répéter, s'il te plaît ? »",en:"Can you repeat that, please?",ws:["Can you say loudly, please?","Could you speak fast, please?","Will you listen, please?"],tip:"Can you repeat that, please? = tu peux répéter, s'il te plaît ?"},
+     {fr:"« je ne suis pas sûr(e) de comprendre »",en:"I'm not sure I understand.",ws:["I'm not understand, sure.","I not sure understand it.","Surely I'm not understanding."],tip:"I'm not sure I understand. = je ne suis pas sûr(e) de comprendre."},
+     {fr:"« ça veut dire quoi ? »",en:"What does that mean?",ws:["What is that means?","How does that say?","Why that means?"],tip:"What does that mean? = ça veut dire quoi ?"},
+     {fr:"« je ne trouve pas mon sac »",en:"I can't find my bag.",ws:["I not found my bag.","I don't found my bag.","I can't finding my bag."],tip:"can't + forme de base : I can't find"},
+     {fr:"« où sont les toilettes ? »",en:"Where are the toilets?",ws:["Where is the toilets?","Where the toilets are?","Where are toilet?"],tip:"toilets est pluriel → Where ARE the toilets? (GB)"}
+   ];
+   const e=pick(pool);
+   return qcm(`Comment dit-on ${e.fr} en anglais ?`,e.en,e.ws,
+     `<b>${e.en}</b> — ${e.tip}.`);
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {fr:"« vous ne seriez pas contre m'aider ? »",en:"Would you mind helping me?",ws:["You would mind help me.","Do you mind to help me?","Can you helping me?"],tip:"Would you mind + -ing = voudriez-vous… ?"},
+     {fr:"« je me demandais si tu étais libre ce soir »",en:"I was wondering if you were free tonight.",ws:["I wonder if you are free tonight?","I am wondering if you free tonight.","I was wonder if you are free tonight."],tip:"I was wondering if… = je me demandais si… (délicat)"},
+     {fr:"« ça dépend »",en:"It depends.",ws:["It's depending.","Depends it.","It depends on."],tip:"It depends. = ça dépend (ou : it depends on…)"},
+     {fr:"« je voudrais un café, s'il vous plaît »",en:"I'd like a coffee, please.",ws:["I want a coffee, now.","Give me a coffee, please!","I like a coffee, please."],tip:"I'd like… = je voudrais… (poli)"},
+     {fr:"« c'est à toi de choisir »",en:"It's up to you to choose.",ws:["It is for you choosing.","You are to choose it.","It belongs to you choose."],tip:"It's up to you. = c'est à toi de…"}
+   ];
+   const e=pick(pool);
+   return qcm(`Comment dit-on ${e.fr} en anglais ?`,e.en,e.ws,
+     `<b>${e.en}</b> — ${e.tip}.`);
+ }}
+];
+/* ---------- Anglais : mini-traductions ---------- */
+const G_EN_TRAD=[
+ {lvl:"facile",make(){
+   const pool=[
+     {fr:"Je m'appelle Marie.",en:"My name is Marie.",ws:["I name is Marie.","My name be Marie.","I am calling Marie."],tip:"My name is… = je m'appelle… (ou « I'm Marie. »)"},
+     {fr:"J'ai deux sœurs.",en:"I have two sisters.",ws:["I have two sister.","I has two sisters.","I am two sisters."],tip:"two + pluriel (two sisters) ; I have"},
+     {fr:"Il habite à Paris.",en:"He lives in Paris.",ws:["He live in Paris.","He is live in Paris.","He lives Paris."],tip:"he/she/it → lives (+ s) ; in + ville"},
+     {fr:"Elle parle français et anglais.",en:"She speaks French and English.",ws:["She speak French and English.","She is speak French and English.","She speaks the French and the English."],tip:"les langues se disent sans article ; she speaks (+ s)"},
+     {fr:"Nous avons le temps.",en:"We have time.",ws:["We has time.","We have the time.","We is have time."],tip:"we have (sans -s)"},
+     {fr:"Le temps est beau.",en:"The weather is nice.",ws:["The weather is nice one.","It makes nice.","The time is nice."],tip:"weather = la météo ; The weather is nice."}
+   ];
+   const e=pick(pool);
+   return qcm(`Traduis : « ${e.fr} »`,e.en,e.ws,
+     `<b>${e.en}</b> — ${e.tip}.`);
+ }},
+ {lvl:"moyen",make(){
+   const pool=[
+     {fr:"J'apprends l'anglais et l'espagnol.",en:"I'm learning English and Spanish.",ws:["I am learning the English and the Spanish.","I learn English and Spanish is.","I am learn English and Spanish."],tip:"présent continu pour une action en cours ; langues sans article"},
+     {fr:"Ma mère cuisine bien.",en:"My mum cooks well.",ws:["My mum cook well.","My mum is cooking well.","My mum cooks good."],tip:"she/it → cooks (+ s) ; well = bien (adverbe)"},
+     {fr:"Nous partons samedi pour Hambourg.",en:"We're leaving on Saturday for Hamburg.",ws:["We leave in Saturday for Hamburg.","We are leave on Saturday Hamburg.","We left at Saturday for the Hamburg."],tip:"on + jour de la semaine ; for + destination"},
+     {fr:"Il sait nager.",en:"He can swim.",ws:["He knows swim.","He can to swim.","He is swim."],tip:"can + base form (sans to) ; can = savoir faire"},
+     {fr:"J'achète du pain et du fromage.",en:"I'm buying bread and cheese.",ws:["I am buying the bread and the cheese.","I buy bread and cheese is.","I am buy bread and cheese."],tip:"noms non dénombrables sans article (bread and cheese)"},
+     {fr:"Mon frère va à l'école en bus.",en:"My brother goes to school by bus.",ws:["My brother go to school in the bus.","My brother is go school by bus.","My brother goes in school at the bus."],tip:"by + moyen de transport (by bus)"}
+   ];
+   const e=pick(pool);
+   return qcm(`Traduis : « ${e.fr} »`,e.en,e.ws,
+     `<b>${e.en}</b> — ${e.tip}.`);
+ }},
+ {lvl:"difficile",make(){
+   const pool=[
+     {fr:"D'abord je fais mes devoirs, puis je joue au foot.",en:"First I do my homework, then I play football.",ws:["First I am doing my homework, then I am playing football.","I first doing my homework, then playing football.","First do I my homework, then I play football."],tip:"First… then… : séquence simple, pas d'inversion"},
+     {fr:"Je ne sais pas où il habite.",en:"I don't know where he lives.",ws:["I don't know where does he live.","I not know where he live.","I don't knowing where he lives."],tip:"where + sujet + verbe (ordre de la phrase affirmative)"},
+     {fr:"Quand as-tu du temps ?",en:"When do you have time?",ws:["When you have time?","When do you has time?","You have when time?"],tip:"question : when + do + sujet + verbe"},
+     {fr:"Je suis fatiguée parce que je travaille beaucoup.",en:"I'm tired because I work a lot.",ws:["I'm tired because I am working lot.","I am fatigue because I work much.","I'm tired cause I working a lot."],tip:"because + ordre de la phrase affirmative ; a lot (adverbe)"},
+     {fr:"On peut dîner ensemble ce soir ?",en:"Can we have dinner together tonight?",ws:["Can we to have dinner together tonight?","We can have dinner together this evening are?","Can we dinner together tonight?"],tip:"can + base form (sans to) ; tonight = ce soir"},
+     {fr:"Je voudrais réserver une chambre.",en:"I'd like to book a room.",ws:["I like to book a room are.","I want to booking a room.","I'd like booking a room."],tip:"I'd like to + base form ; book a room = réserver une chambre"}
+   ];
+   const e=pick(pool);
+   return qcm(`Traduis : « ${e.fr} »`,e.en,e.ws,
+     `<b>${e.en}</b> — ${e.tip}.`);
+ }}
+];
 /* ---------- REGISTRE PC + helpers matière ---------- */
 const SUBJECTS_PC=[
  {id:"newton",name:"Mécanique & Newton",sym:"F=ma",gens:G_NEWTON},
@@ -2425,11 +2715,23 @@ const SUBJECTS_DE=[
  {id:"phrasen",name:"Phrases utiles",sym:"Hallo",gens:G_PHRASEN},
  {id:"trad",name:"Mini-traductions",sym:"→DE",gens:G_TRAD},
 ];
-const activeSubjects=()=>state.matiere==="de"?SUBJECTS_DE:state.matiere==="pc"?SUBJECTS_PC:SUBJECTS_MATH;
+/* ---------- REGISTRE EN (anglais A2/B1) — branché via setMatiere/activeSubjects ---------- */
+/* Ids préfixés en_ : DE occupe déjà « vocab » et « trad » — THEME_BY_ID, bySub,
+   history et review sont tous indexés par cet id, il doit rester unique. */
+const SUBJECTS_EN=[
+ {id:"en_vocab",name:"Vocabulaire",sym:"w?",gens:G_EN_VOCAB},
+ {id:"en_verbes",name:"Verbes & temps",sym:"-s",gens:G_EN_VERBES},
+ {id:"en_art",name:"Articles & quantifieurs",sym:"a/an",gens:G_EN_ART},
+ {id:"en_q",name:"Questions",sym:"wh?",gens:G_EN_Q},
+ {id:"en_phrases",name:"Phrases utiles",sym:"Hi!",gens:G_EN_PHRASES},
+ {id:"en_trad",name:"Mini-traductions",sym:"→EN",gens:G_EN_TRAD},
+];
+const activeSubjects=()=>state.matiere==="de"?SUBJECTS_DE:state.matiere==="en"?SUBJECTS_EN:state.matiere==="pc"?SUBJECTS_PC:SUBJECTS_MATH;
 const THEME_BY_ID={};
 for(const s of SUBJECTS_MATH)THEME_BY_ID[s.id]=s;
 for(const s of SUBJECTS_PC)THEME_BY_ID[s.id]=s;
 for(const s of SUBJECTS_DE)THEME_BY_ID[s.id]=s;
+for(const s of SUBJECTS_EN)THEME_BY_ID[s.id]=s;
 /*GEN2C*/
 /* ================= GRAPH (mini-visuels SVG) =================
    Dessins pédagogiques en SVG inline — aucune dépendance, reste hors-ligne.
@@ -2933,11 +3235,11 @@ const store={
        gardent le préfixe d'origine : aucune migration supplémentaire à faire,
        les stats et les choix des utilisateurs existants survivent à chaque renommage.
        Les anciennes clés sont conservées en secours (aucune donnée n'est supprimée). ---- */
-["theme","subject","stats","stats_pc","stats_de"].forEach(k=>{try{const old=localStorage.getItem("cz_"+k);if(old!==null&&localStorage.getItem("qz_"+k)===null)localStorage.setItem("qz_"+k,old);}catch(e){}});
+["theme","subject","stats","stats_pc","stats_de","stats_en"].forEach(k=>{try{const old=localStorage.getItem("cz_"+k);if(old!==null&&localStorage.getItem("qz_"+k)===null)localStorage.setItem("qz_"+k,old);}catch(e){}});
 /* ---- Matière : "maths" (défaut), "pc" ou "de" — persistée sous qz_subject ---- */
 const SUBJECT_KEY="qz_subject";
-const state={matiere:(function(){try{const v=JSON.parse(localStorage.getItem(SUBJECT_KEY));return v==="pc"?"pc":v==="de"?"de":"maths";}catch(e){return"maths";}})(),mode:null,level:"moyen",subject:"mix",q:null,sub:null,curLvl:null,streak:0,maxStreak:0,score:0,good:0,bad:0,n:0,timer:null,timeLeft:60,answered:false,skipQueue:[],skips:0,qT0:0};
-/* ---- Stats : trois emplacements (qz_stats maths / qz_stats_pc / qz_stats_de), même forme,
+const state={matiere:(function(){try{const v=JSON.parse(localStorage.getItem(SUBJECT_KEY));return v==="pc"?"pc":v==="de"?"de":v==="en"?"en":"maths";}catch(e){return"maths";}})(),mode:null,level:"moyen",subject:"mix",q:null,sub:null,curLvl:null,streak:0,maxStreak:0,score:0,good:0,bad:0,n:0,timer:null,timeLeft:60,answered:false,skipQueue:[],skips:0,qT0:0};
+/* ---- Stats : quatre emplacements (qz_stats maths / qz_stats_pc / qz_stats_de / qz_stats_en), même forme,
        Migration v2 commune + migration de nom cz_* → qz_* ci-dessus — les anciens utilisateurs ne perdent rien ---- */
 function loadStats(key){
   const st=store.get(key,{ans:0,good:0,bestStreak:0,bestSprint:0,bySub:{}});
@@ -2959,7 +3261,7 @@ function loadStats(key){
   st.history=st.history.filter(it=>THEME_BY_ID[it.s]);
   return st;
 }
-const activeStatsKey=()=>state.matiere==="de"?"qz_stats_de":state.matiere==="pc"?"qz_stats_pc":"qz_stats";
+const activeStatsKey=()=>state.matiere==="de"?"qz_stats_de":state.matiere==="en"?"qz_stats_en":state.matiere==="pc"?"qz_stats_pc":"qz_stats";
 let stats=loadStats(activeStatsKey());
 const homeEl=$("#home"),playEl=$("#play"),qbox=$("#qbox");
 const save=()=>store.set(activeStatsKey(),stats);
@@ -3018,7 +3320,7 @@ function weakPoints(){
    favicon statique de tête est conservé tel quel. */
 function setFavicon(){
   try{
-    const pen={maths:"#2563EB",pc:"#7C3AED",de:"#047857"}[state.matiere]||"#2563EB";
+    const pen={maths:"#2563EB",pc:"#7C3AED",de:"#047857",en:"#DC2626"}[state.matiere]||"#2563EB";
     const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="29" cy="28" r="19" stroke="#16233D" stroke-width="7"/><path d="M23 33 C31 44, 45 47, 55 35" stroke="'+pen+'" stroke-width="7"/></g></svg>';
     const l=document.querySelector('link[rel="icon"]');
     if(l)l.href="data:image/svg+xml,"+encodeURIComponent(svg);
@@ -3033,7 +3335,7 @@ function setMatiere(m){
   store.set(SUBJECT_KEY,m);
   stats=loadStats(activeStatsKey()); /* une seule variable échangée — tout passe déjà par stats */
   state.subject="mix";               /* réinitialise la tuile sélectionnée */
-  /* Accent matière (violet PC / vert DE) : data-mat sur <html> → variables d'accent. La bascule est
+  /* Accent matière (violet PC / vert DE / rouge EN) : data-mat sur <html> → variables d'accent. La bascule est
      IMMÉDIATE, sans temps mort : le swap et la cascade démarrent au clic, la
      cascade masquant elle-même le changement de contenu (titre, slogan et
      [data-rv] repartent de leur état initial dans la même frame). .theming
@@ -3042,7 +3344,7 @@ function setMatiere(m){
      prefers-reduced-motion : idem, et la cascade est neutralisée par les
      règles CSS globales. */
   const r=document.documentElement;
-  if(m==="pc")r.setAttribute("data-mat","pc");else if(m==="de")r.setAttribute("data-mat","de");else r.removeAttribute("data-mat");
+  if(m==="pc")r.setAttribute("data-mat","pc");else if(m==="de")r.setAttribute("data-mat","de");else if(m==="en")r.setAttribute("data-mat","en");else r.removeAttribute("data-mat");
   setFavicon(); /* la plume du Q suit l'accent de la matière */
   r.classList.add("theming");
   clearTimeout(setMatiere._t);
@@ -3069,8 +3371,26 @@ const MAT_DATA={
    noteTop:"F = m·a — 2ᵉ loi de Newton"},
  de:{eyebrow:"Première · allemand A2",
    lede:"Deux minutes de révision ciblée — vocabulaire, conjugaison, articles, nombres &amp; dates, phrases utiles, mini-traductions — avec une correction détaillée à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
-   noteTop:"der · die · das — trois articles, pas un de plus"}
+   noteTop:"der · die · das — trois articles, pas un de plus"},
+ en:{eyebrow:"Première · anglais A2–B1",
+   lede:"Deux minutes de révision ciblée — vocabulaire, verbes &amp; temps, articles &amp; quantifieurs, questions, phrases utiles, mini-traductions — avec une correction détaillée à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
+   noteTop:"a · an · the — trois articles, pas un de plus"}
 };
+/* Niveaux des langues (allemand/anglais) : libellés CECRL — A2 / A2+ / B1.
+   Les CLÉS internes restent facile/moyen/difficile (PTS_LVL, autoLevel, history,
+   review, stats persistées) — seul le LIBELLÉ affiché change, et seulement pour
+   de/en : maths/PC gardent Facile/Moyen/Difficile. Les stats existantes restent
+   donc valides, aucun changement de clé. */
+const LVL_NAMES={facile:"Facile",moyen:"Moyen",difficile:"Difficile"};
+const LVL_NAMES_LANG={facile:"A2",moyen:"A2+",difficile:"B1"};
+function lvlNames(){return(state.matiere==="de"||state.matiere==="en")?LVL_NAMES_LANG:LVL_NAMES;}
+function lvlLabel(l){const n=lvlNames()[l];return n||l;}
+function paintLvlButtons(){
+  const n=lvlNames();
+  document.querySelectorAll(".seg-btn[data-lvl]").forEach(x=>{
+    if(x.dataset.lvl!=="auto"&&n[x.dataset.lvl])x.textContent=n[x.dataset.lvl];
+  });
+}
 function renderHome(){
   /* Re-rendu « simple » (niveau, tuile thème, retour accueil) : ne jamais
      rejouer la cascade d'arrivée. Si html.boot est encore active (fenêtre de
@@ -3087,10 +3407,12 @@ function renderHome(){
   $("#heroLede").innerHTML=M.lede;
   $("#noteTop").innerHTML=M.noteTop;
   document.querySelectorAll(".seg-btn[data-mat]").forEach(x=>x.classList.toggle("on",x.dataset.mat===state.matiere));
+  paintLvlButtons(); /* libellés des niveaux : A2/A2+/B1 en langues, Facile/Moyen/Difficile en maths/PC */
   $("#bestSprint").textContent="Record : "+(stats.bestSprint>0?stats.bestSprint+" pts":"—");
-  /* Sprint : entrée masquée en allemand (matière 100 % QCM) — la mécanique
-     moteur (startSprint/pickQ) reste telle quelle, seule l'entrée est cachée. */
-  $("#secSprint").hidden=state.matiere==="de";
+  /* Sprint : entrée masquée en allemand et en anglais (matières 100 % QCM) —
+     la mécanique moteur (startSprint/pickQ) reste telle quelle, seule l'entrée
+     est cachée. */
+  $("#secSprint").hidden=state.matiere==="de"||state.matiere==="en";
   const acc=stats.ans?Math.round(100*stats.good/stats.ans):0;
   $("#statGrid").innerHTML=
     `<div class="stat"><div class="v">${stats.ans}</div><div class="k">questions répondues</div></div>`+
@@ -3196,7 +3518,7 @@ function renderHome(){
         weak.map(w=>{
           const nm=THEME_BY_ID[w.s];const pct=Math.round(100*w.acc);
           return `<div class="weakrow">`+
-            `<div class="weakline"><span class="weaknm">${nm?nm.name:w.s}<small>${w.l}</small></span>`+
+            `<div class="weakline"><span class="weaknm">${nm?nm.name:w.s}<small>${lvlLabel(w.l)}</small></span>`+
             `<span class="weakpct" style="color:${pct<60?"var(--bad)":"var(--accent)"}">${pct}%</span></div>`+
             `<div class="weakline"><span class="weakbar"><i style="width:${Math.max(6,Math.min(100,pct))}%"></i></span>`+
             `<button type="button" class="btn btn-primary small" data-weak="${w.s}:${w.l}">S'entraîner →</button></div>`+
@@ -3289,12 +3611,12 @@ function renderQ(){
   state.q=r.q;state.sub=r.sub;state.curLvl=r.lvl||state.level;
   const q=state.q;
   $("#chipSub").textContent=r.sub.name;
-  $("#chipLvl").textContent=state.mode==="sprint"?"sprint 60 s":(state.curLvl||state.level);
+  $("#chipLvl").textContent=state.mode==="sprint"?"sprint 60 s":lvlLabel(state.curLvl||state.level);
   /* 2026-08-22 : en révision, le compteur = questions ÉCHUES (reviewDue()) —
      c'est tout ce que la session sert (pickQ prend reviewDue()[0]). L'ancienne
      valeur (stats.review.length, max 50) affichait aussi les replanifiées. */
   $("#qCount").textContent=state.mode==="review"?reviewDue().length+" restant(s)":"question "+(state.n+1);
-  const eyebrow=state.mode==="sprint"?"Sprint 60 s — sans temps mort":state.mode==="review"?"Révision — tes questions à reprendre":r.sub.name+" · niveau "+(state.curLvl||state.level)+(state.level==="auto"?" (auto)":"");
+  const eyebrow=state.mode==="sprint"?"Sprint 60 s — sans temps mort":state.mode==="review"?"Révision — tes questions à reprendre":r.sub.name+" · niveau "+lvlLabel(state.curLvl||state.level)+(state.level==="auto"?" (auto)":"");
   /* Visuel de question : image NEUTRE (courbe/axes sans nombres, pas de
      tangente, pas de racines) — elle aide à visualiser sans donner la réponse.
      Certaines questions n'en ont pas (var, QCM colinéarité…) : c'est voulu. */

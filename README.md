@@ -2,7 +2,7 @@
 
 **Plus tu quiz, plus tu sais.**
 
-Quizey est un fichier `.html` autonome pour la révision en classe de Première : mathématiques (spécialité), physique-chimie et allemand (niveau A2). Aucune installation, aucun compte, aucune connexion internet requise : vous l'ouvrez dans votre navigateur et vous vous entraînez.
+Quizey est un fichier `.html` autonome pour la révision en classe de Première : mathématiques (spécialité), physique-chimie, allemand et anglais (niveaux A2 à B1). Aucune installation, aucun compte, aucune connexion internet requise : vous l'ouvrez dans votre navigateur et vous vous entraînez.
 
 Chaque question est générée à l'affichage : vous ne voyez donc jamais deux fois les mêmes nombres. Chaque réponse s'accompagne de la méthode de résolution, et non d'un simple indicatif.
 
@@ -12,9 +12,9 @@ Vos progrès, vos points faibles et vos records restent stockés sur votre machi
 
 ## Comment s'entraîner
 
-**Entraînement libre** — sélectionnez un thème et un niveau (facile, moyen, difficile), puis progressez à votre rythme. Le mode **Auto** (difficulté adaptative) ajuste automatiquement le niveau proposé en fonction de vos dernières réponses sur le chapitre, afin de vous servir un exercice exigeant sans être rédhibitoire.
+**Entraînement libre** — sélectionnez un thème et un niveau (facile, moyen, difficile — affiché A2, A2+, B1 pour les langues), puis progressez à votre rythme. Le mode **Auto** (difficulté adaptative) ajuste automatiquement le niveau proposé en fonction de vos dernières réponses sur le chapitre, afin de vous servir un exercice exigeant sans être rédhibitoire.
 
-**Sprint 60 s** — les questions s'enchaînent sans interruption, les séries de bonnes réponses s'accumulent et le record est mis à jour.
+**Sprint 60 s** — les questions s'enchaînent sans interruption, les séries de bonnes réponses s'accumulent et le record est mis à jour. (Maths et physique-chimie : les langues sont 100 % QCM et n'ont pas de sprint.)
 
 **À réviser** — Quizey met en œuvre la méthode d'apprentissage par **répétition espacée** : chaque question ratée est replanifiée selon un intervalle croissant, une bonne réponse la repousse progressivement (demain, puis 3 jours, 7 jours, 2 semaines) tandis qu'une erreur la ramène rapidement. Après cinq réponses correctes consécutives, une question est considérée comme **acquise** et retirée de la liste de révision. La carte d'accueil indique le nombre de révisions **échéues pour la journée**.
 
@@ -30,7 +30,8 @@ Quizey identifie en outre vos **points faibles** (croisement thème × niveau, s
 
 - **Mathématiques** (spécialité) — 10 thèmes : dérivées, suites, log & exp, 2ᵉ degré, trigonométrie, probabilités, vecteurs, droites & affines, limites, variations
 - **Physique-chimie** — 8 thèmes : mécanique & Newton, forces & champs, énergie, quantités de matière, stœchiométrie & état final, cinétique, ondes & lumière, électricité
-- **Allemand A2** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres · dates · heures, phrases utiles, mini-traductions
+- **Allemand** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres · dates · heures, phrases utiles, mini-traductions (niveaux A2 · A2+ · B1)
+- **Anglais** — 6 thèmes, 100 % QCM : vocabulaire, verbes & temps, articles & quantifieurs, questions, phrases utiles, mini-traductions (niveaux A2 · A2+ · B1)
 
 ![Le mode allemand A2 — 100 % QCM](img/accueil-allemand.png)
 

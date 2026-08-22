@@ -174,10 +174,10 @@ console.log("\n[7] Générateurs — forme des questions, visuels SVG, round-tri
   const ctx=runApp(env);
   /* Les registres et fonctions sont des const du scope global : on passe
      par runInContext (elles ne sont PAS des propriétés de sandbox). */
-  const probe=vm.runInContext("({SUBJECTS_MATH,SUBJECTS_PC,SUBJECTS_DE,checkAnswer,VIZdraw})",ctx);
-  ok("SUBJECTS_MATH, SUBJECTS_PC, SUBJECTS_DE, checkAnswer et VIZdraw accessibles",!!(probe.SUBJECTS_MATH&&probe.SUBJECTS_PC&&probe.SUBJECTS_DE&&probe.checkAnswer&&probe.VIZdraw));
+  const probe=vm.runInContext("({SUBJECTS_MATH,SUBJECTS_PC,SUBJECTS_DE,SUBJECTS_EN,checkAnswer,VIZdraw})",ctx);
+  ok("SUBJECTS_MATH, SUBJECTS_PC, SUBJECTS_DE, SUBJECTS_EN, checkAnswer et VIZdraw accessibles",!!(probe.SUBJECTS_MATH&&probe.SUBJECTS_PC&&probe.SUBJECTS_DE&&probe.SUBJECTS_EN&&probe.checkAnswer&&probe.VIZdraw));
   let bad=0,vzbad=0,rtbad=0,qbad=0,checked=0,vizCount=0,qcmGens=0;
-  const REGISTERS=[].concat(probe.SUBJECTS_MATH||[],probe.SUBJECTS_PC||[],probe.SUBJECTS_DE||[]);
+  const REGISTERS=[].concat(probe.SUBJECTS_MATH||[],probe.SUBJECTS_PC||[],probe.SUBJECTS_DE||[],probe.SUBJECTS_EN||[]);
   for(const sub of REGISTERS){
     for(let gi=0;gi<sub.gens.length;gi++){
       const g=sub.gens[gi];
@@ -430,12 +430,12 @@ console.log("\n[12] Bascule DE — les stats maths ET PC doivent rester intactes
 }
 
 /* ========================================================= */
-console.log("\n[13] Basculeur 3 matières — câblage (3 boutons, <html> jamais ciblé)");
+console.log("\n[13] Basculeur 4 matières — câblage (4 boutons, <html> jamais ciblé)");
 {
-  /* Même garde-fou que [9], étendu à la 3e matière : un sélecteur [data-mat]
-     sans .seg-btn inclurait <html> (qui porte data-mat en PC et en DE) et lui
-     attacherait un listener click — le DOM factice ne simule pas la bulle,
-     l'assertion porte donc sur le listener lui-même. */
+  /* Même garde-fou que [9], étendu à la 4e matière : un sélecteur [data-mat]
+     sans .seg-btn inclurait <html> (qui porte data-mat en PC, en DE et en EN)
+     et lui attacherait un listener click — le DOM factice ne simule pas la
+     bulle, l'assertion porte donc sur le listener lui-même. */
   lsData.clear();
   lsData.set("qz_subject","\"de\""); /* page ouverte en allemand */
   const env=buildEnv();
@@ -444,10 +444,11 @@ console.log("\n[13] Basculeur 3 matières — câblage (3 boutons, <html> jamais
   const segM=makeEl({dataset:{mat:"maths"}});segM._classes.add("seg-btn");
   const segP=makeEl({dataset:{mat:"pc"}});segP._classes.add("seg-btn");
   const segD=makeEl({dataset:{mat:"de"}});segD._classes.add("seg-btn");
+  const segE=makeEl({dataset:{mat:"en"}});segE._classes.add("seg-btn");
   const qsa0=env.document.querySelectorAll;
   env.document.querySelectorAll=function(sel){
-    if(sel==="[data-mat]")return [doc,segM,segP,segD]; /* = comportement du navigateur réel */
-    if(sel===".seg-btn[data-mat]")return [segM,segP,segD];
+    if(sel==="[data-mat]")return [doc,segM,segP,segD,segE]; /* = comportement du navigateur réel */
+    if(sel===".seg-btn[data-mat]")return [segM,segP,segD,segE];
     return qsa0.call(this,sel);
   };
   const ctx=runApp(env);
@@ -455,6 +456,7 @@ console.log("\n[13] Basculeur 3 matières — câblage (3 boutons, <html> jamais
   ok("bouton « Maths » a un listener click",Array.isArray(segM._listeners["click"])&&segM._listeners["click"].length===1);
   ok("bouton « Physique-Chimie » a un listener click",Array.isArray(segP._listeners["click"])&&segP._listeners["click"].length===1);
   ok("bouton « Allemand » a un listener click",Array.isArray(segD._listeners["click"])&&segD._listeners["click"].length===1);
+  ok("bouton « Anglais » a un listener click",Array.isArray(segE._listeners["click"])&&segE._listeners["click"].length===1);
   ok("<html> n'a AUCUN listener click (sélecteur [data-mat] trop large)",!(doc._listeners["click"]&&doc._listeners["click"].length>0));
   /* Le timer de retrait de boot (2800 ms) ne « fire » jamais dans le DOM
      factice (setTimeout stub) : on simule le retrait post-chargement, sinon
@@ -467,21 +469,27 @@ console.log("\n[13] Basculeur 3 matières — câblage (3 boutons, <html> jamais
   ok("clic « Maths » → cascade d'arrivée réarmée (html.boot)",doc._classes.has("boot"));
   segD.click();
   ok("clic « Allemand » → data-mat=\"de\" posé sur <html> (accent vert activé)",doc.getAttribute("data-mat")==="de");
-  ok("bouton « Allemand » actif, les deux autres non",segD.classList.contains("on")&&segM.classList.contains("on")===false&&segP.classList.contains("on")===false);
+  ok("bouton « Allemand » actif, les trois autres non",segD.classList.contains("on")&&segM.classList.contains("on")===false&&segP.classList.contains("on")===false&&segE.classList.contains("on")===false);
+  segE.click();
+  ok("clic « Anglais » → data-mat=\"en\" posé sur <html> (accent rouge activé)",doc.getAttribute("data-mat")==="en");
+  ok("bouton « Anglais » actif, les trois autres non",segE.classList.contains("on")&&segM.classList.contains("on")===false&&segP.classList.contains("on")===false&&segD.classList.contains("on")===false);
 }
 
 /* ========================================================= */
 console.log("\n[14] Sprint masqué en allemand — entrée invisible, visible en maths/PC");
 {
   /* La mécanique moteur (startSprint/pickQ) reste telle quelle, seule l'ENTRÉE
-     #secSprint est cachée en allemand — c'est exactement ce qu'asserte ici
-     renderHome (index.html : $("#secSprint").hidden = matiere==="de"). */
+     #secSprint est cachée en allemand ET en anglais — c'est exactement ce
+     qu'asserte ici renderHome :
+     $("#secSprint").hidden = matiere==="de"||matiere==="en". */
   lsData.clear();
   lsData.set("qz_subject","\"de\"");
   const env=buildEnv();
   const ctx=runApp(env);
   const sprintEl=env.byId.secSprint; /* même objet que $("#secSprint") côté app */
   ok("allemand : #secSprint masqué (prop hidden = true)",sprintEl&&sprintEl.hidden===true);
+  vm.runInContext("setMatiere('en')",ctx);
+  ok("anglais : #secSprint masqué (prop hidden = true)",sprintEl.hidden===true);
   vm.runInContext("setMatiere('maths')",ctx);
   ok("maths : #secSprint visible (prop hidden = false)",sprintEl.hidden===false);
   vm.runInContext("setMatiere('pc')",ctx);
@@ -598,20 +606,21 @@ console.log("\n[17] Version d'interface — détection, bascule, persistance (da
     ok("qz_ui=\"m\" sauvegardée → version téléphone RESTÉE (le choix gagne)",env.document.documentElement.getAttribute("data-ui")==="m");
     ok("… mais la bannière NE se réaffiche PAS (choix explicite)",env.document.querySelector("#uiBanner").hidden===true);
   }
-  /* STABILITÉ : basculer l'UI ne doit JAMAIS écrire dans les 3 stats. */
+  /* STABILITÉ : basculer l'UI ne doit JAMAIS écrire dans les 4 stats. */
   lsData.clear();
   lsData.set("qz_stats",JSON.stringify({ans:10,good:8,skips:1,bestSprint:40}));
   lsData.set("qz_stats_pc",JSON.stringify({ans:5,good:2,skips:0}));
   lsData.set("qz_stats_de",JSON.stringify({ans:3,good:3,skips:0}));
+  lsData.set("qz_stats_en",JSON.stringify({ans:2,good:1,skips:0}));
   {
     const env=buildEnv();phone(env);
     const ctx=runApp(env);
     const avant={};
-    ["qz_stats","qz_stats_pc","qz_stats_de"].forEach(k=>avant[k]=lsData.get(k));
+    ["qz_stats","qz_stats_pc","qz_stats_de","qz_stats_en"].forEach(k=>avant[k]=lsData.get(k));
     vm.runInContext("setUI('m');setUI('d');setUI('m')",ctx); /* 3 bascules */
     let intact=true;
-    ["qz_stats","qz_stats_pc","qz_stats_de"].forEach(k=>{if(lsData.get(k)!==avant[k])intact=false;});
-    ok("bascules d'UI → les 3 stats bit-à-bit IDENTIQUES",intact);
+    ["qz_stats","qz_stats_pc","qz_stats_de","qz_stats_en"].forEach(k=>{if(lsData.get(k)!==avant[k])intact=false;});
+    ok("bascules d'UI → les 4 stats bit-à-bit IDENTIQUES",intact);
     ok("bascules d'UI → seule la clé qz_ui a bougé (\"m\")",lsData.get("qz_ui")==="\"m\"");
   }
   /* Anti-flash : le choix doit être appliqué AVANT le premier rendu. */
@@ -804,6 +813,47 @@ console.log("\n[22] Points faibles — ex æquo tranché par le nombre de répon
   ok("2 cellules retenues (≥5 réponses), ex æquo 40 %",W.length===2);
   ok("« bb » (10 réponses) devant « aa » (5 réponses) — tiebreaker actif",
      W[0].s==="bb"&&W[1].s==="aa");
+}
+
+/* ========================================================= */
+console.log("\n[23] Bascule EN — stats intactes, qz_stats_en, libellés A2 / A2+ / B1");
+{
+  /* 4e matière (anglais) : miroir exact de [12] (stats bit-à-bit + vrai
+     chemin moteur answerChoice() sur un QCM) — plus les libellés de niveau
+     CECRL : pour de/en, lvlLabel() mappe les CLÉS internes
+     facile/moyen/difficile sur A2/A2+/B1, maths/PC gardent
+     Facile/Moyen/Difficile. Les clés internes ne changent pas — c'est ce qui
+     rend les stats persistées d'avant migration toujours valides. */
+  lsData.clear();
+  const mathsSeed={ans:12,good:9,bestStreak:4,bestSprint:80,bySub:{deriv:{ans:5,good:4}},skips:2,streakBySub:{deriv:3},history:[{s:"deriv",l:"facile",o:1}],review:[],respTimes:[]};
+  const deSeed={ans:4,good:2,bySub:{vocab:{ans:2,good:1}}};
+  lsData.set("qz_stats",JSON.stringify(mathsSeed));
+  lsData.set("qz_stats_de",JSON.stringify(deSeed));
+  const env=buildEnv();
+  const optBtns=[0,1,2,3].map(i=>{const b=makeEl();b.dataset.i=String(i);b._classes.add("opt");return b;});
+  env.byId.qbox=makeEl({querySelectorAll:sel=>sel===".opt"?optBtns:[]});
+  const ctx=runApp(env);
+  const mathsBefore=lsData.get("qz_stats");
+  const deBefore=lsData.get("qz_stats_de");
+  const doc=env.document.documentElement;
+  const api=vm.runInContext("({setMatiere,startFree,statsNow:()=>stats,choiceOk:()=>answerChoice(state.q.correct,null),lvlLabel,lvlNames,paint:paintLvlButtons})",ctx);
+  api.setMatiere("en");
+  ok("qz_subject persisté = en",lsData.get("qz_subject")==='"en"');
+  ok("data-mat=\"en\" posé sur <html> (accent rouge)",doc.getAttribute("data-mat")==="en");
+  ok("#secSprint masqué dès la bascule (matière 100 % QCM)",env.byId.secSprint.hidden===true);
+  api.startFree();
+  ok("la question EN est bien un QCM (type choice)",vm.runInContext("state.q.type",ctx)==="choice");
+  api.choiceOk(); /* répond par le chemin moteur : l'option q.correct doit être acceptée */
+  ok("qz_stats (maths) bit-à-bit inchangé après la réponse EN",lsData.get("qz_stats")===mathsBefore);
+  ok("qz_stats_de bit-à-bit inchangé après la réponse EN",lsData.get("qz_stats_de")===deBefore);
+  const enRaw=lsData.get("qz_stats_en");
+  ok("qz_stats_en existe et a été incrémenté (1 réponse, 1 bonne)",enRaw&&JSON.parse(enRaw).ans===1&&JSON.parse(enRaw).good===1);
+  ok("niveau anglais : A2 / A2+ / B1",api.lvlLabel("facile")==="A2"&&api.lvlLabel("moyen")==="A2+"&&api.lvlLabel("difficile")==="B1");
+  ok("niveau allemand : A2 / A2+ / B1 (idem)",api.lvlLabel("facile")==="A2"&&api.lvlLabel("difficile")==="B1");
+  ok("paintLvlButtons() définie (relibellage des tuiles au rendu)",typeof api.paint==="function");
+  api.setMatiere("maths");
+  ok("retour maths : libellés Facile / Moyen / Difficile",api.lvlLabel("facile")==="Facile"&&api.lvlLabel("moyen")==="Moyen"&&api.lvlLabel("difficile")==="Difficile");
+  ok("retour maths : stats restaurées à l'identique (deep-compare)",JSON.stringify(api.statsNow())===JSON.stringify(mathsSeed));
 }
 
 console.log("=====================================");
