@@ -1,0 +1,65 @@
+# Quizey — vérification détaillée (`_qz_verify.js`)
+
+Fiche de référence de la section « Tests » du `CLAUDE.md` projet. À lire avant de toucher au moteur (bascule matière, boot cascade, stats) ou d'ajouter un générateur.
+
+## Vérification complète
+
+```bash
+node _qz_verify.js
+```
+
+Le script compile les **deux** blocs `<script>` (anti-flash + principal) via `vm`, puis teste fonctionnellement sur un DOM factice :
+
+- **Thème** : défaut `auto`, clics Auto/Clair/Sombre, persistance `qz_theme`, rechargement (+ le fallback du script anti-flash sur l'ancienne clé `cz_theme` — section [2]).
+- **Fumigène** `confetti()`.
+- **Section [7] — générateurs** : chaque générateur des **trois** registres (`SUBJECTS_MATH` + `SUBJECTS_PC` + `SUBJECTS_DE`) est lancé **25×** :
+  - forme de la question ;
+  - auto-cohérence `checkAnswer()` avec sa propre réponse (réponses saisies) ;
+  - **contrat QCM** (tous les générateurs choice, maths + PC + DE) : options non vides et deux à deux distinctes, et l'index de la bonne réponse **non constant** sur les 25 tirages — la preuve des options mélangées via `shuf()` : avec ≥2 options, un index constant sur 25 tirages a une probabilité ~(1/n)²⁴, c'est la signature d'un générateur non converti au helper `qcm()`, pas de la chance ;
+  - rendu des visuels SVG en phases `"q"` et `"c"` ;
+  - round-trip `JSON.parse(JSON.stringify(q))` qui simule le mode révision après un rechargement — c'est ce qui détecte les fonctions ou `undefined` glissés dans les specs `viz`.
+- **Section [8] — régression de bascule** : après `setMatiere("pc")` + une bonne réponse PC :
+  - `qz_stats` (maths) reste **bit-à-bit inchangé** ;
+  - `qz_stats_pc` est incrémenté (1 réponse / 1 bonne) ;
+  - le retour maths restaure les stats à l'identique.
+- **Section [9] — câblage du basculeur** : page ouverte en PC (`data-mat="pc"` sur `<html>`), les listeners `click` doivent porter **uniquement** sur les deux boutons `.seg-btn` : le test asserte que `<html>` n'a **aucun** listener `click` (un sélecteur `[data-mat]` sans `.seg-btn` l'inclurait, et la bulle d'événement rebasculerait tout clic « Maths » sur PC — le DOM factice ne simule pas la bulle, d'où l'assertion sur le listener lui-même). Puis clic « Maths » → `state.matiere="maths"`, `data-mat` retiré, et `html.boot` **ré-armée** (la cascade d'arrivée rejoue à chaque bascule — la pré-condition « boot retiré » est simulée avant le clic, sinon l'assertion passerait même si `swap()` ne ré-armed rien).
+- **Section [10] — bascule EN PLEINE cascade** : bascule alors que `boot` est encore active (état réel, **sans** la simulation de [9]), avec des timers suivis/annulables et un journal des opérations `classList` sur `<html>` : asserte que `boot` est retirée **puis** réajoutée (la seule façon de redémarrer l'animation CSS — un simple `add()` est un no-op si la classe est déjà là), qu'**un seul** timer de retrait (2800 ms) reste vivant, et que l'ancien timer du premier chargement (annulé) ne coupe pas la nouvelle cascade à T+2800 ms — le garde-fou de l'animation « unique » : seule la dernière cascade et son timer survivent, quelle que soit la cadence des bascules. Le cycle de vie classe+timer est centralisé dans `rearmBoot()` (Quizey.html), appelé à la première visite **ET** depuis `setMatiere()` — ne pas ré-introduire de `setTimeout` de retrait de `boot` ailleurs.
+- **Section [11] — pas de temps mort** : sans reduced-motion (`matchMedia` par défaut `matches:false`), le clic sur « Maths » doit swaper de façon **synchrone** (`data-mat` retiré, `boot` active, aucune classe `home-out`/`home-in` sur `#home`) : l'ancienne chorégraphie de sortie 230 ms (homeOut/homeIn) est supprimée, ne pas la ré-introduire. Les délais de la cascade doivent aussi être **compressés au clic** (`--boot-k=.45` posé sur `<html>`, absent à la première visite) : le premier mouvement part quasi immédiatement après le clic, la chorégraphie complète (×1) reste réservée au premier chargement.
+
+- **Section [12] — bascule DE** : miroir de [8] pour la 3e matière, avec deux renforcements : `qz_stats_pc` **aussi** doit rester bit-à-bit inchangé après une réponse allemande, et — l'allemand étant 100 % QCM — la bonne réponse passe par le **vrai chemin moteur** `answerChoice(state.q.correct, …)` (et non `afterAnswer()` direct) : l'option `q.correct` doit être acceptée, `qz_stats_de` incrémentée (1 réponse / 1 bonne), `qz_stats` et `qz_stats_pc` intacts, et le retour maths restaure les stats au bit près. `#secSprint` doit être masqué dès la bascule.
+- **Section [13] — basculeur 3 matières** : page ouverte en allemand (`data-mat="de"` sur `<html>`), les listeners `click` doivent porter sur les **trois** boutons `.seg-btn` (Maths / Physique-Chimie / Allemand) et `<html>` doit en avoir **aucun** (même garde-fou que [9] : le sélecteur câblé doit être `.seg-btn[data-mat]`, jamais `[data-mat]` seul — le DOM factice ne simule pas la bulle, l'assertion porte donc sur le listener lui-même). Clic « Maths » → `state.matiere="maths"`, `data-mat` retiré, cascade réarmée ; clic « Allemand » → `data-mat="de"` reposé (accent vert) et bouton « Allemand » seul marqué `.on`.
+- **Section [14] — sprint masqué en allemand** : `renderHome()` pose `hidden=true` sur `#secSprint` quand `matiere==="de"` (matière 100 % QCM, exclue du sprint) et `hidden=false` en maths comme en PC — seule l'entrée est cachée, la mécanique moteur (`startSprint`/`pickQ`) reste telle quelle.
+- **Section [15] — migration des clés cz_* → qz_* (héritage « CalculZéro »)** : un « utilisateur CalculZéro » (données seulement sous `cz_theme`, `cz_subject`, `cz_stats`, `cz_stats_pc`, `cz_stats_de`) ouvre l'app : les cinq clés `qz_*` sont créées avec les mêmes valeurs, les anciennes restent en secours (aucune donnée supprimée), le thème et la matière migrés sont réellement appliqués, et les stats allemandes sont bien chargées — et si une clé `qz_*` existe déjà, elle gagne (la migration ne l'écrase pas). Cette section a aussi fait remonter un bug réel (corrigé) : `bySub` n'était pas normalisé dans `loadStats`, un objet sauvegardé sans ce champ faisait planter `renderHome`.
+- **Section [16] — suppression « Grandeurs cosmiques », orphelines purgées** : un utilisateur PC ayant une question à réviser ET des entrées d'historique rattachées au thème `cosmo` (retiré du registre le 2026-08-20) ouvre l'app : `loadStats()` purge ces orphelines (la question « vivante » d'un autre thème reste, l'historique `newton` est intact) — sans ce filtre `renderQ()` planterait sur `r.sub.name` (`sub` undefined) et un point faible `cosmo` lancerait un thème aléatoire. `vzRatio`/`"scale"` restent dans `VIZdraw` (inoffensif ; specs déjà persistées chez les anciens utilisateurs).
+- **Section [17] — version d'interface (détection, bascule, persistance `data-ui`)** : la détection « téléphone/ordinateur » repose sur trois valeurs du sandbox (`innerWidth`, `matchMedia("(pointer:coarse)")`, `navigator.userAgent`) que le test pilote par appareil factice :
+  - **ordinateur** (1440 px, souris fine, UA desktop) → `detectUI()==="d"`, `data-ui` ABSENT de `<html>`, `qz_ui="d"` persisté, bannière restée cachée ;
+  - **téléphone** (390 px, tactile, UA iPhone) → `detectUI()==="m"`, `data-ui="m"` posé, bannière « Version téléphone activée » **affichée au 1er passage auto** ; clic sur son bouton « Version ordinateur » → `data-ui` retiré, `qz_ui="d"` persisté, bannière fermée ;
+  - **tablette large** (1024 px, tactile, UA Mac sans « Mobile ») → reste `« d »` : le tactile seul ne suffit pas, il faut tactile **ET** <900 px, ou un UA mobile (couvre l'iPhone en paysage) ;
+  - **choix explicite** : `qz_ui="m"` déjà sauvegardé sur un grand écran → la version téléphone **reste** (le choix gagne toujours sur la détection) et la bannière ne se réaffiche **pas** ;
+  - **stabilité des stats** : avec les trois clés `qz_stats`/`qz_stats_pc`/`qz_stats_de` pré-remplies, `setUI('m');setUI('d');setUI('m')` laisse les trois **bit-à-bit identiques** — seule la clé `qz_ui` bouge (l'UI ne doit JAMAIS écrire dans les stats) ;
+  - **anti-flash** : le script de tête (exécuté seul, avant le rendu) pose `data-ui="m"` sur `<html>` dès que `qz_ui="m"` est lue — pas de flash de « version ordinateur » au chargement sur téléphone.
+
+- **Section [18] — niveau « Auto »** : `autoLevel(id)` évalue les **8 dernières réponses de ce thème uniquement** dans `stats.history` : moins de 3 réponses → « moyen » (on ne devine pas une performance qu'on n'a pas) ; < 50 % → « facile » ; 50–80 % → « moyen » ; ≥ 80 % → « difficile ». L'évaluation est par thème (un thème performant n'aide pas l'autre) et à fenêtre glissante (les fautes anciennes sortent du calcul).
+- **Section [19] — répétition espacée (échéance, graduation, migration)** :
+  - **migration** : un item ancien sans `due`/`reps` (utilisable avant l'espacement) est normalisé au 1er chargement → `due=0` (dû immédiatement), `reps=0` ;
+  - `reviewAdd` → l'item entre avec `due=0`, `reps=0` ; `reviewAdvance` → `reps` s'élève, `due` repoussé selon la rampe `REVIEW_LADDER` (1ᵉʳ avancée ≈ +1 j), et l'item n'est plus « dû » (`reviewDueCount()`=0) ; `reviewReset` → `reps=0`, `due` ≈ +1 j ;
+  - **graduation** : 4 réussites d'affilée → encore présent ; 5ᵉ → l'item est **acquis** et quitte la liste.
+- **Section [20] — câblage afterAnswer → répétition espacée (mode libre + révision)** : en **libre**, mauvaise réponse → `reviewAdd` (l'item entre, `due=0`), bonne réponse → `reviewRemove` (la liste redevient vide). En **révision**, la question rendue est l'item **échue** (`reviewDue()[0]`) et **le compteur affiche le nombre d'échues**, pas la liste totale : avec 1 échue + 1 replanifiée demain → « 1 restant(s) » (l'ancien code affichait `stats.review.length` = 2 — régression corrigée 2026-08-22). Mauvaise réponse → `reviewReset` (conservé, `reps=0`, `due`≈+1 j) ; bonne réponse → `reviewAdvance` (`reps` s'élève, `due` s'éloigne).
+- **Section [21] — dédup QCM (régression 2026-08-22)** : la clé de dédup `qKey` doit identifier la question **pédagogique**, pas le tirage. Trois questions `choice` : A et B ont même prompt, mêmes 4 options et même bonne réponse, **mais un ordre d'options différent** (les QCM sont mélangés à chaque tirage) ; C a un prompt différent. On attend **2 entrées** dans `stats.review` (A+B fusionnées), et qu'une bonne réponse sur B **retire** l'entrée ajoutée via A (l'ordre a changé entre-temps — l'ancien `JSON.stringify(q)` ne la trouvait pas et la conservait). `reviewAdvance` sur B doit aussi retrouver l'entrée ajoutée via A (`reps=1`).
+- **Section [22] — points faibles, ex æquo (régression 2026-08-22)** : `weakPoints()` trie les cellules thème×niveau (≥ 5 réponses) par précision. En cas d'**ex æquo** (même % de réussite), le tiebreaker doit être le **nombre de réponses** (la cellule la plus répondue est la plus significative) — pas un comparateur sur un champ absent (NaN, tri inert). Deux cellules à 40 % : « bb » (10 réponses) doit sortir **devant** « aa » (5 réponses).
+
+**CI GitHub Actions** : la suite tourne automatiquement sur `main` et les PR via `.github/workflows/verify.yml` (Node 22, `node _qz_verify.js`). Aucune dépendance à installer — le fichier de test n'utilise que `vm`, `fs` et un DOM factice.
+
+**Historique** : ce script remplace l'ancienne vérification `awk`, qui n'extrayait qu'un seul bloc `<script>` (cassée depuis l'ajout du script anti-flash).
+
+## Vérification de syntaxe seule
+
+Contrôle rapide des 2 blocs (cf. `CLAUDE.md`) :
+
+```bash
+node -e 'const fs=require("fs"),vm=require("vm");[...fs.readFileSync("Quizey.html","utf8").matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((m,i)=>{new vm.Script(m[1]);console.log("bloc #"+(i+1)+" OK");});'
+```
+
+## Vérification fonctionnelle plus large (ad hoc)
+
+Pattern des tests ponctuels : script Node avec DOM factice (`document.querySelector` renvoyant des éléments cachés dans une Map, stubs `localStorage`/`window`) + `vm.runInThisContext` sur le `<script>` principal extrait — puis appel direct des fonctions de l'app (`startFree()`, `passQ()`, `submit()`, `startReview()`, `endSprint()`, …) et assertions sur `state`/`stats`. C'est cette approche qui a détecté le bug « question posée qui revenait trop tôt ».

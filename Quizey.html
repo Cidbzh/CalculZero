@@ -18,8 +18,10 @@
    secours — la migration complète vit dans le gros script) et pose sur <html> les
    attributs data-theme, data-mat (violet PC / vert DE) et data-ui="m" (version
    téléphone — le CSS html[data-ui="m"] fait le reste). Le gros script en bas ne fait
-   que brancher les boutons. */
-(function(){var r=document.documentElement;function K(n){try{var v=localStorage.getItem("qz_"+n);if(v===null)v=localStorage.getItem("cz_"+n);return v;}catch(e){return null;}}try{var v=K("theme");var t=v?JSON.parse(v):"auto";if(t==="light"||t==="dark"){r.setAttribute("data-theme",t);}else{r.removeAttribute("data-theme");}}catch(e){}try{var m=JSON.parse(K("subject"));if(m==="pc"){r.setAttribute("data-mat","pc");}else if(m==="de"){r.setAttribute("data-mat","de");}}catch(e){}try{var u=JSON.parse(K("ui"));if(u==="m"){r.setAttribute("data-ui","m");}}catch(e){}})();</script>
+   que brancher les boutons. Pose aussi lang="fr" sur <html> : le fichier est un
+   fragment sans balise <html>, on ne restructure pas — l'attribut suffit pour les
+   lecteurs d'écran. (Intentionnel : PAS de doctype — le CSS est calé en quirks mode.) */
+(function(){var r=document.documentElement;r.setAttribute("lang","fr");function K(n){try{var v=localStorage.getItem("qz_"+n);if(v===null)v=localStorage.getItem("cz_"+n);return v;}catch(e){return null;}}try{var v=K("theme");var t=v?JSON.parse(v):"auto";if(t==="light"||t==="dark"){r.setAttribute("data-theme",t);}else{r.removeAttribute("data-theme");}}catch(e){}try{var m=JSON.parse(K("subject"));if(m==="pc"){r.setAttribute("data-mat","pc");}else if(m==="de"){r.setAttribute("data-mat","de");}}catch(e){}try{var u=JSON.parse(K("ui"));if(u==="m"){r.setAttribute("data-ui","m");}}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400..700;1,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Spline+Sans+Mono:wght@400..700&display=swap" rel="stylesheet">
@@ -2963,7 +2965,14 @@ const homeEl=$("#home"),playEl=$("#play"),qbox=$("#qbox");
 const save=()=>store.set(activeStatsKey(),stats);
 const subStat=id=>stats.bySub[id]||(stats.bySub[id]={ans:0,good:0});
 /* ---- v2 : historique glissant + liste de révision ---- */
-const qKey=q=>JSON.stringify(q);
+/* Clé de dédup de la liste à réviser. Les QCM sont mélangés à CHAQUE tirage :
+   comparer le JSON complet ferait de la même question pédagogique plusieurs
+   entrées — et une bonne réponse ne la retirerait presque jamais (l'ordre des
+   options a changé depuis l'ajout). Donc, pour les QCM, on compare le CONTENU :
+   prompt + options TRIÉES + texte de la bonne réponse (jamais l'ordre ni
+   l'index). Autres types : le JSON complet suffit (les nombres définissent la
+   question). — 2026-08-22, évaluation qualitative. */
+const qKey=q=>(q&&q.type==="choice"&&q.options)?JSON.stringify({t:q.type,p:q.prompt,o:q.options.slice().sort(),c:q.options[q.correct]}):JSON.stringify(q);
 function pushHistory(s,l,o){stats.history.push({s,l,o});if(stats.history.length>100)stats.history=stats.history.slice(-100);}
 /* Répétition espacée : échéance « due » (timestamp ms) qui s'éloigne à chaque
    réussite d'affilée, revient à une courte échéance en cas d'erreur.
@@ -2999,7 +3008,7 @@ function weakPoints(){
   const agg={};
   for(const h of stats.history){const k=h.s+":"+h.l;(agg[k]=agg[k]||{ans:0,good:0}).ans++;if(h.o)agg[k].good++;}
   const out=[];
-  for(const k in agg){if(agg[k].ans>=5){const i=k.indexOf(":");out.push({s:k.slice(0,i),l:k.slice(i+1),acc:agg[k].good/agg[k].ans});}}
+  for(const k in agg){if(agg[k].ans>=5){const i=k.indexOf(":");out.push({s:k.slice(0,i),l:k.slice(i+1),ans:agg[k].ans,acc:agg[k].good/agg[k].ans});}}
   out.sort((a,b)=>a.acc-b.acc||b.ans-a.ans);
   return out.slice(0,5);
 }
@@ -3281,7 +3290,10 @@ function renderQ(){
   const q=state.q;
   $("#chipSub").textContent=r.sub.name;
   $("#chipLvl").textContent=state.mode==="sprint"?"sprint 60 s":(state.curLvl||state.level);
-  $("#qCount").textContent=state.mode==="review"?stats.review.length+" restant(s)":"question "+(state.n+1);
+  /* 2026-08-22 : en révision, le compteur = questions ÉCHUES (reviewDue()) —
+     c'est tout ce que la session sert (pickQ prend reviewDue()[0]). L'ancienne
+     valeur (stats.review.length, max 50) affichait aussi les replanifiées. */
+  $("#qCount").textContent=state.mode==="review"?reviewDue().length+" restant(s)":"question "+(state.n+1);
   const eyebrow=state.mode==="sprint"?"Sprint 60 s — sans temps mort":state.mode==="review"?"Révision — tes questions à reprendre":r.sub.name+" · niveau "+(state.curLvl||state.level)+(state.level==="auto"?" (auto)":"");
   /* Visuel de question : image NEUTRE (courbe/axes sans nombres, pas de
      tangente, pas de racines) — elle aide à visualiser sans donner la réponse.
@@ -3294,12 +3306,17 @@ function renderQ(){
     inner+=`<div class="opts">`+q.options.map((o,i)=>`<button type="button" class="opt" data-i="${i}">${o}</button>`).join("")+`</div>`+
       `<div style="margin-top:10px"><button type="button" class="btn btn-ghost small" id="passBtn">Passer cette question →</button></div>`;
   }else{
-    inner+=`<div class="ans"><input id="ansIn" type="text" inputmode="decimal" autocomplete="off" placeholder="${q.type==="frac"?"ex : 3/5 ou 0,6":"ta réponse"}">`+
+    /* aria-label (2026-08-22) : le champ n'a pas de <label> visible — on le
+       nomme quand même pour les lecteurs d'écran. */
+    inner+=`<div class="ans"><input id="ansIn" type="text" inputmode="decimal" autocomplete="off" aria-label="Ta réponse" placeholder="${q.type==="frac"?"ex : 3/5 ou 0,6":"ta réponse"}">`+
       `<button class="btn btn-primary" id="ansBtn">Valider</button>`+
       `<button class="btn btn-ghost" id="passBtn">Passer →</button>`+
       `<span class="hint">${q.type==="frac"?"Réponds en fraction (a/b) ou en décimal — les deux sont acceptés.":"Entier ou décimal, virgule acceptée."} · Échap = passer</span></div>`;
   }
-  inner+=`<div id="fb"></div></div>`;
+  /* aria-live (2026-08-22) : la correction arrive dans #fb APRÈS sa création —
+     la zone existe donc avant le contenu, et les lecteurs d'écran l'annoncent
+     (aprèsAnswer / revealAfterSkip / reviewSkip y écrivent tous les trois). */
+  inner+=`<div id="fb" aria-live="polite"></div></div>`;
   qbox.innerHTML=inner;
   const inp=$("#ansIn");
   if(inp){
