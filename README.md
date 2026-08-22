@@ -48,7 +48,7 @@ Quizey identifie en outre vos **points faibles** (croisement thème × niveau, s
 
 ![Le mode allemand A2 — 100 % QCM](img/accueil-allemand.png)
 
-Note : Quizey est Open Source (gratuit et sans contrainte d'utilisation).
+Note : Quizey est Open Source 
 
 ## Licence
 
