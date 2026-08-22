@@ -2,47 +2,47 @@
 
 **Plus tu quiz, plus tu sais.**
 
-Quizey c'est un fichier `.html` pour réviser sa Première : maths (spécialité), physique-chimie, allemand A2. Aucune installation, aucun compte, aucun internet — tu l'ouvres et tu t'entraînes.
+Quizey est un fichier `.html` autonome pour la révision en classe de Première : mathématiques (spécialité), physique-chimie et allemand (niveau A2). Aucune installation, aucun compte, aucune connexion internet requise : vous l'ouvrez dans votre navigateur et vous vous entraînez.
 
-Particularité : chaque question est générée au moment où tu la vois, donc tu ne vois jamais deux fois les mêmes nombres. Et chaque réponse arrive avec la méthode, pas juste « c'est la B ».
+Chaque question est générée à l'affichage : vous ne voyez donc jamais deux fois les mêmes nombres. Chaque réponse s'accompagne de la méthode de résolution, et non d'un simple indicatif.
 
-Tes progrès, tes points faibles, tes records : tout reste sur ta machine. Personne ne voit jamais ça.
+Vos progrès, vos points faibles et vos records demeurent stockés sur votre machine. Aucune donnée n'est transmise.
 
 ![L'accueil — matière maths : la carte « À réviser », les stats, les points faibles](img/accueil-maths.png)
 
-## Installation — 2 choix
+## Installation — deux possibilités
 
-**Choix 1 · le terminal.** Dans ta console :
+**Option 1 · via le terminal.** Dans votre console :
 
 ```bash
 git clone https://github.com/Cidbzh/Quizey.git
 ```
 
-Double-clique sur `Quizey/Quizey.html`.
+Puis double-cliquez sur `Quizey/Quizey.html`.
 
-**Choix 2 · le navigateur.** Va sur la page [Releases](https://github.com/Cidbzh/Quizey/releases) et télécharge le fichier (le `.html` direct s'il y est, sinon « Source code (zip) »). Dézippe, double-clique sur `Quizey.html`.
+**Option 2 · via le navigateur.** Accédez à la page [Releases](https://github.com/Cidbzh/Quizey/releases) et téléchargez le fichier (le `.html` direct s'il y figure, sinon « Source code (zip) »). Décompressez, puis double-cliquez sur `Quizey.html`.
 
-Une fois le fichier en main, il t'appartient : sur une clé USB, à la médiathèque, au labo du lycée, sur n'importe quel PC, avec ou sans internet.
+Une fois le fichier en votre possession, il vous appartient : sur une clé USB, à la médiathèque, au laboratoire du lycée, sur n'importe quel poste, avec ou sans connexion.
 
 ## Comment s'entraîner
 
-**Entraînement libre** — tu choisis le thème et le niveau (facile, moyen, difficile) et tu avances à ton rythme. **Auto** laisse Quizey doser la difficulté pour toi : selon tes dernières réponses sur le chapitre, il te sert le niveau qui te défie sans te rouler dessus.
+**Entraînement libre** — sélectionnez un thème et un niveau (facile, moyen, difficile), puis progressez à votre rythme. Le mode **Auto** (difficulté adaptative) ajuste automatiquement le niveau proposé en fonction de vos dernières réponses sur le chapitre, afin de vous servir un exercice exigeant sans être rédhibitoire.
 
-**Sprint 60 s** — les questions s'enchaînent, les séries montent, le record s'écrit.
+**Sprint 60 s** — les questions s'enchaînent sans interruption, les séries de bonnes réponses s'accumulent et le record est mis à jour.
 
-**À réviser** — les questions que tu rates reviennent, mais au bon moment : une bonne réponse les repousse plus loin (demain, puis 3 jours, 7 jours, 2 semaines), une erreur les ramène vite. Après 5 bonnes réponses d'affilée, une question est **acquise** et sort de la liste. La carte d'accueil t'affiche combien de révisions sont **dues aujourd'hui**.
+**À réviser** — Quizey met en œuvre la méthode d'apprentissage par **répétition espacée** : chaque question ratée est replanifiée selon un intervalle croissant, une bonne réponse la repousse progressivement (demain, puis 3 jours, 7 jours, 2 semaines) tandis qu'une erreur la ramène rapidement. Après cinq réponses correctes consécutives, une question est considérée comme **acquise** et retirée de la liste de révision. La carte d'accueil indique le nombre de révisions **échéues pour la journée**.
 
-Et le bouton « Passer » ne te pénalise pas : la question revient juste plus tard.
+Le bouton « Passer » n'est pénalisant à aucun titre : la question concernée est simplement remise en file d'attente.
 
 ![Une question de trigonométrie — son mini-visuel, puis la correction détaillée](img/question-correction.png)
 
-La correction montre la méthode, pas seulement le résultat — et quand la question s'y prête, un mini-visuel (courbe, schéma, graphe) est dessiné à côté du texte.
+La correction présente la méthode de résolution, et non uniquement le résultat ; lorsque la question s'y prête, un visuel (courbe, schéma, graphique) accompagne le texte.
 
-Quizey repère aussi tes **points faibles** (thème × niveau, sur tes 100 dernières réponses) et te propose un entraînement ciblé sur chacun.
+Quizey identifie en outre vos **points faibles** (croisement thème × niveau, sur vos 100 dernières réponses) et propose un entraînement ciblé sur chacun.
 
 ## Contenu
 
-- **Maths** (spécialité) — 10 thèmes : dérivées, suites, log & exp, 2ᵉ degré, trigonométrie, probabilités, vecteurs, droites & affines, limites, variations
+- **Mathématiques** (spécialité) — 10 thèmes : dérivées, suites, log & exp, 2ᵉ degré, trigonométrie, probabilités, vecteurs, droites & affines, limites, variations
 - **Physique-chimie** — 8 thèmes : mécanique & Newton, forces & champs, énergie, quantités de matière, stœchiométrie & état final, cinétique, ondes & lumière, électricité
 - **Allemand A2** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres · dates · heures, phrases utiles, mini-traductions
 
@@ -50,7 +50,7 @@ Les statistiques de chaque matière sont indépendantes.
 
 ![Le mode allemand A2 — 100 % QCM](img/accueil-allemand.png)
 
-Note : Quizey est Open Source (Gratuit et sans contrainte d'utilisation)
+Note : Quizey est Open Source (gratuit et sans contrainte d'utilisation).
 
 ## Licence
 
