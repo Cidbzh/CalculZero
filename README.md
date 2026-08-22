@@ -26,11 +26,11 @@ Une fois le fichier en main, il t'appartient : sur une clé USB, à la médiath�
 
 ## Comment s'entraîner
 
-**Entraînement libre** — tu choisis le thème et le niveau (facile, moyen, difficile) et tu avances à ton rythme.
+**Entraînement libre** — tu choisis le thème et le niveau (facile, moyen, difficile) et tu avances à ton rythme. **Auto** laisse Quizey doser la difficulté pour toi : selon tes dernières réponses sur le chapitre, il te sert le niveau qui te défie sans te rouler dessus.
 
 **Sprint 60 s** — les questions s'enchaînent, les séries montent, le record s'écrit.
 
-**À réviser** — uniquement les questions que tu as ratées, jusqu'à ce que la liste soit vide. Chacune que tu réussis disparaît.
+**À réviser** — les questions que tu rates reviennent, mais au bon moment : une bonne réponse les repousse plus loin (demain, puis 3 jours, 7 jours, 2 semaines), une erreur les ramène vite. Après 5 bonnes réponses d'affilée, une question est **acquise** et sort de la liste. La carte d'accueil t'affiche combien de révisions sont **dues aujourd'hui**.
 
 Et le bouton « Passer » ne te pénalise pas : la question revient juste plus tard.
 

@@ -730,6 +730,7 @@ html[data-ui="m"] button,html[data-ui="m"] input{touch-action:manipulation}
           <button class="seg-btn" data-lvl="facile">Facile</button>
           <button class="seg-btn on" data-lvl="moyen">Moyen</button>
           <button class="seg-btn" data-lvl="difficile">Difficile</button>
+          <button class="seg-btn" data-lvl="auto" title="L'app ajuste la difficulté selon ta performance">Auto</button>
         </div>
       </div>
       <p class="lbl" style="margin:0 0 8px">Thème</p>
@@ -2946,7 +2947,10 @@ function loadStats(key){
   if(st.skips===undefined)st.skips=0;
   if(st.streakBySub===undefined)st.streakBySub={};   /* id -> meilleure série par thème */
   if(st.history===undefined)st.history=[];            /* [{s,l,o}] — 100 dernières réponses */
-  if(st.review===undefined)st.review=[];              /* [{s,l,q}] — liste à réviser (max 50) */
+  if(st.review===undefined)st.review=[];              /* [{s,l,q,reps,due}] — liste à réviser (max 50) + répétition espacée */
+  /* Migration v3 : échéance (due, ms) + compteur de réussites d'affilée (reps).
+     Les anciens items (sans ces champs) → dus immédiatement ; idempotent. */
+  st.review.forEach(it=>{if(it.reps===undefined)it.reps=0;if(it.due===undefined)it.due=0;});
   if(st.respTimes===undefined)st.respTimes=[];        /* [s] — temps de réponse récents (mode libre) → estimation « ≈ N min » */
   if(st.respTimes.length>30)st.respTimes=st.respTimes.slice(-30);
   /* Orphelines : une question à réviser ou une entrée d'historique rattachée à un thème
@@ -2965,9 +2969,34 @@ const subStat=id=>stats.bySub[id]||(stats.bySub[id]={ans:0,good:0});
 /* ---- v2 : historique glissant + liste de révision ---- */
 const qKey=q=>JSON.stringify(q);
 function pushHistory(s,l,o){stats.history.push({s,l,o});if(stats.history.length>100)stats.history=stats.history.slice(-100);}
-function reviewAdd(sub,lvl,q){const k=qKey(q);if(!stats.review.some(r=>qKey(r.q)===k)){stats.review.push({s:sub,l:lvl,q});if(stats.review.length>50)stats.review.shift();}}
+/* Répétition espacée : échéance « due » (timestamp ms) qui s'éloigne à chaque
+   réussite d'affilée, revient à une courte échéance en cas d'erreur.
+   reps 0 = dû maintenant, puis 1 j / 3 j / 7 j / 15 j ; 5 réussites d'affilée
+   = ACQUISE → l'item quitte la liste. */
+const DAY=86400000;
+const REVIEW_LADDER=[0,DAY,3*DAY,7*DAY,15*DAY];
+const REVIEW_GRADUATE=5;
+function reviewAdd(sub,lvl,q){const k=qKey(q);if(!stats.review.some(r=>qKey(r.q)===k)){stats.review.push({s:sub,l:lvl,q,reps:0,due:0});if(stats.review.length>50)stats.review.shift();}}
 function reviewRemove(q){const k=qKey(q);const i=stats.review.findIndex(r=>qKey(r.q)===k);if(i>=0)stats.review.splice(i,1);}
 function reviewRequeue(q){const k=qKey(q);const i=stats.review.findIndex(r=>qKey(r.q)===k);if(i>=0){const it=stats.review.splice(i,1)[0];stats.review.push(it);}}
+function reviewDue(){return stats.review.filter(it=>it.due<=Date.now());}
+function reviewDueCount(){return reviewDue().length;}
+/* Bonne réponse en révision → la prochaine échéance s'éloigne (sortie de la
+   liste dès REVIEW_GRADUATE réussites d'affilée). */
+function reviewAdvance(q){
+  const k=qKey(q);const it=stats.review.find(r=>qKey(r.q)===k);
+  if(!it)return;
+  it.reps+=1;
+  if(it.reps>=REVIEW_GRADUATE){reviewRemove(q);return;}
+  it.due=Date.now()+REVIEW_LADDER[Math.min(it.reps,REVIEW_LADDER.length-1)];
+}
+/* Mauvaise réponse en révision → courte échéance (1 j) : on la revoit vite,
+   mais on n'est plus bloqué à la relouer dans la même séance. */
+function reviewReset(q){
+  const k=qKey(q);const it=stats.review.find(r=>qKey(r.q)===k);
+  if(!it)return;
+  it.reps=0;it.due=Date.now()+REVIEW_LADDER[1];
+}
 /* Points faibles : top 5 cellules thème×niveau les moins précises,
    calculées sur les 100 dernières réponses (history), min. 5 réponses. */
 function weakPoints(){
@@ -3086,32 +3115,43 @@ function renderHome(){
      est câblé ici, le slot étant rempli/vidé à chaque rendu. */
   const revSlot=$("#revSlot");
   if(revSlot){
-    if(stats.review.length>0){
-      /* 2026-08-22 : cellules « plume » — [titre] | [N questions] | [≈ N min]
-         | [chapitres, MAX 4 noms + « +N autres » sinon le bouton passe sur une
-         2e ligne] | [bouton aligné à droite] : un séparateur .revsep (trait de
-         plume vertical, CSS — visible à ≥1280 px) entre chaque partie, absent
-         quand la partie l'est (estimation / chapitres). Thèmes distincts de la
-         liste, ordre de première occurrence, noms résolus par THEME_BY_ID
-         (toutes matières confondues — loadStats ne garde que les ids résolus).
-         & échappé (« Log & exp », « Droites & affines »).
-         « ≈ N min » (2026-08-21) : moyenne des temps de réponse du mode libre
-         (stats.respTimes, chrono SILENCIEUX d'afterAnswer) × nombre de
-         questions — affichée seulement s'il y a ≥ 3 mesures, jamais < 1 min. */
-      const chapsAll=[...new Set(stats.review.map(r=>THEME_BY_ID[r.s]?THEME_BY_ID[r.s].name:null))].filter(Boolean);
+    const due=reviewDue();                 /* items ÉCHUS aujourd'hui (répétition espacée) */
+    const total=stats.review.length;
+    if(due.length>0){
+      /* 2026-08-22 : cellules « plume » — [titre] | [N dues aujourd'hui] | [≈ N min]
+         | [chapitres, MAX 4 noms + « +N autres »] | [+X à venir] | [bouton à droite].
+         Un séparateur .revsep (trait de plume vertical, CSS — ≥1280 px) entre
+         chaque partie, absent quand la partie l'est (estimation / chapitres /
+         à venir). Thèmes distincts des items DUS, ordre de première occurrence,
+         résolus par THEME_BY_ID, & échappé (« Log & exp »).
+         « ≈ N min » : moyenne des temps de réponse du mode libre (stats.respTimes)
+         × nombre de DUS — affichée seulement si ≥ 3 mesures, jamais < 1 min.
+         « +X à venir » = le reste de la liste, déjà programmé plus tard. */
+      const chapsAll=[...new Set(due.map(r=>THEME_BY_ID[r.s]?THEME_BY_ID[r.s].name:null))].filter(Boolean);
       const chaps=chapsAll.length?chapsAll.slice(0,4).map(n=>n.replace(/&/g,"&amp;")).join(" · ")+
         (chapsAll.length>4?` +${chapsAll.length-4} autre${chapsAll.length>5?"s":""}`:""):"";
-      const n=stats.review.length;
+      const n=due.length;
+      const ahead=total-n;
       const est=(stats.respTimes.length>=3)?Math.max(1,Math.round(stats.respTimes.reduce((a,b)=>a+b,0)/stats.respTimes.length*n/60)):0;
       const sep=`<span class="revsep" aria-hidden="true"></span>`;
       revSlot.innerHTML=
         `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.06s">`+
         `<h2 id="hRev">À réviser</h2>`+sep+
-        `<p class="revnum"><span class="revcount">${n}</span><span class="revsub">questions</span></p>`+
+        `<p class="revnum"><span class="revcount">${n}</span><span class="revsub">${n>1?"dues aujourd'hui":"due aujourd'hui"}</span></p>`+
         (est?sep+`<span class="revtime">≈ ${est} min</span>`:"")+
         (chaps?sep+`<span class="revchaps">${chaps}</span>`:"")+
+        (ahead>0?sep+`<span class="revtime">+${ahead} à venir</span>`:"")+
         sep+
         `<button type="button" class="btn btn-primary" id="btnReview">Réviser maintenant →</button>`+
+        `</section>`;
+    }else if(total>0){
+      /* Plus rien d'échu aujourd'hui mais la liste n'est pas vide : les items
+         sont en cours d'acquisition (programmés plus tard). On le signale,
+         sans appeler à l'action — le bouton n'aurait rien à proposer aujourd'hui. */
+      revSlot.innerHTML=
+        `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.06s">`+
+        `<h2 id="hRev">À réviser</h2>`+
+        `<p class="revtime">Tout est à jour ✓ — ${total} question${total>1?"s":""} en cours d'acquisition, prochaine révision bientôt.</p>`+
         `</section>`;
     }else{
       revSlot.innerHTML="";
@@ -3201,17 +3241,32 @@ function trainWeak(s,l){
   startFree();
 }
 
+/* Niveau « Auto » : quel niveau servir pour un thème, selon ses 8 dernières
+   réponses (stats.history). ≥80 % → difficile, 50–80 % → moyen, <50 % → facile ;
+   moins de 3 réponses → moyen (on ne devine pas une performance qu'on n'a pas). */
+function autoLevel(id){
+  const H=stats.history.filter(h=>h.s===id).slice(-8);
+  if(H.length<3)return "moyen";
+  const good=H.reduce((a,h)=>a+(h.o?1:0),0);
+  const acc=good/H.length;
+  if(acc>=0.8)return "difficile";
+  if(acc>=0.5)return "moyen";
+  return "facile";
+}
 /* ---------- Questions ---------- */
 function pickQ(){
   if(state.mode==="review"){
-    const item=stats.review[0];
+    const item=reviewDue()[0];              /* premier item ÉCHU (répétition espacée) */
     if(!item)return null;
     return{q:item.q,sub:THEME_BY_ID[item.s],lvl:item.l};
   }
   const act=activeSubjects();const subs=state.subject==="mix"?act:act.filter(s=>s.id===state.subject);
   const sub=act.find(s=>s.id===state.subject)||pick(act);
   let gens=sub.gens;
-  if(state.mode==="free")gens=gens.filter(g=>g.lvl===state.level);
+  if(state.mode==="free"){
+    const target=state.level==="auto"?autoLevel(sub.id):state.level;   /* Auto : niveau adapté au thème */
+    gens=gens.filter(g=>g.lvl===target);
+  }
   if(!gens.length)gens=sub.gens;
   let g=pick(gens);let q=g.make();
   if(state.mode==="sprint"){let i=0;while(q.type==="choice"&&i++<100){g=pick(gens);q=g.make();}}
@@ -3231,7 +3286,7 @@ function renderQ(){
   $("#chipSub").textContent=r.sub.name;
   $("#chipLvl").textContent=state.mode==="sprint"?"sprint 60 s":(state.curLvl||state.level);
   $("#qCount").textContent=state.mode==="review"?stats.review.length+" restant(s)":"question "+(state.n+1);
-  const eyebrow=state.mode==="sprint"?"Sprint 60 s — sans temps mort":state.mode==="review"?"Révision — tes questions à reprendre":r.sub.name+" · niveau "+(state.curLvl||state.level);
+  const eyebrow=state.mode==="sprint"?"Sprint 60 s — sans temps mort":state.mode==="review"?"Révision — tes questions à reprendre":r.sub.name+" · niveau "+(state.curLvl||state.level)+(state.level==="auto"?" (auto)":"");
   /* Visuel de question : image NEUTRE (courbe/axes sans nombres, pas de
      tangente, pas de racines) — elle aide à visualiser sans donner la réponse.
      Certaines questions n'en ont pas (var, QCM colinéarité…) : c'est voulu. */
@@ -3334,8 +3389,8 @@ function afterAnswer(ok,q,extra){
   if(state.mode==="free"&&state.qT0){const dt=(performance.now()-state.qT0)/1000;if(dt>0.5&&dt<3600){stats.respTimes.push(dt);if(stats.respTimes.length>30)stats.respTimes=stats.respTimes.slice(-30);}}
   stats.streakBySub[state.sub.id]=Math.max(stats.streakBySub[state.sub.id]||0,state.streak);
   pushHistory(state.sub.id,lvl,ok?1:0);
-  if(ok)reviewRemove(q);
-  else if(state.mode==="review")reviewRequeue(q);
+  if(ok){if(state.mode==="review")reviewAdvance(q);else reviewRemove(q);}
+  else if(state.mode==="review")reviewReset(q);
   else reviewAdd(state.sub.id,lvl,q);
   save();
   $("#tScore").textContent=state.score;
@@ -3354,7 +3409,7 @@ function hidePass(){const pb=$("#passBtn");if(pb)pb.style.visibility="hidden";}
 function offerNext(){
   const row=document.createElement("div");row.className="nextrow";
   const b=document.createElement("button");b.type="button";b.className="btn btn-primary";
-  if(state.mode==="review"&&stats.review.length===0){
+  if(state.mode==="review"&&reviewDueCount()===0){
     b.textContent="Terminer la révision ✓";
     b.addEventListener("click",endReview);
   }else{
