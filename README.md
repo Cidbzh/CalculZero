@@ -46,8 +46,6 @@ Quizey identifie en outre vos **points faibles** (croisement thème × niveau, s
 - **Physique-chimie** — 8 thèmes : mécanique & Newton, forces & champs, énergie, quantités de matière, stœchiométrie & état final, cinétique, ondes & lumière, électricité
 - **Allemand A2** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres · dates · heures, phrases utiles, mini-traductions
 
-Les statistiques de chaque matière sont indépendantes.
-
 ![Le mode allemand A2 — 100 % QCM](img/accueil-allemand.png)
 
 Note : Quizey est Open Source (gratuit et sans contrainte d'utilisation).
