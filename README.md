@@ -18,7 +18,7 @@ Vos progrès, vos points faibles et vos records restent stockés sur votre machi
 
 **À réviser** — Quizey met en œuvre la méthode d'apprentissage par **répétition espacée** : chaque question ratée est replanifiée selon un intervalle croissant, une bonne réponse la repousse progressivement (demain, puis 3 jours, 7 jours, 2 semaines) tandis qu'une erreur la ramène rapidement. Après cinq réponses correctes consécutives, une question est considérée comme **acquise** et retirée de la liste de révision. La carte d'accueil indique le nombre de révisions **échéues pour la journée**.
 
-Le bouton « Passer » n'est pénalisant à aucun titre : la question concernée est simplement remise en file d'attente.
+Le bouton « Passer » n'est pas pénalisant : la question concernée est simplement remise en file d'attente.
 
 ![Une question de trigonométrie — son mini-visuel, puis la correction détaillée](img/question-correction.png)
 
