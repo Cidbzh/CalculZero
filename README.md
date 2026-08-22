@@ -6,7 +6,7 @@ Quizey est un fichier `.html` autonome pour la révision en classe de Première 
 
 Chaque question est générée à l'affichage : vous ne voyez donc jamais deux fois les mêmes nombres. Chaque réponse s'accompagne de la méthode de résolution, et non d'un simple indicatif.
 
-Vos progrès, vos points faibles et vos records demeurent stockés sur votre machine. Aucune donnée n'est transmise.
+Vos progrès, vos points faibles et vos records restent stockés sur votre machine et ne sont jamais transmis. Hors ligne, l'application ne contacte aucun service et utilise les polices du système. En ligne, la seule requête extérieure possible est le chargement des polices d'écriture (Google Fonts), si le navigateur n'en a pas encore — aucune donnée n'y est envoyée.
 
 ![L'accueil — matière maths : la carte « À réviser », les stats, les points faibles](img/accueil-maths.png)
 
