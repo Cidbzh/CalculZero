@@ -47,6 +47,7 @@ Quizey identifie en outre vos **points faibles** (croisement thème × niveau, s
 - **Allemand A2** — 6 thèmes, 100 % QCM : vocabulaire, conjugaison, articles, nombres · dates · heures, phrases utiles, mini-traductions
 
 
+
 ![Le mode allemand A2 — 100 % QCM](img/accueil-allemand.png)
 
 Note : Quizey est Open Source (gratuit et sans contrainte d'utilisation).
