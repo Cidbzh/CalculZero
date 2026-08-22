@@ -856,6 +856,121 @@ console.log("\n[23] Bascule EN — stats intactes, qz_stats_en, libellés A2 / A
   ok("retour maths : stats restaurées à l'identique (deep-compare)",JSON.stringify(api.statsNow())===JSON.stringify(mathsSeed));
 }
 
+/* ========================================================= */
+console.log("\n[25] Courbe de niveau — xpCum / levelOf / lvlInfo");
+{
+  lsData.clear();
+  const env=buildEnv();const ctx=runApp(env);
+  const L=x=>vm.runInContext("levelOf("+x+")",ctx);
+  ok("0→1, 99→1, 100→2, 249→2, 250→3",L(0)===1&&L(99)===1&&L(100)===2&&L(249)===2&&L(250)===3);
+  ok("449→3, 450→4, 699→4, 700→5, 999→5",L(449)===3&&L(450)===4&&L(699)===4&&L(700)===5&&L(999)===5);
+  ok("1000→6, 1350→7, 1750→8",L(1000)===6&&L(1350)===7&&L(1750)===8);
+  let round=true;
+  for(let n=1;n<=50;n++)if(L(vm.runInContext("xpCum("+n+")",ctx))!==n)round=false;
+  ok("levelOf(xpCum(n)) = n pour n = 1…50 (allers-retours)",round);
+  let mono=true;
+  for(let x=0;x<2000;x+=7)if(L(x)>L(x+7))mono=false;
+  ok("monotone (0…2000 par pas de 7)",mono);
+  let pctOk=true;
+  for(let i=0;i<1000;i++){
+    const v=vm.runInContext("lvlInfo("+(i*2)+")",ctx);
+    if(!(v.n>=1&&v.pct>=0&&v.pct<1))pctOk=false;
+  }
+  ok("lvlInfo : n ≥ 1 et pct ∈ [0,1[ sur 1000 valeurs d'essai",pctOk);
+}
+
+/* ========================================================= */
+console.log("\n[26] Raccordement XP — UNE XP PAR MATIÈRE (qz_xp / _pc / _de / _en), 3 modes, palier → confetti");
+{
+  const exp=(ctx)=>vm.runInContext("(PTS_LVL[state.curLvl]!==undefined?PTS_LVL[state.curLvl]:10)+((state.streak+1)>=3?5:0)",ctx);
+  /* --- MODE LIBRE (maths) : ok → +pts exact ; ko → inchangé ; « Passer » → inchangé --- */
+  lsData.clear();
+  {
+    const env=buildEnv();const ctx=runApp(env);
+    vm.runInContext("startFree()",ctx);
+    const b1=vm.runInContext("getXP()",ctx),e1=exp(ctx);
+    vm.runInContext("afterAnswer(true,state.q,'')",ctx);
+    ok("libre : bonne réponse → qz_xp (maths) augmente d'EXACTEMENT pts ("+e1+")",vm.runInContext("getXP()",ctx)===b1+e1);
+    const b2=vm.runInContext("getXP()",ctx);
+    vm.runInContext("afterAnswer(false,state.q,'')",ctx);
+    ok("libre : mauvaise réponse → qz_xp inchangé",vm.runInContext("getXP()",ctx)===b2);
+    vm.runInContext("renderQ()",ctx);
+    const b3=vm.runInContext("getXP()",ctx);
+    vm.runInContext("passQ()",ctx);
+    ok("libre : « Passer » → qz_xp inchangé (une passe ne compte jamais)",vm.runInContext("getXP()",ctx)===b3);
+  }
+  /* --- MODE SPRINT --- */
+  lsData.clear();
+  {
+    const env=buildEnv();const ctx=runApp(env);
+    vm.runInContext("startFree();state.mode='sprint'",ctx);
+    const b=vm.runInContext("getXP()",ctx),e=exp(ctx);
+    vm.runInContext("afterAnswer(true,state.q,'')",ctx);
+    ok("sprint : bonne réponse → qz_xp +pts exact",vm.runInContext("getXP()",ctx)===b+e);
+  }
+  /* --- MODE RÉVISION --- */
+  lsData.clear();
+  {
+    const env=buildEnv();const ctx=runApp(env);
+    vm.runInContext("stats.review=[{s:'deriv',l:'moyen',q:{prompt:'rv',type:'number',answer:7},reps:0,due:0}]",ctx);
+    vm.runInContext("startReview()",ctx);
+    const b=vm.runInContext("getXP()",ctx),e=exp(ctx);
+    vm.runInContext("afterAnswer(true,state.q,'')",ctx);
+    ok("révision : bonne réponse → qz_xp +pts exact",vm.runInContext("getXP()",ctx)===b+e);
+  }
+  /* --- PALIER : franchissement → confetti() appelé UNE fois --- */
+  lsData.clear();
+  {
+    const env=buildEnv();const ctx=runApp(env);
+    vm.runInContext("window.__confetti=0;confetti=function(){window.__confetti++;};",ctx);
+    vm.runInContext("startFree();store.set('qz_xp',95)",ctx);
+    vm.runInContext("afterAnswer(true,state.q,'')",ctx); /* +10 (moyen, série 1) → 105 ≥ 100 : palier 2 */
+    ok("franchissement 95→105 → confetti() appelé une fois",env.sandbox.__confetti===1);
+    vm.runInContext("afterAnswer(true,state.q,'')",ctx); /* +10 → 115 : pas de palier */
+    ok("105→115 pas de palier → confetti non rappelé",env.sandbox.__confetti===1);
+  }
+  /* --- CARTE HERO : « Niveau N » + barre aria-hidden + « x / y XP » + pas de fuite maths→DE --- */
+  lsData.clear();
+  {
+    const env=buildEnv();const ctx=runApp(env);
+    vm.runInContext("startFree();afterAnswer(true,state.q,'')",ctx); /* +10 XP maths */
+    const card=env.document.querySelector("#lvlSlot").innerHTML;
+    ok("carte hero (maths) : « Niveau 1 », barre aria-hidden, « 10 / 100 XP »",
+       /Niveau 1/.test(card)&&card.includes('aria-hidden="true"')&&/10 \/ 100 XP/.test(card));
+    vm.runInContext("store.set('qz_xp',95);renderHome()",ctx);
+    vm.runInContext("afterAnswer(true,state.q,'')",ctx); /* 95+10 = 105 → niveau 2 */
+    const card2=env.document.querySelector("#lvlSlot").innerHTML;
+    ok("carte hero (maths) : « Niveau 2 » après palier, « 105 / 250 XP »",
+       /Niveau 2/.test(card2)&&/105 \/ 250 XP/.test(card2));
+    vm.runInContext("setMatiere('de')",ctx);
+    const cardDe=env.document.querySelector("#lvlSlot").innerHTML;
+    ok("carte hero (DE) : propre XP (0 / 100), PAS la XP maths (105)",
+       /Niveau 1/.test(cardDe)&&/0 \/ 100 XP/.test(cardDe)&&!/105/.test(cardDe));
+  }
+  /* --- INDÉPENDANCE PAR MATIÈRE : maths / PC / DE n'écrivent JAMAIS la clé de l'autre --- */
+  lsData.clear();
+  {
+    const env=buildEnv();const ctx=runApp(env);
+    vm.runInContext("startFree();afterAnswer(true,state.q,'')",ctx); /* maths : +10 → qz_xp=10 */
+    vm.runInContext("setMatiere('pc')",ctx);
+    ok("PC à zéro : getXP() = 0 (clé qz_xp_pc absente), carte « 0 / 100 XP »",
+       vm.runInContext("getXP()",ctx)===0&&/0 \/ 100 XP/.test(env.document.querySelector("#lvlSlot").innerHTML));
+    vm.runInContext("startFree()",ctx);
+    const b=vm.runInContext("getXP()",ctx),e=exp(ctx);
+    vm.runInContext("afterAnswer(true,state.q,'')",ctx);
+    ok("PC : bonne réponse → qz_xp_pc +pts exact ("+e+")",vm.runInContext("getXP()",ctx)===b+e);
+    ok("clé PC = qz_xp_pc dans le storage",JSON.parse(lsData.get("qz_xp_pc"))===b+e);
+    ok("clé maths (qz_xp) intacte après la réponse PC",JSON.parse(lsData.get("qz_xp"))===10);
+    vm.runInContext("setMatiere('maths')",ctx);
+    ok("retour maths : la XP maths est restaurée (« 10 / 100 XP »)",
+       /10 \/ 100 XP/.test(env.document.querySelector("#lvlSlot").innerHTML));
+    vm.runInContext("setMatiere('de');startFree()",ctx);
+    vm.runInContext("afterAnswer(true,state.q,'')",ctx); /* DE gagne sa propre XP */
+    ok("DE : sa XP (qz_xp_de) augmente sans toucher maths ni PC",
+       JSON.parse(lsData.get("qz_xp_de"))>0&&JSON.parse(lsData.get("qz_xp"))===10);
+  }
+}
+
 console.log("=====================================");
 console.log(fail===0?("TOUS LES TESTS PASSENT ✔  ("+pass+")"):(fail+" ÉCHEC(S) — "+pass+" OK"));
 process.exit(fail===0?0:1);

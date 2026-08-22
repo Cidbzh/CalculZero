@@ -257,7 +257,18 @@ html.boot h1 .wr>span,html.boot .slogan .wr>span{transform:translateY(108%);anim
 .slogan .soft{display:inline-block}
 html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation-delay:calc(var(--d,0s)*var(--boot-k,1))}
 @keyframes saiIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.lede{margin:0;max-width:58ch;color:var(--muted);font-size:17.5px}
+/* Lede « conseil pour réussir » : UNE SEULE LIGNE sur desktop (2026-08-22, sur demande)
+   — pas de max-width : la ligne du hero est assez large pour que la phrase tienne d'un
+   coup ; sur mobile elle retombe naturellement sur plusieurs lignes (jamais d'overflow).
+   Phrase encadrée de guillemets typographiques “ ” (2026-08-22, sur demande —
+   itérés 3 fois : "" → « » → ❝❞ → “ ”) — pseudo-éléments CSS, une seule source
+   pour les 4 matières, espaces insécables intérieures, et un léger word-spacing :
+   la ligne a de la place, les mots respirent. Guillemets en STIX Two Text à 1,5×
+   le corps du texte (« trop petits ») : glyphes standards (U+201C/U+201D),
+   présents dans la serif → rendu cohérent sur tous les postes. */
+.lede{margin:0;color:var(--muted);font-size:17.5px;word-spacing:.12em}
+.lede::before{content:"“\00a0";font-family:var(--f-display);font-size:1.5em}
+.lede::after{content:"\00a0”";font-family:var(--f-display);font-size:1.5em}
 /* Formule « gribouillée en marge », comme un prof qui laisse une trace au coin de la page */
 .margin-note{
   margin:30px 0 0;max-width:max-content;margin-left:auto;
@@ -339,11 +350,12 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 26px -12px var(--accent),inset 0 1px 0 rgba(255,255,255,.34),inset 0 -1px 0 rgba(0,0,0,.14)}
 .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
 .btn-ghost:hover{transform:translateY(-1px);border-color:var(--accent);color:var(--accent)}
-.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
-/* Stats en TÊTE de colonne principale (au-dessus d'« Entraînement libre ») :
-   le gap 40 px de la grid #home couvre l'espacement avec le hero, et les
-   16 px vers le bas tiennent le même rythme que .panel{margin-bottom:16px}. */
-.home-main .statgrid{margin-top:0;margin-bottom:16px}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+/* Stats = 2e bloc de la rangée du hero (ordre 2026-08-22 : Niveau → Stats →
+   À réviser) : le gap 16 px de .hero tient le rythme avec les deux cartes,
+   et la largeur = colonne principale (même règle calc(100% - 336 px) qu'elles,
+   pour que les quatre blocs aient exactement les mêmes bords). */
+.hero .statgrid{width:calc(100% - 336px)}
 .stat{border:1px solid var(--line);border-radius:10px;padding:15px 16px;background:var(--surface);transition:border-color .16s var(--ease),transform .16s var(--ease),box-shadow .16s var(--ease)}
 .stat:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
 .stat .v{font:600 24px var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
@@ -369,12 +381,11 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 /* « À réviser » — PANNEAU STANDARD, comme les autres blocs de l'accueil
    (redesign 2026-08-21 : la carte « encre » était jugée plus voyante que le
    reste — l'applatir). Fond/bordure/ombre hérités de .panel, h2 standard avec
-   son trait. Contenu = UNIQUEMENT le nombre de questions en attente (les
-   chapitres retirés à la demande — le bloc est réduit et resserré), bouton
-   standard, comme les CTA des autres blocs. */
-.revnum{display:flex;align-items:baseline;gap:8px;margin:0 0 14px}
-.revcount{font:600 24px/1 var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.revsub{font:500 13px var(--f-body);color:var(--muted)}
+   son trait. Contenu = UNE LIGNE de cellules : [N dues aujourd'hui] |
+   [≈ N min] | [chapitres] | [bouton]. Le compteur est en TEXTE SIMPLE, à
+   l'identique des cellules « ≈ N min » et « chapitres » (unifié 2026-08-22
+   sur demande — plus de compteur en gras 30 px). */
+.revnum{font:500 14px/1.3 var(--f-body);color:var(--muted);white-space:nowrap;flex:none}
 /* Bouton = .btn .btn-primary STANDARD, comme « Commencer l'entraînement » et
    « Lancer le sprint » (pas de surcharge de taille pour ce bloc). */
 /* ---------- « cahier avec marge » : accueil en 2 colonnes (spec §3.2) ---------- */
@@ -392,7 +403,7 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
    passe) : l'écart entre la colonne « Points faibles » et les blocs de la
    colonne principale = le même 16 px que partout → rythme unique. */
 #home{display:grid;grid-template-areas:"hero hero" "main marge";grid-template-columns:minmax(0,1fr) 320px;gap:16px}
-.hero{grid-area:hero;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:24px}
+.hero{grid-area:hero;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:16px}
 .herotxt{min-width:0}
 /* « À réviser » : #revSlot est un simple <div> rempli/vidé par renderHome ;
    vide = display:none → pas de vide parasite. .revcta = panneau STANDARD
@@ -431,9 +442,23 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 @media (min-width:1280px){
   .hero .revcta .revsep{display:inline-block;flex:none;width:2px;height:32px;border-radius:2px;background:var(--accent);opacity:.45}
 }
-.hero .revcta .revnum{margin:0;flex:none}
-.hero .revcta .revcount{font-size:30px}
-.hero .revcta .revsub{font-size:14px}
+/* Carte de NIVEAU (hero, spec §3.3) : même langage « standard » que .revcta
+   (carton/bordure/ombre via les variables du .panel), largeur = colonne
+   principale — même règle que « À réviser » : calc(100% - 336px) ≥1025 px,
+   100 % sous 1025 px. Le texte « x / y XP » porte l'information ; la barre
+   est décorative (aria-hidden). Premier bloc de la rangée du hero après le
+   texte (ordre 2026-08-22 : Niveau → Stats → À réviser). UNE CARTE PAR
+   MATIÈRE (clés qz_xp / qz_xp_pc / qz_xp_de / qz_xp_en) — jamais la XP
+   d'une autre matière. Re-rendue à chaque renderHome() et à chaque gainXp(). */
+#lvlSlot{width:100%}
+.lvcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 22px}
+.lvcard-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.lvcard-nm{font:600 18px var(--f-body);color:var(--ink)}
+.lvcard-xp{font:500 14px var(--f-body);color:var(--muted);white-space:nowrap}
+.lvbar{height:8px;border-radius:999px;background:var(--accent-soft);margin-top:10px;overflow:hidden}
+.lvbar i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+@media(min-width:1025px){#lvlSlot{width:calc(100% - 336px)}}
+@media (prefers-reduced-motion: no-preference){.lvbar i{transition:width .3s var(--ease)}}
 /* « ≈ N min » = TEXTE SIMPLE, identique visuellement aux chapitres (unifié
    2026-08-21) — plus de pastille : même typo 500 14 px/1.3 / --muted ;
    largeur fixe (flex:none) : SEUL .revchaps peut se rétrécir. */
@@ -445,29 +470,31 @@ html.boot .slogan .soft{opacity:0;animation:saiIn .5s var(--ease) both;animation
 .home-main{grid-area:main;min-width:0}
 .marge{grid-area:marge;min-width:0}
 .margewrap{position:sticky;top:88px;display:grid;gap:24px}
-/* Remontée (2026-08-21, sur demande) : « Tes points faibles » s'aligne sur la
-   carte « À réviser » de la rangée du hero — margin-top NÉGATIF = hauteur de
-   la carte + gap de rangée 16 px, posé par liftMarge() via --revlift (0 si
-   pas de carte → marge alignée sur les stats, ancien comportement). Une
-   marge négative ne change PAS la hauteur de la rangée : les stats ne sont
-   jamais repoussées (contrairement à une grille "hero marge"/"main marge"
-   qui étirerait la rangée 1). ≥1025 px seulement — en dessous #home est
-   display:block et l'ordre du DOM suffit. */
+/* Remontée (2026-08-22, sur demande) : « Tes points faibles » s'aligne sur le
+   HAUT de la carte « Niveau » de la rangée du hero — margin-top NÉGATIF =
+   distance haut de la carte → bas de la rangée + gap de rangée 16 px (donc
+   Stats + « À réviser » + leurs gaps), posée par liftMarge() via --revlift
+   (0 si pas de carte → marge à sa place normale). Une marge négative ne
+   change PAS la hauteur de la rangée : les blocs ne sont jamais repoussés
+   (contrairement à une grille "hero marge"/"main marge" qui étirerait la
+   rangée 1). ≥1025 px seulement — en dessous #home est display:block et
+   l'ordre du DOM suffit. */
 @media (min-width:1025px){.margewrap{margin-top:calc(-1 * var(--revlift,0px))}}
 .margewrap .margin-note{margin:0;margin-left:auto}
 #noteTop{display:none}
 /* La marge porte « Points faibles » (#statsExtra) en PANNEAU STANDARD —
    carton, bordure, ombre, h2 20 px + trait de plume, comme les autres blocs
    de l'accueil (plus de « décartonnage » en notes manuscrites : jugé trop
-   discret, 2026-08-22) — REMONTÉ au niveau de « À réviser » (2026-08-21,
-   voir la règle .margewrap ci-dessus). « À réviser » (#revSlot) est dans la
-   rangée du hero ; « Par thème » (#bySubSlot) reste en colonne principale
-   sous le sprint. */
+   discret, 2026-08-22) — REMONTÉ au niveau de la carte « Niveau » (2026-08-22,
+   voir la règle .margewrap ci-dessus). La carte Niveau et « À réviser »
+   (#revSlot) sont dans la rangée du hero ; « Par thème » (#bySubSlot) reste
+   en colonne principale sous le sprint. */
 @media (max-width:1024px){
   #home{display:block}
   /* Plus de colonne principale à ne pas dépasser (blocs empilés pleine
-     largeur) → la carte repasse pleine largeur. */
-  #revSlot{width:100%}
+     largeur) → carte et stats repassent pleine largeur (.hero .statgrid a une
+     spécificité 0,2,0 : il faut la même cible pour la battre en ≤1024 px). */
+  #revSlot,.hero .statgrid{width:100%}
   .margewrap{position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start}
 }
 @media (max-width:600px){
@@ -648,7 +675,7 @@ html[data-ui="m"] .theme-btn{padding:14px 15px;font-size:14px}
 html[data-ui="m"] .ui-btn{padding:15px 16px;font-size:14px}
 /* ---- Accueil : TOUJOURS une colonne (même ≥1025 px : le mode est explicite) ---- */
 html[data-ui="m"] #home{display:block}
-html[data-ui="m"] #revSlot{width:100%}
+html[data-ui="m"] #revSlot,html[data-ui="m"] #lvlSlot,html[data-ui="m"] .statgrid{width:100%}
 html[data-ui="m"] .margewrap{position:static;display:grid;grid-template-columns:1fr;gap:16px;align-items:start;margin-top:0}
 /* Hero un peu plus resserré pour une main de poche. */
 html[data-ui="m"] .eyebrow{margin-top:24px}
@@ -744,23 +771,24 @@ html[data-ui="m"] button,html[data-ui="m"] input{touch-action:manipulation}
       <span class="wr"><span style="--d:.70s">plus</span></span>
       <span class="soft" style="--d:.80s"><span class="sai">tu&nbsp;sais.<svg class="pen" viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M3 8C26 3 55 10 82 6S114 7 117 5" pathLength="1" vector-effect="non-scaling-stroke"/></svg></span></span>
     </p>
-    <p class="lede" data-rv style="--d:.78s" id="heroLede">Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.</p>
+    <p class="lede" data-rv style="--d:.78s" id="heroLede">Pour réussir en maths, il faut pratiquer : chaque question comprise renforce la suivante.</p>
     </div>
+    <div id="lvlSlot"></div>
+    <div class="statgrid" id="statGrid" data-rv style="--d:.9s"></div>
     <div id="revSlot"></div>
     </div>
 
     <div class="home-main">
-    <div class="statgrid" id="statGrid" data-rv style="--d:.84s"></div>
 
-    <section class="panel lead" aria-labelledby="hFree" data-rv style="--d:.9s">
+    <section class="panel lead" aria-labelledby="hFree" data-rv style="--d:1.06s">
       <h2 id="hFree">Entraînement libre</h2>
       <div class="row space-between wrap-row" style="margin-bottom:16px">
         <span class="lbl">Niveau</span>
         <div class="seg seg-lvl" role="group" aria-label="Niveau">
           <button class="seg-btn" data-lvl="facile">Facile</button>
-          <button class="seg-btn on" data-lvl="moyen">Moyen</button>
+          <button class="seg-btn" data-lvl="moyen">Moyen</button>
           <button class="seg-btn" data-lvl="difficile">Difficile</button>
-          <button class="seg-btn" data-lvl="auto" title="L'app ajuste la difficulté selon ta performance">Auto</button>
+          <button class="seg-btn on" data-lvl="auto" title="L'app ajuste la difficulté selon ta performance">Auto</button>
         </div>
       </div>
       <p class="lbl" style="margin:0 0 8px">Thème</p>
@@ -771,7 +799,7 @@ html[data-ui="m"] button,html[data-ui="m"] input{touch-action:manipulation}
       <p class="note">Astuce : <b>Passer</b> (ou la touche Échap) met la question de côté — elle revient juste après la question suivante. Si tu la passes 2 fois, on t'aide avec la méthode.</p>
     </section>
 
-    <section id="secSprint" class="panel second" aria-labelledby="hSprint" data-rv style="--d:1.02s">
+    <section id="secSprint" class="panel second" aria-labelledby="hSprint" data-rv style="--d:1.12s">
       <h2 id="hSprint">Sprint 60 s</h2>
       <p class="muted" style="margin:0 0 14px">Tous les thèmes mélangés, réponses rapides, sans temps mort. Le chrono ne s'arrête pas entre deux questions.</p>
       <div class="row space-between wrap-row">
@@ -3238,7 +3266,9 @@ const store={
 ["theme","subject","stats","stats_pc","stats_de","stats_en"].forEach(k=>{try{const old=localStorage.getItem("cz_"+k);if(old!==null&&localStorage.getItem("qz_"+k)===null)localStorage.setItem("qz_"+k,old);}catch(e){}});
 /* ---- Matière : "maths" (défaut), "pc" ou "de" — persistée sous qz_subject ---- */
 const SUBJECT_KEY="qz_subject";
-const state={matiere:(function(){try{const v=JSON.parse(localStorage.getItem(SUBJECT_KEY));return v==="pc"?"pc":v==="de"?"de":v==="en"?"en":"maths";}catch(e){return"maths";}})(),mode:null,level:"moyen",subject:"mix",q:null,sub:null,curLvl:null,streak:0,maxStreak:0,score:0,good:0,bad:0,n:0,timer:null,timeLeft:60,answered:false,skipQueue:[],skips:0,qT0:0};
+const state={matiere:(function(){try{const v=JSON.parse(localStorage.getItem(SUBJECT_KEY));return v==="pc"?"pc":v==="de"?"de":v==="en"?"en":"maths";}catch(e){return"maths";}})(),mode:null,level:"auto",subject:"mix",q:null,sub:null,curLvl:null,streak:0,maxStreak:0,score:0,good:0,bad:0,n:0,timer:null,timeLeft:60,answered:false,skipQueue:[],skips:0,qT0:0};
+/* Niveau : défaut "auto" (2026-08-22, sur demande) — l'app adapte la difficulté
+   à la performance du thème (autoLevel) ; session uniquement, jamais persisté. */
 /* ---- Stats : quatre emplacements (qz_stats maths / qz_stats_pc / qz_stats_de / qz_stats_en), même forme,
        Migration v2 commune + migration de nom cz_* → qz_* ci-dessus — les anciens utilisateurs ne perdent rien ---- */
 function loadStats(key){
@@ -3364,16 +3394,16 @@ function setMatiere(m){
    aucune duplication de HTML (marque et titre restés invariables). */
 const MAT_DATA={
  maths:{eyebrow:"Première · spécialité maths",
-   lede:"Deux minutes de calculs ciblés — dérivées, suites, log &amp; exp, 2e degré, limites, variations, probabilités — avec une correction détaillée (et des mini-graphiques) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
+   lede:"Pour réussir en maths, il faut pratiquer : chaque question comprise renforce la suivante.",
    noteTop:"e<sup>iπ</sup> + 1 = 0"},
  pc:{eyebrow:"Première · spécialité physique-chimie",
-   lede:"Deux minutes de calculs ciblés — Newton, énergie, champs, moles, stœchiométrie, ondes &amp; lumière, électricité — avec une correction détaillée (et des mini-visuels) à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
+   lede:"Pour réussir en physique-chimie, il faut relier les formules aux situations, gagner en rigueur et pratiquer.",
    noteTop:"F = m·a — 2ᵉ loi de Newton"},
  de:{eyebrow:"Première · allemand A2",
-   lede:"Deux minutes de révision ciblée — vocabulaire, conjugaison, articles, nombres &amp; dates, phrases utiles, mini-traductions — avec une correction détaillée à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
+   lede:"Pour réussir en allemand, il faut s'entourer de la langue : la régularité fera la différence.",
    noteTop:"der · die · das — trois articles, pas un de plus"},
  en:{eyebrow:"Première · anglais A2–B1",
-   lede:"Deux minutes de révision ciblée — vocabulaire, verbes &amp; temps, articles &amp; quantifieurs, questions, phrases utiles, mini-traductions — avec une correction détaillée à chaque question, et un bouton <em>Passer</em> pour mettre de côté ce qui te bloque.",
+   lede:"Pour réussir en anglais, il faut entendre la langue, la lire et la réutiliser régulièrement.",
    noteTop:"a · an · the — trois articles, pas un de plus"}
 };
 /* Niveaux des langues (allemand/anglais) : libellés CECRL — A2 / A2+ / B1.
@@ -3391,6 +3421,14 @@ function paintLvlButtons(){
     if(x.dataset.lvl!=="auto"&&n[x.dataset.lvl])x.textContent=n[x.dataset.lvl];
   });
 }
+/* Carte de niveau du hero (spec §3.3) : « Niveau N » + barre + « x / y XP ».
+   x = XP de la MATIÈRE ACTIVE (clé par matière — voir xpKey()) ; y = XP
+   cumulée pour ATTEINDRE le niveau suivant. */
+function renderLvlCard(){
+  const el=$("#lvlSlot");if(!el)return;
+  const x=getXP(),info=lvlInfo(x),next=xpCum(info.n+1);
+  el.innerHTML='<div class="lvcard" data-rv style="--d:.84s"><div class="lvcard-top"><span class="lvcard-nm">Niveau '+info.n+'</span><span class="lvcard-xp">'+x+' / '+next+' XP</span></div><div class="lvbar" aria-hidden="true"><i style="width:'+(info.pct*100).toFixed(1)+'%"></i></div></div>';
+}
 function renderHome(){
   /* Re-rendu « simple » (niveau, tuile thème, retour accueil) : ne jamais
      rejouer la cascade d'arrivée. Si html.boot est encore active (fenêtre de
@@ -3406,6 +3444,7 @@ function renderHome(){
   $("#heroEyebrow").textContent=M.eyebrow;
   $("#heroLede").innerHTML=M.lede;
   $("#noteTop").innerHTML=M.noteTop;
+  renderLvlCard();
   document.querySelectorAll(".seg-btn[data-mat]").forEach(x=>x.classList.toggle("on",x.dataset.mat===state.matiere));
   paintLvlButtons(); /* libellés des niveaux : A2/A2+/B1 en langues, Facile/Moyen/Difficile en maths/PC */
   $("#bestSprint").textContent="Record : "+(stats.bestSprint>0?stats.bestSprint+" pts":"—");
@@ -3462,9 +3501,9 @@ function renderHome(){
       const est=(stats.respTimes.length>=3)?Math.max(1,Math.round(stats.respTimes.reduce((a,b)=>a+b,0)/stats.respTimes.length*n/60)):0;
       const sep=`<span class="revsep" aria-hidden="true"></span>`;
       revSlot.innerHTML=
-        `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.06s">`+
+        `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.0s">`+
         `<h2 id="hRev">À réviser</h2>`+sep+
-        `<p class="revnum"><span class="revcount">${n}</span><span class="revsub">${n>1?"dues aujourd'hui":"due aujourd'hui"}</span></p>`+
+        `<span class="revnum">${n} ${n>1?"dues aujourd'hui":"due aujourd'hui"}</span>`+
         (est?sep+`<span class="revtime">≈ ${est} min</span>`:"")+
         (chaps?sep+`<span class="revchaps">${chaps}</span>`:"")+
         (ahead>0?sep+`<span class="revtime">+${ahead} à venir</span>`:"")+
@@ -3476,7 +3515,7 @@ function renderHome(){
          sont en cours d'acquisition (programmés plus tard). On le signale,
          sans appeler à l'action — le bouton n'aurait rien à proposer aujourd'hui. */
       revSlot.innerHTML=
-        `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.06s">`+
+        `<section class="panel revcta" aria-labelledby="hRev" data-rv style="--d:1.0s">`+
         `<h2 id="hRev">À réviser</h2>`+
         `<p class="revtime">Tout est à jour ✓ — ${total} question${total>1?"s":""} en cours d'acquisition, prochaine révision bientôt.</p>`+
         `</section>`;
@@ -3533,15 +3572,26 @@ function renderHome(){
       const p=b.dataset.weak.split(":");trainWeak(p[0],p[1]);
     }));
   }
-  /* Marge alignée sur « À réviser » — voir la règle .margewrap (CSS). */
+  /* Marge alignée sur la carte « Niveau » — voir la règle .margewrap (CSS). */
   liftMarge();
 }
 function liftMarge(){
-  /* --revlift = hauteur de la carte « À réviser » + gap de rangée 16 px (0
-     sans carte). Mesurée sur le DOM réel : renderHome est le seul créateur /
-     destructeur de la carte → aucun écouteur resize nécessaire. */
-  const card=document.querySelector(".revcta");
-  const h=card?Math.round(card.getBoundingClientRect().height)+16:0;
+  /* --revlift = distance du HAUT de la carte « Niveau » au bas de la rangée
+     du hero + gap de rangée 16 px : la carte est le PREMIER bloc après le
+     texte (ordre 2026-08-22 : Niveau → Stats → À réviser), donc Stats et
+     « À réviser » + leurs gaps sont tous compris — et « Tes points faibles »
+     s'aligne sur le HAUT de la carte. Si « À réviser » est vide (display:none)
+     sa hauteur tombe d'elle-même dans la mesure. Mesurée sur le DOM réel :
+     renderHome est le seul créateur / destructeur → aucun écouteur resize
+     nécessaire. */
+  const hero=document.querySelector("#home .hero");
+  const card=hero?hero.querySelector(".lvcard"):null;
+  let h=0;
+  if(hero&&card){
+    const hb=hero.getBoundingClientRect().bottom;
+    const ct=card.getBoundingClientRect().top;
+    h=Math.max(0,Math.round(hb-ct)+16);
+  }
   $("#home").style.setProperty("--revlift",h+"px");
 }
 
@@ -3702,6 +3752,21 @@ function submit(){
   state.answered=true;
   afterAnswer(res,state.q,res?"":"La bonne réponse était : <b>"+fmtAns(state.q)+"</b>. ");
 }
+/* ================= NIVEAU QUIZEY — XP PAR MATIÈRE (demande Cid 2026-08-22) =================
+   Chaque matière a SON niveau : XP = les points déjà gagnés sur bonne réponse
+   (hook dans afterAnswer), comptée dans les trois modes. Pas d'XP sur « Passer »
+   (passQ ne passe PAS par afterAnswer) ni sur mauvaise réponse. Le NIVEAU est
+   DÉDUIT de l'XP (jamais stocké) ; seule l'XP persiste — UNE CLÉ PAR MATIÈRE,
+   même convention que les stats : qz_xp (maths) / qz_xp_pc / qz_xp_de /
+   qz_xp_en (défaut 0, aucun plafond, aucun déblocage de contenu). La carte est
+   re-rendue à chaque bascule de matière (renderHome). Courbe croissante :
+   coûts de palier 50·n → xpCum(n) = 25·n·(n+1) − 50 (n ≥ 2), xpCum(1) = 0. */
+function xpCum(n){return n<=1?0:25*n*(n+1)-50;}                       /* XP pour ATTEINDRE le niveau n */
+function levelOf(xp){return Math.max(1,Math.floor((-1+Math.sqrt(1+4*(xp+50)/25))/2));}
+function lvlInfo(x){const n=levelOf(x),lo=xpCum(n),hi=xpCum(n+1);return{n,pct:(x-lo)/(hi-lo)};}
+function xpKey(){return state.matiere==="maths"?"qz_xp":"qz_xp_"+state.matiere;}
+function getXP(){const v=store.get(xpKey(),0);return typeof v==="number"&&isFinite(v)&&v>=0?v:0;}
+function gainXp(pts){const k=xpKey(),x=getXP(),before=levelOf(x);store.set(k,x+pts);renderLvlCard();if(levelOf(x+pts)>before)confetti();}
 /* Points par bonne réponse selon la DIFFICULTÉ de la question : facile 5 ·
    moyen 10 · difficile 15. On lit le niveau de la QUESTION (state.curLvl), pas
    le réglage global — en sprint les niveaux sont mélangés. + bonus de série de
@@ -3709,7 +3774,7 @@ function submit(){
 const PTS_LVL={facile:5,moyen:10,difficile:15};
 function afterAnswer(ok,q,extra){
   let pts=0;
-  if(ok){state.streak++;const base=PTS_LVL[state.curLvl]!==undefined?PTS_LVL[state.curLvl]:10;pts=base+(state.streak>=3?5:0);state.score+=pts;state.good++;stats.good++;}
+  if(ok){state.streak++;const base=PTS_LVL[state.curLvl]!==undefined?PTS_LVL[state.curLvl]:10;pts=base+(state.streak>=3?5:0);state.score+=pts;state.good++;stats.good++;gainXp(pts);}
   else state.streak=0;
   state.maxStreak=Math.max(state.maxStreak,state.streak);
   state.n++;stats.ans++;
